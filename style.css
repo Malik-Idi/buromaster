@@ -112,12 +112,16 @@ header {
 }
 
 .preview-sheet {
-    background: white;
-    border: 1px solid #000;
-    margin-top: 10px;
-    padding: 20px;
-    height: 350px;
+    background: #ffffff;
+    width: 210mm;
+    min-height: 297mm;
+    margin: 15px auto;
+    padding: 25mm;
+    border: 1px solid #999;
+    box-shadow: 0 0 10px rgba(0,0,0,0.15);
     overflow-y: auto;
+    font-size: 14px;
+    line-height: 1.6;
 }
 
 .preview-sheet h3 {
@@ -136,4 +140,18 @@ header {
 
 .preview-sheet .text {
     margin-left: 40px;
+}
+.preview-sheet .title {
+    font-weight: bold;
+    margin-top: 18px;
+    font-size: 16px;
+}
+
+.preview-sheet .subtitle {
+    margin-left: 15mm;
+    font-style: italic;
+}
+
+.preview-sheet .text {
+    margin-left: 25mm;
 }
