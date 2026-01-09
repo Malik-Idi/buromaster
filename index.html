@@ -1,1 +1,77 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>BuroMaster – Faire mon exposé</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header>
+    <h1>BuroMaster – Faire mon exposé</h1>
+
+    <nav class="steps">
+        <span class="active">Plan</span>
+        <span>Introduction</span>
+        <span>Développement</span>
+        <span>Conclusion</span>
+    </nav>
+</header>
+
+<section class="theme">
+    <label for="theme">Thème de l’exposé :</label>
+    <input type="text" id="theme" placeholder="Ex : La déforestation">
+</section>
+
+<main class="container">
+
+    <!-- COLONNE GAUCHE -->
+    <section class="work-area">
+        <h2>Plan de l’exposé</h2>
+
+        <button class="primary-btn">Générer un plan automatiquement</button>
+
+        <textarea class="editor">
+I. Introduction
+II. Causes de la déforestation
+   A. Activités humaines
+   B. Facteurs économiques et sociaux
+III. Conséquences
+   A. Biodiversité
+   B. Climat
+IV. Solutions
+V. Conclusion
+        </textarea>
+
+        <button class="validate-btn">Valider ce plan</button>
+        <button class="next-btn">Passer à l’introduction</button>
+        <button class="pdf-btn">Télécharger cette page en PDF</button>
+    </section>
+
+    <!-- COLONNE DROITE -->
+    <section class="preview-area">
+        <div class="preview-header">
+            <h2>Aperçu final</h2>
+            <label>
+                <input type="checkbox" checked>
+                Mise en forme automatique
+            </label>
+        </div>
+
+        <div class="preview-sheet">
+            <h3>PLAN</h3>
+            <p>I. Introduction</p>
+            <p>II. Causes de la déforestation</p>
+            <p>A. Activités humaines</p>
+            <p>B. Facteurs économiques et sociaux</p>
+            <p>III. Conséquences</p>
+            <p>IV. Solutions</p>
+            <p>V. Conclusion</p>
+        </div>
+    </section>
+
+</main>
+
+</body>
+</html>
 
