@@ -59,3 +59,13 @@ themeInput.addEventListener("input", () => {
         docTitle.textContent = "EXPOSÉ";
     }
 });
+const previewSheet = document.querySelector(".preview-sheet");
+const zoomButtons = document.querySelectorAll(".zoom-controls button");
+
+zoomButtons.forEach(button => {
+    button.addEventListener("click", () => {
+        const zoom = button.getAttribute("data-zoom");
+        previewSheet.style.transform = `scale(${zoom})`;
+        previewSheet.style.transformOrigin = "top center";
+    });
+});
