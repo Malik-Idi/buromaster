@@ -123,3 +123,17 @@ header {
 .preview-sheet h3 {
     text-align: center;
 }
+/* MISE EN FORME INTELLIGENTE DU PLAN */
+.preview-sheet .title {
+    font-weight: bold;
+    margin-top: 15px;
+}
+
+.preview-sheet .subtitle {
+    margin-left: 20px;
+    font-style: italic;
+}
+
+.preview-sheet .text {
+    margin-left: 40px;
+}
