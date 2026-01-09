@@ -5,18 +5,27 @@ document.addEventListener("DOMContentLoaded", function () {
     const preview = document.getElementById("preview");
 
     function updatePreview() {
-        preview.innerHTML = "";
+    preview.innerHTML = "";
 
-        const lines = editor.value.split("\n");
+    const lines = editor.value.split("\n");
 
-        lines.forEach(line => {
-            if (line.trim() !== "") {
-                const p = document.createElement("p");
-                p.textContent = line;
-                preview.appendChild(p);
-            }
-        });
-    }
+    lines.forEach(line => {
+        if (line.trim() === "") return;
+
+        const p = document.createElement("p");
+        p.textContent = line.trim();
+
+        if (/^[IVX]+\./.test(line)) {
+            p.className = "title";
+        } else if (/^[A-Z]\./.test(line.trim())) {
+            p.className = "subtitle";
+        } else {
+            p.className = "text";
+        }
+
+        preview.appendChild(p);
+    });
+}
 
     generateBtn.addEventListener("click", function () {
         editor.value =
