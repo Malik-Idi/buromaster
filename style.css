@@ -128,3 +128,8 @@ header {
     right: 20mm;
     font-size: 12px;
 }
+
+button:disabled {
+    background: #ccc;
+    cursor: not-allowed;
+}
