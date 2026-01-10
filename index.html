@@ -9,7 +9,6 @@
 
 <header>
     <h1>BuroMaster – Faire mon exposé</h1>
-
     <nav class="steps">
         <span class="active">Plan</span>
         <span>Introduction</span>
@@ -19,59 +18,67 @@
 </header>
 
 <section class="theme">
-    <label for="theme">Thème de l’exposé :</label>
+    <label>Thème de l’exposé :</label>
     <input type="text" id="theme" placeholder="Ex : La déforestation">
 </section>
 
 <main class="container">
 
-    <!-- COLONNE GAUCHE -->
-    <section class="work-area">
-        <h2>Plan de l’exposé</h2>
+<!-- ================= PLAN ================= -->
+<section class="work-area" id="plan-section">
+    <h2>Plan de l’exposé</h2>
 
-        <button id="generatePlan" class="primary-btn">
-            Générer un plan automatiquement
-        </button>
+    <button id="generatePlan" class="primary-btn">
+        Générer un plan automatiquement
+    </button>
 
-        <textarea id="editor" class="editor"></textarea>
+    <textarea id="editorPlan" class="editor"></textarea>
 
-        <button class="validate-btn">Valider ce plan</button>
-        <button class="next-btn">Passer à l’introduction</button>
-        <button class="pdf-btn">Télécharger cette page en PDF</button>
-    </section>
+    <button id="validatePlan" class="validate-btn">Valider ce plan</button>
+</section>
 
-    <!-- COLONNE DROITE -->
-    <section class="preview-area">
-        <div class="preview-header">
-            <h2>Aperçu final</h2>
+<!-- ================= INTRODUCTION ================= -->
+<section class="work-area" id="intro-section" style="display:none;">
+    <h2>Introduction</h2>
 
-            <div class="zoom-controls">
-                <button data-zoom="0.6">60%</button>
-                <button data-zoom="0.8">80%</button>
-                <button data-zoom="1">100%</button>
-            </div>
+    <button id="generateIntro" class="primary-btn">
+        Générer automatiquement l’introduction
+    </button>
+
+    <textarea id="editorIntro" class="editor"
+        placeholder="Rédige ton introduction ici..."></textarea>
+
+    <button id="validateIntro" class="validate-btn">
+        Valider l’introduction
+    </button>
+</section>
+
+<!-- ================= APERÇU ================= -->
+<section class="preview-area">
+
+<div class="preview-sheet">
+
+    <!-- PAGE 1 : PLAN -->
+    <div class="page">
+        <div class="page-header">
+            <div class="doc-title">PLAN</div>
         </div>
+        <div id="previewPlan"></div>
+        <div class="page-footer">Page 1</div>
+    </div>
 
-        <div class="preview-sheet">
-
-            <!-- EN-TÊTE -->
-            <div class="page-header">
-                <div id="doc-title">EXPOSÉ</div>
-            </div>
-
-            <!-- CONTENU -->
-            <div id="preview-content">
-                <p class="plan-title">PLAN</p>
-            </div>
-
-            <!-- PIED DE PAGE -->
-            <div class="page-footer">
-                Page 1
-            </div>
-
+    <!-- PAGE 2 : INTRODUCTION -->
+    <div class="page" id="introPage" style="display:none;">
+        <div class="page-header">
+            <div class="doc-title">INTRODUCTION</div>
         </div>
-    </section>
+        <div id="previewIntro"></div>
+        <div class="page-footer">Page 2</div>
+    </div>
 
+</div>
+
+</section>
 </main>
 
 <script src="script.js"></script>
