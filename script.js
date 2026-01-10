@@ -7,6 +7,10 @@ document.addEventListener("DOMContentLoaded", () => {
     const docTitle = document.getElementById("doc-title");
     const zoomButtons = document.querySelectorAll(".zoom-controls button");
     const previewSheet = document.querySelector(".preview-sheet");
+    const validateBtn = document.querySelector(".validate-btn");
+    const nextBtn = document.querySelector(".next-btn");
+
+nextBtn.disabled = true;
 
     function updatePreview() {
         preview.innerHTML = '<p class="plan-title">PLAN</p>';
@@ -60,4 +64,15 @@ V. Conclusion`;
         });
     });
 
+});
+validateBtn.addEventListener("click", () => {
+    if (!editor.value.trim()) {
+        alert("Veuillez d'abord générer ou écrire un plan.");
+        return;
+    }
+
+    editor.disabled = true;
+    nextBtn.disabled = false;
+
+    alert("Plan validé ✔️\nVous pouvez maintenant passer à l’introduction.");
 });
