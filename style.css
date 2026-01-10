@@ -16,10 +16,6 @@ header {
     text-align: center;
 }
 
-.steps {
-    margin-top: 10px;
-}
-
 .steps span {
     padding: 6px 12px;
     background: #ddd;
@@ -38,29 +34,23 @@ header {
     background: white;
 }
 
-.theme input {
-    width: 300px;
-    padding: 6px;
-}
-
-/* CONTAINER PRINCIPAL */
+/* CONTAINER */
 .container {
     display: flex;
     gap: 20px;
     padding: 20px;
 }
 
-/* ZONES GAUCHE & DROITE */
+/* ZONES */
 .work-area,
 .preview-area {
     background: white;
     width: 50%;
-    min-height: 550px;
     padding: 15px;
     border: 1px solid #ccc;
 }
 
-/* ZONE DE TRAVAIL */
+/* BOUTONS */
 .primary-btn {
     background: #ffeb00;
     border: none;
@@ -72,55 +62,30 @@ header {
 
 .editor {
     width: 100%;
-    height: 300px;
-    margin-bottom: 10px;
+    height: 280px;
     padding: 10px;
-    resize: none;
+    margin-bottom: 10px;
 }
 
-/* BOUTONS */
-.validate-btn {
-    background: #6ac36a;
-    border: none;
-    padding: 8px;
-    width: 100%;
-    margin-bottom: 8px;
-}
-
-.next-btn {
-    background: #2f6fd6;
-    color: white;
-    border: none;
-    padding: 8px;
-    width: 100%;
-    margin-bottom: 8px;
-}
-
+.validate-btn,
+.next-btn,
 .pdf-btn {
-    background: #d96c1f;
-    color: white;
-    border: none;
-    padding: 8px;
     width: 100%;
+    padding: 8px;
+    margin-bottom: 8px;
+    border: none;
 }
 
-/* APERÇU */
-.preview-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
+/* APERÇU WORD */
 .preview-sheet {
-    position: relative;
     width: 210mm;
     min-height: 297mm;
     margin: 20px auto;
     padding: 25mm 20mm;
     background: white;
-    border: 1px solid #999;
-    box-shadow: 0 0 10px rgba(0,0,0,0.15);
-    font-family: "Times New Roman", serif;
+    font-family: Cambria, "Times New Roman", serif;
+    box-shadow: 0 0 10px rgba(0,0,0,0.2);
+    transform: scale(0.6);
     transform-origin: top center;
 }
 
@@ -130,18 +95,30 @@ header {
     padding: 12px;
     text-align: center;
     margin-bottom: 25px;
-    background: #f3fff7;
 }
 
-#doc-title {
-    font-size: 20px;
+/* TITRE PLAN */
+.plan-title {
+    text-align: center;
+    font-family: Cambria, serif;
+    font-size: 16px;
     font-weight: bold;
-    text-transform: uppercase;
+    margin-bottom: 20px;
 }
 
-/* CONTENU */
-#preview-content p {
-    margin: 6px 0;
+/* MISE EN FORME AUTOMATIQUE */
+.title {
+    font-weight: bold;
+    margin-top: 12px;
+}
+
+.subtitle {
+    margin-left: 15mm;
+    font-style: italic;
+}
+
+.text {
+    margin-left: 25mm;
 }
 
 /* PIED DE PAGE */
@@ -150,15 +127,4 @@ header {
     bottom: 15mm;
     right: 20mm;
     font-size: 12px;
-    color: #555;
-}
-/* ZOOM CONTROLS */
-.zoom-controls {
-    margin-bottom: 10px;
-}
-
-.zoom-controls button {
-    padding: 5px 10px;
-    margin-right: 5px;
-    cursor: pointer;
 }
