@@ -1,78 +1,76 @@
 document.addEventListener("DOMContentLoaded", () => {
 
-    const editor = document.getElementById("editor");
-    const preview = document.getElementById("preview-content");
-    const generateBtn = document.getElementById("generatePlan");
-    const themeInput = document.getElementById("theme");
-    const docTitle = document.getElementById("doc-title");
-    const zoomButtons = document.querySelectorAll(".zoom-controls button");
-    const previewSheet = document.querySelector(".preview-sheet");
-    const validateBtn = document.querySelector(".validate-btn");
-    const nextBtn = document.querySelector(".next-btn");
+    const editorPlan = document.getElementById("editorPlan");
+    const editorIntro = document.getElementById("editorIntro");
 
-nextBtn.disabled = true;
+    const previewPlan = document.getElementById("previewPlan");
+    const previewIntro = document.getElementById("previewIntro");
 
-    function updatePreview() {
-        preview.innerHTML = '<p class="plan-title">PLAN</p>';
+    const validatePlanBtn = document.getElementById("validatePlan");
+    const validateIntroBtn = document.getElementById("validateIntro");
 
-        const lines = editor.value.split("\n");
+    const planSection = document.getElementById("plan-section");
+    const introSection = document.getElementById("intro-section");
+    const introPage = document.getElementById("introPage");
 
-        lines.forEach(line => {
-            if (!line.trim()) return;
-
+    /* -------- PLAN -------- */
+    function updatePlanPreview() {
+        previewPlan.innerHTML = "";
+        editorPlan.value.split("\n").forEach(line => {
+            if (line.trim() === "") return;
             const p = document.createElement("p");
-            p.textContent = line.trim();
-
-            if (/^[IVX]+\./.test(line)) {
-                p.className = "title";
-            } else if (/^[A-Z]\./.test(line.trim())) {
-                p.className = "subtitle";
-            } else {
-                p.className = "text";
-            }
-
-            preview.appendChild(p);
+            p.textContent = line;
+            previewPlan.appendChild(p);
         });
     }
 
-    generateBtn.addEventListener("click", () => {
-        editor.value =
+    document.getElementById("generatePlan").onclick = () => {
+        editorPlan.value =
 `I. Introduction
 II. Causes du sujet
-A. Première cause
-B. Deuxième cause
 III. Conséquences
-A. Première conséquence
-B. Deuxième conséquence
 IV. Solutions
 V. Conclusion`;
+        updatePlanPreview();
+    };
 
-        updatePreview();
-    });
+    editorPlan.addEventListener("input", updatePlanPreview);
 
-    editor.addEventListener("input", updatePreview);
+    validatePlanBtn.onclick = () => {
+        if (editorPlan.value.trim() === "") {
+            alert("Le plan est vide");
+            return;
+        }
+        introSection.style.display = "block";
+        introPage.style.display = "block";
+        introSection.scrollIntoView({ behavior: "smooth" });
+    };
 
-    themeInput.addEventListener("input", () => {
-        docTitle.textContent = themeInput.value
-            ? "EXPOSÉ : " + themeInput.value
-            : "EXPOSÉ";
-    });
-
-    zoomButtons.forEach(btn => {
-        btn.addEventListener("click", () => {
-            previewSheet.style.transform = `scale(${btn.dataset.zoom})`;
+    /* -------- INTRODUCTION -------- */
+    function updateIntroPreview() {
+        previewIntro.innerHTML = "";
+        editorIntro.value.split("\n").forEach(line => {
+            if (line.trim() === "") return;
+            const p = document.createElement("p");
+            p.textContent = line;
+            previewIntro.appendChild(p);
         });
-    });
-
-});
-validateBtn.addEventListener("click", () => {
-    if (!editor.value.trim()) {
-        alert("Veuillez d'abord générer ou écrire un plan.");
-        return;
     }
 
-    editor.disabled = true;
-    nextBtn.disabled = false;
+    document.getElementById("generateIntro").onclick = () => {
+        editorIntro.value =
+"Dans cet exposé, nous allons parler de ce sujet important. Nous verrons ses causes, ses conséquences et les solutions possibles.";
+        updateIntroPreview();
+    };
 
-    alert("Plan validé ✔️\nVous pouvez maintenant passer à l’introduction.");
+    editorIntro.addEventListener("input", updateIntroPreview);
+
+    validateIntroBtn.onclick = () => {
+        if (editorIntro.value.trim() === "") {
+            alert("Introduction vide");
+            return;
+        }
+        alert("Introduction validée ✅");
+    };
+
 });
