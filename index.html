@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>BuroMaster – Faire mon exposé</title>
+    <title>BuroMaster – Faire mon exposé (Plan)</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -32,33 +32,19 @@
         Générer un plan automatiquement
     </button>
 
-    <textarea id="editorPlan" class="editor"></textarea>
+    <textarea id="editorPlan" class="editor"
+        placeholder="Écris ton plan ici..."></textarea>
 
-    <button id="validatePlan" class="validate-btn">Valider ce plan</button>
-</section>
-
-<!-- ================= INTRODUCTION ================= -->
-<section class="work-area" id="intro-section" style="display:none;">
-    <h2>Introduction</h2>
-
-    <button id="generateIntro" class="primary-btn">
-        Générer automatiquement l’introduction
-    </button>
-
-    <textarea id="editorIntro" class="editor"
-        placeholder="Rédige ton introduction ici..."></textarea>
-
-    <button id="validateIntro" class="validate-btn">
-        Valider l’introduction
+    <button id="validatePlan" class="validate-btn">
+        Valider ce plan
     </button>
 </section>
 
 <!-- ================= APERÇU ================= -->
 <section class="preview-area">
-
 <div class="preview-sheet">
 
-    <!-- PAGE 1 : PLAN -->
+    <!-- PAGE 1 : Plan Word -->
     <div class="page">
         <div class="page-header">
             <div class="doc-title">PLAN</div>
@@ -67,18 +53,9 @@
         <div class="page-footer">Page 1</div>
     </div>
 
-    <!-- PAGE 2 : INTRODUCTION -->
-    <div class="page" id="introPage" style="display:none;">
-        <div class="page-header">
-            <div class="doc-title">INTRODUCTION</div>
-        </div>
-        <div id="previewIntro"></div>
-        <div class="page-footer">Page 2</div>
-    </div>
-
 </div>
-
 </section>
+
 </main>
 
 <script src="script.js"></script>
