@@ -69,3 +69,6 @@ zoomButtons.forEach(button => {
         previewSheet.style.transformOrigin = "top center";
     });
 });
+window.addEventListener("load", () => {
+    previewSheet.style.transform = "scale(0.6)";
+});
