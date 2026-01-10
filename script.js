@@ -1,76 +1,51 @@
 document.addEventListener("DOMContentLoaded", () => {
 
     const editorPlan = document.getElementById("editorPlan");
-    const editorIntro = document.getElementById("editorIntro");
-
     const previewPlan = document.getElementById("previewPlan");
-    const previewIntro = document.getElementById("previewIntro");
 
+    const themeInput = document.getElementById("theme");
+
+    const generatePlanBtn = document.getElementById("generatePlan");
     const validatePlanBtn = document.getElementById("validatePlan");
-    const validateIntroBtn = document.getElementById("validateIntro");
 
-    const planSection = document.getElementById("plan-section");
-    const introSection = document.getElementById("intro-section");
-    const introPage = document.getElementById("introPage");
-
-    /* -------- PLAN -------- */
     function updatePlanPreview() {
-        previewPlan.innerHTML = "";
-        editorPlan.value.split("\n").forEach(line => {
+        previewPlan.innerHTML = ""; // vide l'aperçu
+
+        const lines = editorPlan.value.split("\n");
+        lines.forEach(line => {
             if (line.trim() === "") return;
+
             const p = document.createElement("p");
-            p.textContent = line;
+            p.textContent = line.trim();
             previewPlan.appendChild(p);
         });
     }
 
-    document.getElementById("generatePlan").onclick = () => {
+    generatePlanBtn.addEventListener("click", () => {
         editorPlan.value =
 `I. Introduction
 II. Causes du sujet
+   A. Première cause
+   B. Deuxième cause
 III. Conséquences
+   A. Première conséquence
+   B. Deuxième conséquence
 IV. Solutions
 V. Conclusion`;
+
         updatePlanPreview();
-    };
+    });
 
     editorPlan.addEventListener("input", updatePlanPreview);
 
-    validatePlanBtn.onclick = () => {
+    validatePlanBtn.addEventListener("click", () => {
         if (editorPlan.value.trim() === "") {
-            alert("Le plan est vide");
+            alert("Le plan est vide. Écris ou génère un plan avant de valider.");
             return;
         }
-        introSection.style.display = "block";
-        introPage.style.display = "block";
-        introSection.scrollIntoView({ behavior: "smooth" });
-    };
+        alert("🍀 Plan validé ! Tu peux maintenant passer à l’introduction.");
 
-    /* -------- INTRODUCTION -------- */
-    function updateIntroPreview() {
-        previewIntro.innerHTML = "";
-        editorIntro.value.split("\n").forEach(line => {
-            if (line.trim() === "") return;
-            const p = document.createElement("p");
-            p.textContent = line;
-            previewIntro.appendChild(p);
-        });
-    }
-
-    document.getElementById("generateIntro").onclick = () => {
-        editorIntro.value =
-"Dans cet exposé, nous allons parler de ce sujet important. Nous verrons ses causes, ses conséquences et les solutions possibles.";
-        updateIntroPreview();
-    };
-
-    editorIntro.addEventListener("input", updateIntroPreview);
-
-    validateIntroBtn.onclick = () => {
-        if (editorIntro.value.trim() === "") {
-            alert("Introduction vide");
-            return;
-        }
-        alert("Introduction validée ✅");
-    };
+        // Ici plus tard : redirection vers introduction.html ou activation de la suite
+    });
 
 });
