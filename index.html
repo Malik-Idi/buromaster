@@ -30,20 +30,10 @@
         <h2>Plan de l’exposé</h2>
 
         <button id="generatePlan" class="primary-btn">
-    Générer un plan automatiquement
-</button>
+            Générer un plan automatiquement
+        </button>
 
-        <textarea id="editor" class="editor">
-I. Introduction
-II. Causes de la déforestation
-   A. Activités humaines
-   B. Facteurs économiques et sociaux
-III. Conséquences
-   A. Biodiversité
-   B. Climat
-IV. Solutions
-V. Conclusion
-        </textarea>
+        <textarea id="editor" class="editor"></textarea>
 
         <button class="validate-btn">Valider ce plan</button>
         <button class="next-btn">Passer à l’introduction</button>
@@ -54,47 +44,36 @@ V. Conclusion
     <section class="preview-area">
         <div class="preview-header">
             <h2>Aperçu final</h2>
+
             <div class="zoom-controls">
-    <button data-zoom="0.6">60%</button>
-    <button data-zoom="0.8">80%</button>
-    <button data-zoom="1">100%</button>
-</div>
-            <label>
-                <input type="checkbox" checked>
-                Mise en forme automatique
-            </label>
+                <button data-zoom="0.6">60%</button>
+                <button data-zoom="0.8">80%</button>
+                <button data-zoom="1">100%</button>
+            </div>
         </div>
 
         <div class="preview-sheet">
 
-    <!-- EN-TÊTE WORD -->
-    <div class="page-header">
-        <div id="doc-title">EXPOSÉ</div>
-    </div>
+            <!-- EN-TÊTE -->
+            <div class="page-header">
+                <div id="doc-title">EXPOSÉ</div>
+            </div>
 
-    <!-- CONTENU -->
-    <div id="preview-content">
-        <div class="doc-header">
-    <h1 id="docTheme">Exposé</h1>
-</div>
-        <h3>PLAN</h3>
-        <p>I. Introduction</p>
-        <p>II. Causes</p>
-        <p>III. Conséquences</p>
-        <p>IV. Solutions</p>
-        <p>V. Conclusion</p>
-    </div>
+            <!-- CONTENU -->
+            <div id="preview-content">
+                <p class="plan-title">PLAN</p>
+            </div>
 
-    <!-- PIED DE PAGE -->
-    <div class="page-footer">
-        Page <span id="page-number">1</span>
-    </div>
+            <!-- PIED DE PAGE -->
+            <div class="page-footer">
+                Page 1
+            </div>
 
-</div>
+        </div>
+    </section>
 
 </main>
-<script src="script.js"></script>
 
+<script src="script.js"></script>
 </body>
 </html>
-
