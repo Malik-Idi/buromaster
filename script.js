@@ -2,7 +2,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     const generateBtn = document.getElementById("generatePlan");
     const editor = document.getElementById("editor");
-    const preview = document.getElementById("preview");
+    const preview = document.getElementById("preview-content");
 
     function updatePreview() {
     preview.innerHTML = "";
