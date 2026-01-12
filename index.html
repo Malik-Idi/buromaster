@@ -3,42 +3,33 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BuroMaster 2026 – Faire mon exposé</title>
+    <title>BuroMaster – Faire mon exposé</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
 <header>
-    <h1>BuroMaster – Faire mon exposé</h1>
+    <h1>BuroMaster</h1>
     <nav class="steps">
         <span class="active">Plan</span>
-        <span>Introduction</span>
+        <span>Intro</span>
         <span>Développement</span>
         <span>Conclusion</span>
     </nav>
 </header>
 
 <section class="theme">
-    <label for="theme">Thème de l’exposé :</label>
-    <input type="text" id="theme" placeholder="Ex : La déforestation">
+    <label for="theme">Thème :</label>
+    <input type="text" id="theme" placeholder="Ex : La déforestation au Bénin">
 </section>
 
 <main class="container">
-    <!-- COLONNE GAUCHE : ÉDITION -->
+    <!-- ZONE ÉDITION -->
     <section class="work-area">
-        <h2>Plan de l’exposé</h2>
-        <button type="button" id="generatePlan" class="primary-btn">Générer un plan automatiquement</button>
+        <h2>Édition du Plan</h2>
+        <button type="button" id="generatePlan" class="primary-btn">Générer un modèle</button>
         
-        <textarea id="editor" class="editor">
-I. Introduction
-II. Causes de la déforestation
-   A. Activités humaines
-   B. Facteurs économiques
-III. Conséquences
-   A. Biodiversité
-   B. Climat
-IV. Solutions
-V. Conclusion</textarea>
+        <textarea id="editor" class="editor" placeholder="Tapez votre plan ici..."></textarea>
         
         <div class="actions-bar">
             <button type="button" id="validatePlan" class="validate-btn">Valider ce plan</button>
@@ -47,30 +38,31 @@ V. Conclusion</textarea>
         </div>
     </section>
 
-    <!-- COLONNE DROITE : APERÇU -->
+    <!-- ZONE APERÇU (S'adapte sur Mobile) -->
     <section class="preview-area">
         <div class="preview-header">
-            <h2>Aperçu final</h2>
+            <h2>Aperçu A4</h2>
             <div class="zoom-controls">
-                <button type="button" data-zoom="0.6">60%</button>
+                <button type="button" data-zoom="0.5">50%</button>
                 <button type="button" data-zoom="0.8">80%</button>
                 <button type="button" data-zoom="1">100%</button>
             </div>
         </div>
 
-        <div class="preview-sheet" id="pdf-content">
-            <div class="page-header">
-                <div id="doc-title">EXPOSÉ</div>
+        <div class="preview-scroll">
+            <div class="preview-sheet" id="pdf-content">
+                <div class="page-header">
+                    <div id="doc-title">EXPOSÉ</div>
+                </div>
+                <div id="preview-content">
+                    <!-- Le plan s'affiche ici -->
+                </div>
+                <div class="page-footer">Page 1</div>
             </div>
-            <div id="preview-content">
-                <!-- Le contenu sera injecté ici par script.js -->
-            </div>
-            <div class="page-footer">Page 1</div>
         </div>
     </section>
 </main>
     
-<!-- SCRIPTS -->
 <script src="cdnjs.cloudflare.com"></script>
 <script src="script.js"></script>
 
