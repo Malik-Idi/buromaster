@@ -16,6 +16,10 @@ header {
     text-align: center;
 }
 
+.steps {
+    margin-top: 10px;
+}
+
 .steps span {
     padding: 6px 12px;
     background: #ddd;
@@ -34,23 +38,29 @@ header {
     background: white;
 }
 
-/* CONTAINER */
+.theme input {
+    width: 300px;
+    padding: 6px;
+}
+
+/* CONTAINER PRINCIPAL */
 .container {
     display: flex;
     gap: 20px;
     padding: 20px;
 }
 
-/* ZONES */
+/* ZONES GAUCHE & DROITE — DIMENSIONS QUASI IDENTIQUES */
 .work-area,
 .preview-area {
     background: white;
     width: 50%;
+    min-height: 550px;
     padding: 15px;
     border: 1px solid #ccc;
 }
 
-/* BOUTONS */
+/* ZONE DE TRAVAIL */
 .primary-btn {
     background: #ffeb00;
     border: none;
@@ -62,74 +72,54 @@ header {
 
 .editor {
     width: 100%;
-    height: 280px;
-    padding: 10px;
+    height: 300px;
     margin-bottom: 10px;
+    padding: 10px;
+    resize: none;
 }
 
-.validate-btn,
-.next-btn,
-.pdf-btn {
-    width: 100%;
-    padding: 8px;
-    margin-bottom: 8px;
+/* BOUTONS */
+.validate-btn {
+    background: #6ac36a;
     border: none;
+    padding: 8px;
+    width: 100%;
+    margin-bottom: 8px;
 }
 
-/* APERÇU WORD */
+.next-btn {
+    background: #2f6fd6;
+    color: white;
+    border: none;
+    padding: 8px;
+    width: 100%;
+    margin-bottom: 8px;
+}
+
+.pdf-btn {
+    background: #d96c1f;
+    color: white;
+    border: none;
+    padding: 8px;
+    width: 100%;
+}
+
+/* APERÇU */
+.preview-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
 .preview-sheet {
-    width: 210mm;
-    min-height: 297mm;
-    margin: 20px auto;
-    padding: 25mm 20mm;
     background: white;
-    font-family: Cambria, "Times New Roman", serif;
-    box-shadow: 0 0 10px rgba(0,0,0,0.2);
-    transform: scale(0.6);
-    transform-origin: top center;
+    border: 1px solid #000;
+    margin-top: 10px;
+    padding: 20px;
+    height: 350px;
+    overflow-y: auto;
 }
 
-/* EN-TÊTE */
-.page-header {
-    border: 2px solid #0aa64b;
-    padding: 12px;
+.preview-sheet h3 {
     text-align: center;
-    margin-bottom: 25px;
-}
-
-/* TITRE PLAN */
-.plan-title {
-    text-align: center;
-    font-family: Cambria, serif;
-    font-size: 16px;
-    font-weight: bold;
-    margin-bottom: 20px;
-}
-
-/* MISE EN FORME AUTOMATIQUE */
-.title {
-    font-weight: bold;
-    margin-top: 12px;
-}
-
-.subtitle {
-    margin-left: 15mm;
-    font-style: italic;
-}
-
-.text {
-    margin-left: 25mm;
-}
-
-/* PIED DE PAGE */
-.page-footer {
-    position: absolute;
-    bottom: 15mm;
-    right: 20mm;
-    font-size: 12px;
-}
-
-button:disabled {
-    background: #ccc;
-    cursor: not-allowed;
 }
