@@ -2,6 +2,7 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"> <!-- Ajout crucial pour le mobile -->
     <title>BuroMaster – Faire mon exposé</title>
     <link rel="stylesheet" href="style.css">
 </head>
@@ -9,8 +10,7 @@
 
 <header>
     <h1>BuroMaster – Faire mon exposé</h1>
-
-    <nav class="steps">
+    <nav class="steps" aria-label="Étapes de création">
         <span class="active">Plan</span>
         <span>Introduction</span>
         <span>Développement</span>
@@ -19,20 +19,22 @@
 </header>
 
 <section class="theme">
-    <label for="theme">Thème de l’exposé :</label>
-    <input type="text" id="theme" placeholder="Ex : La déforestation">
+    <label for="theme-input">Thème de l’exposé :</label>
+    <!-- L'ID doit correspondre au 'for' du label -->
+    <input type="text" id="theme-input" placeholder="Ex : La déforestation">
 </section>
 
 <main class="container">
 
-    <!-- COLONNE GAUCHE -->
+    <!-- COLONNE GAUCHE : ÉDITION -->
     <section class="work-area">
         <h2>Plan de l’exposé</h2>
 
-        <button id="generatePlan" class="primary-btn">
+        <button type="button" id="generatePlan" class="primary-btn">
             Générer un plan automatiquement
         </button>
 
+        <label for="editor" class="sr-only">Modifier le plan</label>
         <textarea id="editor" class="editor">
 I. Introduction
 II. Causes de la déforestation
@@ -45,49 +47,45 @@ IV. Solutions
 V. Conclusion
         </textarea>
 
-        <button class="validate-btn">Valider ce plan</button>
-        <button class="next-btn">Passer à l’introduction</button>
-        <button class="pdf-btn">Télécharger cette page en PDF</button>
+        <div class="actions-bar">
+            <button type="button" class="validate-btn">Valider ce plan</button>
+            <button type="button" class="next-btn">Passer à l’introduction</button>
+            <button type="button" id="downloadPdf" class="pdf-btn">Télécharger en PDF</button>
+        </div>
     </section>
 
-    <!-- COLONNE DROITE -->
+    <!-- COLONNE DROITE : PRÉVISUALISATION -->
     <section class="preview-area">
         <div class="preview-header">
             <h2>Aperçu final</h2>
             <div class="zoom-controls">
-            <button data-zoom="0.6">60%</button>
-            <button data-zoom="0.8">80%</button>
-            <button data-zoom="1">100%</button>
-        </div>
+                <button type="button" data-zoom="0.6">60%</button>
+                <button type="button" data-zoom="0.8">80%</button>
+                <button type="button" data-zoom="1">100%</button>
+            </div>
             <label>
-                <input type="checkbox" checked>
+                <input type="checkbox" id="auto-format" checked>
                 Mise en forme automatique
             </label>
         </div>
 
-        <div class="preview-sheet">
+        <!-- Début de la feuille de prévisualisation -->
+        <div class="preview-sheet" id="pdf-content">
+            <div class="page-header">
+                <div id="doc-title">EXPOSÉ</div>
+            </div>
 
-    <!-- EN-TÊTE WORD -->
-    <div class="page-header">
-        <div id="doc-title">EXPOSÉ</div>
-    </div>
+            <div id="preview-content">
+                <h3>PLAN</h3>
+                <!-- Le contenu ici sera injecté par le JavaScript -->
+                <div class="placeholder-text">Le plan apparaîtra ici...</div>
+            </div>
 
-    <!-- CONTENU -->
-    <div id="preview-content">
-        <h3>PLAN</h3>
-        <p>I. Introduction</p>
-        <p>II. Causes</p>
-        <p>III. Conséquences</p>
-        <p>IV. Solutions</p>
-        <p>V. Conclusion</p>
-    </div>
-
-    <!-- PIED DE PAGE -->
-    <div class="page-footer">
-        Page <span id="page-number">1</span>
-    </div>
-
-</div>
+            <div class="page-footer">
+                Page <span id="page-number">1</span>
+            </div>
+        </div> <!-- Fermeture manquante corrigée -->
+    </section>
 
 </main>
     
