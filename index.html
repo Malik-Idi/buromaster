@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"> <!-- Ajout crucial pour le mobile -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>BuroMaster – Faire mon exposé</title>
     <link rel="stylesheet" href="style.css">
 </head>
@@ -10,7 +10,7 @@
 
 <header>
     <h1>BuroMaster – Faire mon exposé</h1>
-    <nav class="steps" aria-label="Étapes de création">
+    <nav class="steps">
         <span class="active">Plan</span>
         <span>Introduction</span>
         <span>Développement</span>
@@ -19,42 +19,21 @@
 </header>
 
 <section class="theme">
-    <label for="theme-input">Thème de l’exposé :</label>
-    <!-- L'ID doit correspondre au 'for' du label -->
-    <input type="text" id="theme-input" placeholder="Ex : La déforestation">
+    <label for="theme">Thème de l’exposé :</label>
+    <input type="text" id="theme" placeholder="Ex : La déforestation">
 </section>
 
 <main class="container">
-
-    <!-- COLONNE GAUCHE : ÉDITION -->
     <section class="work-area">
         <h2>Plan de l’exposé</h2>
-
-        <button type="button" id="generatePlan" class="primary-btn">
-            Générer un plan automatiquement
-        </button>
-
-        <label for="editor" class="sr-only">Modifier le plan</label>
-        <textarea id="editor" class="editor">
-I. Introduction
-II. Causes de la déforestation
-   A. Activités humaines
-   B. Facteurs économiques et sociaux
-III. Conséquences
-   A. Biodiversité
-   B. Climat
-IV. Solutions
-V. Conclusion
-        </textarea>
-
+        <button type="button" id="generatePlan" class="primary-btn">Générer un plan automatiquement</button>
+        <textarea id="editor" class="editor">I. Introduction...</textarea>
+        
         <div class="actions-bar">
-            <button type="button" class="validate-btn">Valider ce plan</button>
-            <button type="button" class="next-btn">Passer à l’introduction</button>
             <button type="button" id="downloadPdf" class="pdf-btn">Télécharger en PDF</button>
         </div>
     </section>
 
-    <!-- COLONNE DROITE : PRÉVISUALISATION -->
     <section class="preview-area">
         <div class="preview-header">
             <h2>Aperçu final</h2>
@@ -63,32 +42,23 @@ V. Conclusion
                 <button type="button" data-zoom="0.8">80%</button>
                 <button type="button" data-zoom="1">100%</button>
             </div>
-            <label>
-                <input type="checkbox" id="auto-format" checked>
-                Mise en forme automatique
-            </label>
         </div>
 
-        <!-- Début de la feuille de prévisualisation -->
+        <!-- C'est ce bloc qui sera transformé en PDF -->
         <div class="preview-sheet" id="pdf-content">
             <div class="page-header">
                 <div id="doc-title">EXPOSÉ</div>
             </div>
-
             <div id="preview-content">
-                <h3>PLAN</h3>
-                <!-- Le contenu ici sera injecté par le JavaScript -->
-                <div class="placeholder-text">Le plan apparaîtra ici...</div>
+                <!-- Le JS écrira ici -->
             </div>
-
-            <div class="page-footer">
-                Page <span id="page-number">1</span>
-            </div>
-        </div> <!-- Fermeture manquante corrigée -->
+            <div class="page-footer">Page 1</div>
+        </div>
     </section>
-
 </main>
     
+<!-- ON PLACE LES SCRIPTS ICI (À la fin du body) -->
+<script src="cdnjs.cloudflare.com"></script>
 <script src="script.js"></script>
 
 </body>
