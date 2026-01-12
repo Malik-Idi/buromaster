@@ -89,3 +89,14 @@ V. Conclusion`;
     font-size: 12px;
     color: #555;
 }
+
+const themeInput = document.getElementById("theme");
+const docTitle = document.getElementById("doc-title");
+
+themeInput.addEventListener("input", () => {
+    if (themeInput.value.trim() !== "") {
+        docTitle.textContent = "EXPOSÉ : " + themeInput.value;
+    } else {
+        docTitle.textContent = "EXPOSÉ";
+    }
+});
