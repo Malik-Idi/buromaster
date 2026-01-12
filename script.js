@@ -1,51 +1,65 @@
-document.addEventListener("DOMContentLoaded", () => {
+// Récupération des éléments
+const editor = document.getElementById("editor");
+const preview = document.getElementById("preview");
+const generateBtn = document.getElementById("generatePlan");
+const validateBtn = document.getElementById("validatePlan");
+const goIntroBtn = document.getElementById("goIntro");
 
-    const editorPlan = document.getElementById("editorPlan");
-    const previewPlan = document.getElementById("previewPlan");
+// PLAN AUTOMATIQUE
+generateBtn.addEventListener("click", () => {
+    const planAuto = `
+I. Introduction
 
-    const themeInput = document.getElementById("theme");
+II. Causes de la déforestation
+A. Les activités humaines
+B. Facteurs économiques et sociaux
 
-    const generatePlanBtn = document.getElementById("generatePlan");
-    const validatePlanBtn = document.getElementById("validatePlan");
+III. Conséquences de la déforestation
+A. Impact sur la biodiversité
+B. Effets sur le climat
+C. Conséquences sociales et économiques
 
-    function updatePlanPreview() {
-        previewPlan.innerHTML = ""; // vide l'aperçu
+IV. Solutions pour lutter contre la déforestation
+A. Gestion durable des forêts
+B. Politiques et législation
+C. Sensibilisation et éducation
 
-        const lines = editorPlan.value.split("\n");
-        lines.forEach(line => {
-            if (line.trim() === "") return;
+V. Conclusion
+    `.trim();
 
+    editor.value = planAuto;
+    updatePreview();
+});
+
+// SYNCHRONISATION EN TEMPS RÉEL
+editor.addEventListener("input", updatePreview);
+
+function updatePreview() {
+    preview.innerHTML = "";
+
+    const lines = editor.value.split("\n");
+
+    lines.forEach(line => {
+        if (line.trim() !== "") {
             const p = document.createElement("p");
-            p.textContent = line.trim();
-            previewPlan.appendChild(p);
-        });
+            p.textContent = line;
+            preview.appendChild(p);
+        }
+    });
+}
+
+// VALIDATION DU PLAN
+validateBtn.addEventListener("click", () => {
+    if (editor.value.trim() === "") {
+        alert("Veuillez d'abord créer ou saisir un plan.");
+        return;
     }
 
-    generatePlanBtn.addEventListener("click", () => {
-        editorPlan.value =
-`I. Introduction
-II. Causes du sujet
-   A. Première cause
-   B. Deuxième cause
-III. Conséquences
-   A. Première conséquence
-   B. Deuxième conséquence
-IV. Solutions
-V. Conclusion`;
+    alert("Plan validé ✔️ Vous pouvez passer à l'introduction.");
+    goIntroBtn.disabled = false;
+});
 
-        updatePlanPreview();
-    });
-
-    editorPlan.addEventListener("input", updatePlanPreview);
-
-    validatePlanBtn.addEventListener("click", () => {
-        if (editorPlan.value.trim() === "") {
-            alert("Le plan est vide. Écris ou génère un plan avant de valider.");
-            return;
-        }
-        alert("🍀 Plan validé ! Tu peux maintenant passer à l’introduction.");
-
-        // Ici plus tard : redirection vers introduction.html ou activation de la suite
-    });
-
+// BOUTON INTRO (placeholder)
+goIntroBtn.addEventListener("click", () => {
+    alert("Étape suivante : page Introduction (à venir)");
 });
