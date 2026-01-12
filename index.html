@@ -29,9 +29,11 @@
     <section class="work-area">
         <h2>Plan de l’exposé</h2>
 
-        <button class="primary-btn">Générer un plan automatiquement</button>
+        <button class="primary-btn" id="generatePlan">
+    Générer un plan automatiquement
+</button>
 
-        <textarea class="editor">
+        <textarea class="editor" id="editor"></textarea>
 I. Introduction
 II. Causes de la déforestation
    A. Activités humaines
@@ -43,8 +45,12 @@ IV. Solutions
 V. Conclusion
         </textarea>
 
-        <button class="validate-btn">Valider ce plan</button>
-        <button class="next-btn">Passer à l’introduction</button>
+        <button class="validate-btn" id="validatePlan">Valider ce plan</button>
+        
+        <button class="next-btn" id="goIntro" disabled>
+    Passer à l’introduction
+</button>
+
         <button class="pdf-btn">Télécharger cette page en PDF</button>
     </section>
 
@@ -58,7 +64,7 @@ V. Conclusion
             </label>
         </div>
 
-        <div class="preview-sheet">
+        <div class="preview-sheet" id="preview"></div>
             <h3>PLAN</h3>
             <p>I. Introduction</p>
             <p>II. Causes de la déforestation</p>
@@ -74,3 +80,5 @@ V. Conclusion
 
 </body>
 </html>
+
+<script src="script.js"></script>
