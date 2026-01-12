@@ -1,51 +1,76 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Faire Mon Exposé - Plan</title>
-    <link rel="stylesheet" href="style.css" />
+    <meta charset="UTF-8">
+    <title>BuroMaster – Faire mon exposé</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <header class="header">
-        <h1>Faire Mon Exposé</h1>
-        <nav class="menu">
-            <button class="tab active">Plan</button>
-            <button class="tab" disabled>Introduction</button>
-            <button class="tab" disabled>Développement</button>
-            <button class="tab" disabled>Conclusion</button>
-        </nav>
-    </header>
 
-    <main class="container">
-        <section class="left">
+<header>
+    <h1>BuroMaster – Faire mon exposé</h1>
 
-            <div class="theme-section">
-                <label for="theme">Saisissez votre thème</label>
-                <input type="text" id="theme" placeholder="Ex: La déforestation et ses conséquences">
-            </div>
+    <nav class="steps">
+        <span class="active">Plan</span>
+        <span>Introduction</span>
+        <span>Développement</span>
+        <span>Conclusion</span>
+    </nav>
+</header>
 
-            <div class="buttons-row">
-                <button id="btn-has-plan">J'ai un plan</button>
-                <button id="btn-generate">Générer un plan</button>
-            </div>
+<section class="theme">
+    <label for="theme">Thème de l’exposé :</label>
+    <input type="text" id="theme" placeholder="Ex : La déforestation">
+</section>
 
-            <h3>Plan (Brouillon)</h3>
-            <textarea id="plan-text" placeholder="Votre plan ici..."></textarea>
+<main class="container">
 
-            <div class="buttons-col">
-                <button id="import-plan">Importer mon plan</button>
-                <button id="go-intro">Passer à l'introduction</button>
-                <button id="download-plan">Télécharger Plan PDF</button>
-            </div>
-        </section>
+    <!-- COLONNE GAUCHE -->
+    <section class="work-area">
+        <h2>Plan de l’exposé</h2>
 
-        <section class="right">
-            <h2>Aperçu</h2>
-            <div id="preview" class="preview-box">Plan</div>
-        </section>
-    </main>
+        <button class="primary-btn">Générer un plan automatiquement</button>
 
-    <script src="script.js"></script>
+        <textarea class="editor">
+I. Introduction
+II. Causes de la déforestation
+   A. Activités humaines
+   B. Facteurs économiques et sociaux
+III. Conséquences
+   A. Biodiversité
+   B. Climat
+IV. Solutions
+V. Conclusion
+        </textarea>
+
+        <button class="validate-btn">Valider ce plan</button>
+        <button class="next-btn">Passer à l’introduction</button>
+        <button class="pdf-btn">Télécharger cette page en PDF</button>
+    </section>
+
+    <!-- COLONNE DROITE -->
+    <section class="preview-area">
+        <div class="preview-header">
+            <h2>Aperçu final</h2>
+            <label>
+                <input type="checkbox" checked>
+                Mise en forme automatique
+            </label>
+        </div>
+
+        <div class="preview-sheet">
+            <h3>PLAN</h3>
+            <p>I. Introduction</p>
+            <p>II. Causes de la déforestation</p>
+            <p>A. Activités humaines</p>
+            <p>B. Facteurs économiques et sociaux</p>
+            <p>III. Conséquences</p>
+            <p>IV. Solutions</p>
+            <p>V. Conclusion</p>
+        </div>
+    </section>
+
+</main>
+
 </body>
 </html>
