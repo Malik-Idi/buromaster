@@ -50,16 +50,14 @@ header {
     padding: 20px;
 }
 
-/* ZONES GAUCHE & DROITE — DIMENSIONS QUASI IDENTIQUES */
+/* ZONES GAUCHE & DROITE */
 .work-area,
 .preview-area {
     background: white;
     width: 50%;
-    height: 600px;
+    min-height: 550px;
     padding: 15px;
     border: 1px solid #ccc;
-    display: flex;
-    flex-direction: column;
 }
 
 /* ZONE DE TRAVAIL */
@@ -114,31 +112,14 @@ header {
 }
 
 .preview-sheet {
-    background: #fff;
+    background: white;
     border: 1px solid #000;
     margin-top: 10px;
-    padding: 30px;
-    flex: 1;
+    padding: 20px;
+    height: 350px;
     overflow-y: auto;
-    font-size: 15px;
-    line-height: 1.6;
 }
 
 .preview-sheet h3 {
     text-align: center;
-}
-
-/* FORMAT DU PLAN DANS L’APERÇU */
-.preview-sheet p {
-    margin: 6px 0;
-}
-
-.preview-sheet p:nth-child(1) {
-    text-align: center;
-    font-weight: bold;
-    margin-bottom: 15px;
-}
-
-.preview-sheet p:starts-with("I.") {
-    font-weight: bold;
 }
