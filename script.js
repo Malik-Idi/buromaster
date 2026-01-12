@@ -1,113 +1,74 @@
 document.addEventListener("DOMContentLoaded", function () {
-
+    // Sélecteurs
     const generateBtn = document.getElementById("generatePlan");
     const editor = document.getElementById("editor");
-    const preview = document.getElementById("preview");
+    const preview = document.getElementById("preview-content"); // Corrigé : l'ID du HTML est preview-content
+    const themeInput = document.getElementById("theme");
+    const docTitle = document.getElementById("doc-title");
+    const previewSheet = document.querySelector(".preview-sheet");
+    const zoomButtons = document.querySelectorAll(".zoom-controls button");
 
+    // Fonction de mise à jour de l'aperçu
     function updatePreview() {
-    preview.innerHTML = "";
+        preview.innerHTML = "<h3>PLAN</h3>"; // Réinitialise avec le titre
 
-    const lines = editor.value.split("\n");
+        const lines = editor.value.split("\n");
 
-    lines.forEach(line => {
-        if (line.trim() === "") return;
+        lines.forEach(line => {
+            if (line.trim() === "") return;
 
-        const p = document.createElement("p");
-        p.textContent = line.trim();
+            const p = document.createElement("p");
+            p.textContent = line.trim();
 
-        if (/^[IVX]+\./.test(line)) {
-            p.className = "title";
-        } else if (/^[A-Z]\./.test(line.trim())) {
-            p.className = "subtitle";
-        } else {
-            p.className = "text";
-        }
+            // Logique de stylisation dynamique
+            if (/^[IVX]+\./.test(line)) {
+                p.style.fontWeight = "bold";
+                p.style.textTransform = "uppercase";
+                p.style.marginTop = "15px";
+            } else if (/^[A-Z]\./.test(line.trim())) {
+                p.style.paddingLeft = "20px";
+                p.style.fontStyle = "italic";
+            } else {
+                p.style.paddingLeft = "40px";
+            }
 
-        preview.appendChild(p);
-    });
-}
+            preview.appendChild(p);
+        });
+    }
 
+    // Bouton Générer
     generateBtn.addEventListener("click", function () {
-        editor.value =
-`I. Introduction
-
+        editor.value = `I. Introduction
 II. Causes du sujet
-A. Première cause
-B. Deuxième cause
-
+   A. Première cause
+   B. Deuxième cause
 III. Conséquences
-A. Première conséquence
-B. Deuxième conséquence
-
+   A. Première conséquence
+   B. Deuxième conséquence
 IV. Solutions
-
 V. Conclusion`;
-
         updatePreview();
     });
 
+    // Écouteur sur l'éditeur
     editor.addEventListener("input", updatePreview);
 
-});
-
-/* PAGE WORD A4 */
-.preview-sheet {
-    position: relative;
-    width: 210mm;
-    min-height: 297mm;
-    margin: auto;
-    padding: 25mm 20mm;
-    background: white;
-    font-family: "Times New Roman", serif;
-}
-
-/* EN-TÊTE */
-.page-header {
-    border: 2px solid #0aa64b;
-    padding: 12px;
-    text-align: center;
-    margin-bottom: 25px;
-    background: #f3fff7;
-}
-
-#doc-title {
-    font-size: 20px;
-    font-weight: bold;
-    text-transform: uppercase;
-}
-
-/* CONTENU */
-#preview-content p {
-    margin: 6px 0;
-}
-
-/* PIED DE PAGE */
-.page-footer {
-    position: absolute;
-    bottom: 15mm;
-    right: 20mm;
-    font-size: 12px;
-    color: #555;
-}
-
-const themeInput = document.getElementById("theme");
-const docTitle = document.getElementById("doc-title");
-
-themeInput.addEventListener("input", () => {
-    if (themeInput.value.trim() !== "") {
-        docTitle.textContent = "EXPOSÉ : " + themeInput.value;
-    } else {
-        docTitle.textContent = "EXPOSÉ";
-    }
-});
-
-const previewSheet = document.querySelector(".preview-sheet");
-const zoomButtons = document.querySelectorAll(".zoom-controls button");
-
-zoomButtons.forEach(button => {
-    button.addEventListener("click", () => {
-        const zoom = button.getAttribute("data-zoom");
-        previewSheet.style.transform = `scale(${zoom})`;
-        previewSheet.style.transformOrigin = "top center";
+    // Mise à jour du titre via le thème
+    themeInput.addEventListener("input", () => {
+        docTitle.textContent = themeInput.value.trim() !== "" 
+            ? "EXPOSÉ : " + themeInput.value.toUpperCase() 
+            : "EXPOSÉ";
     });
+
+    // Gestion du Zoom
+    zoomButtons.forEach(button => {
+        button.addEventListener("click", () => {
+            const zoom = button.getAttribute("data-zoom");
+            previewSheet.style.transform = `scale(${zoom})`;
+            previewSheet.style.transformOrigin = "top center";
+        });
+    });
+
+    // Lancement initial
+    updatePreview();
 });
