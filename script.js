@@ -27,7 +27,6 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 }
 
-
     generateBtn.addEventListener("click", function () {
         editor.value =
 `I. Introduction
