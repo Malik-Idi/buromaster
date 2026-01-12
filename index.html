@@ -1,85 +1,51 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-    <meta charset="UTF-8">
-    <title>BuroMaster – Faire mon exposé (Plan)</title>
-    <link rel="stylesheet" href="style.css">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Faire Mon Exposé - Plan</title>
+    <link rel="stylesheet" href="style.css" />
 </head>
 <body>
+    <header class="header">
+        <h1>Faire Mon Exposé</h1>
+        <nav class="menu">
+            <button class="tab active">Plan</button>
+            <button class="tab" disabled>Introduction</button>
+            <button class="tab" disabled>Développement</button>
+            <button class="tab" disabled>Conclusion</button>
+        </nav>
+    </header>
 
-<header>
-    <h1>BuroMaster – Faire mon exposé</h1>
-    <nav class="steps">
-        <span class="active">Plan</span>
-        <span>Introduction</span>
-        <span>Développement</span>
-        <span>Conclusion</span>
-    </nav>
-</header>
+    <main class="container">
+        <section class="left">
 
-<section class="theme">
-    <label>Thème de l’exposé :</label>
-    <input type="text" id="theme" placeholder="Ex : La déforestation">
-</section>
+            <div class="theme-section">
+                <label for="theme">Saisissez votre thème</label>
+                <input type="text" id="theme" placeholder="Ex: La déforestation et ses conséquences">
+            </div>
 
-<main class="container">
+            <div class="buttons-row">
+                <button id="btn-has-plan">J'ai un plan</button>
+                <button id="btn-generate">Générer un plan</button>
+            </div>
 
-<!-- ================= PLAN ================= -->
-<section class="work-area" id="plan-section">
-    <h2>Plan de l’exposé</h2>
+            <h3>Plan (Brouillon)</h3>
+            <textarea id="plan-text" placeholder="Votre plan ici..."></textarea>
 
-    <button id="generatePlan" class="primary-btn">
-        Générer un plan automatiquement
-    </button>
+            <div class="buttons-col">
+                <button id="import-plan">Importer mon plan</button>
+                <button id="go-intro">Passer à l'introduction</button>
+                <button id="download-plan">Télécharger Plan PDF</button>
+            </div>
+        </section>
 
-    <textarea id="editorPlan" class="editor"
-        placeholder="Écris ton plan ici..."></textarea>
+        <section class="right">
+            <h2>Aperçu</h2>
+            <div id="preview" class="preview-box">Plan</div>
+        </section>
+    </main>
 
-    <button id="validatePlan" class="validate-btn">
-        Valider ce plan
-    </button>
-</section>
-
-    <button id="goIntro" class="next-btn">
-    Passer à l’introduction
-</button>
-
-<button class="pdf-btn">
-    Télécharger cette page en PDF
-</button>
-    
-<!-- ================= APERÇU ================= -->
-<section class="preview-area">
-    <section class="preview-area">
-
-    <!-- EN-TÊTE DE L’APERÇU -->
-    <div class="preview-header">
-        <!-- ICI LE ZOOM -->
-    </div>
-
-    <!-- FEUILLE WORD -->
-    <div class="preview-sheet">
-        <div id="preview-content"></div>
-    </div>
-
-</section>
-
-<div class="preview-sheet">
-
-    <!-- PAGE 1 : Plan Word -->
-    <div class="page">
-        <div class="page-header">
-            <div class="doc-title">PLAN</div>
-        </div>
-        <div id="previewPlan"></div>
-        <div class="page-footer">Page 1</div>
-    </div>
-
-</div>
-</section>
-
-</main>
-
-<script src="script.js"></script>
+    <script src="script.js"></script>
 </body>
 </html>
