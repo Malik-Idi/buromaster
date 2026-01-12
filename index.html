@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BuroMaster – Faire mon exposé</title>
+    <title>BuroMaster 2026 – Faire mon exposé</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -24,16 +24,30 @@
 </section>
 
 <main class="container">
+    <!-- COLONNE GAUCHE : ÉDITION -->
     <section class="work-area">
         <h2>Plan de l’exposé</h2>
         <button type="button" id="generatePlan" class="primary-btn">Générer un plan automatiquement</button>
-        <textarea id="editor" class="editor">I. Introduction...</textarea>
+        
+        <textarea id="editor" class="editor">
+I. Introduction
+II. Causes de la déforestation
+   A. Activités humaines
+   B. Facteurs économiques
+III. Conséquences
+   A. Biodiversité
+   B. Climat
+IV. Solutions
+V. Conclusion</textarea>
         
         <div class="actions-bar">
+            <button type="button" id="validatePlan" class="validate-btn">Valider ce plan</button>
+            <button type="button" id="nextStep" class="next-btn">Passer à l’introduction</button>
             <button type="button" id="downloadPdf" class="pdf-btn">Télécharger en PDF</button>
         </div>
     </section>
 
+    <!-- COLONNE DROITE : APERÇU -->
     <section class="preview-area">
         <div class="preview-header">
             <h2>Aperçu final</h2>
@@ -44,20 +58,19 @@
             </div>
         </div>
 
-        <!-- C'est ce bloc qui sera transformé en PDF -->
         <div class="preview-sheet" id="pdf-content">
             <div class="page-header">
                 <div id="doc-title">EXPOSÉ</div>
             </div>
             <div id="preview-content">
-                <!-- Le JS écrira ici -->
+                <!-- Le contenu sera injecté ici par script.js -->
             </div>
             <div class="page-footer">Page 1</div>
         </div>
     </section>
 </main>
     
-<!-- ON PLACE LES SCRIPTS ICI (À la fin du body) -->
+<!-- SCRIPTS -->
 <script src="cdnjs.cloudflare.com"></script>
 <script src="script.js"></script>
 
