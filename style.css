@@ -55,9 +55,11 @@ header {
 .preview-area {
     background: white;
     width: 50%;
-    min-height: 550px;
+    height: 600px;
     padding: 15px;
     border: 1px solid #ccc;
+    display: flex;
+    flex-direction: column;
 }
 
 /* ZONE DE TRAVAIL */
@@ -112,14 +114,31 @@ header {
 }
 
 .preview-sheet {
-    background: white;
+    background: #fff;
     border: 1px solid #000;
     margin-top: 10px;
-    padding: 20px;
-    height: 350px;
+    padding: 30px;
+    flex: 1;
     overflow-y: auto;
+    font-size: 15px;
+    line-height: 1.6;
 }
 
 .preview-sheet h3 {
     text-align: center;
+}
+
+/* FORMAT DU PLAN DANS L’APERÇU */
+.preview-sheet p {
+    margin: 6px 0;
+}
+
+.preview-sheet p:nth-child(1) {
+    text-align: center;
+    font-weight: bold;
+    margin-bottom: 15px;
+}
+
+.preview-sheet p:starts-with("I.") {
+    font-weight: bold;
 }
