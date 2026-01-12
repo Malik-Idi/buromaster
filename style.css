@@ -142,3 +142,14 @@ header {
 .preview-sheet .text {
     margin-left: 40px;
 }
+
+/* ZOOM CONTROLS */
+.zoom-controls {
+    margin-bottom: 10px;
+}
+
+.zoom-controls button {
+    padding: 5px 10px;
+    margin-right: 5px;
+    cursor: pointer;
+}
