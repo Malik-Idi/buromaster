@@ -2,9 +2,20 @@ document.addEventListener("DOMContentLoaded", function () {
 
     const generateBtn = document.getElementById("generatePlan");
     const editor = document.getElementById("editor");
+    const preview = document.getElementById("preview");
 
-    if (!generateBtn || !editor) {
-        return;
+    function updatePreview() {
+        preview.innerHTML = "";
+
+        const lines = editor.value.split("\n");
+
+        lines.forEach(line => {
+            if (line.trim() !== "") {
+                const p = document.createElement("p");
+                p.textContent = line;
+                preview.appendChild(p);
+            }
+        });
     }
 
     generateBtn.addEventListener("click", function () {
@@ -22,6 +33,10 @@ B. Deuxième conséquence
 IV. Solutions
 
 V. Conclusion`;
+
+        updatePreview();
     });
+
+    editor.addEventListener("input", updatePreview);
 
 });
