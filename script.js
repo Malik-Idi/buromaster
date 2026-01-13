@@ -3,8 +3,6 @@ document.addEventListener("DOMContentLoaded", function () {
     const pagesContainer = document.getElementById("preview-pages");
     const themeInput = document.getElementById("theme");
 
-    // Hauteur max de contenu par page (environ 880px pour du A4 avec padding)
-    const MAX_PAGE_HEIGHT = 880; 
 
     function createNewPage(num) {
         const page = document.createElement("div");
@@ -42,16 +40,17 @@ document.addEventListener("DOMContentLoaded", function () {
                 div.className = "text-style";
             }
 
-            // On ajoute temporairement pour tester la hauteur
             currentPage.appendChild(div);
 
-            // SI DÉBORDEMENT : On bascule sur une nouvelle page
-            if (currentPage.scrollHeight > MAX_PAGE_HEIGHT) {
-                currentPage.removeChild(div); // On enlève la ligne de la page pleine
+            const pageElement = currentPage.closest(".preview-sheet");
+
+            if (pageElement.scrollHeight > pageElement.clientHeight) {
+                currentPage.removeChild(div);
                 pageNum++;
-                currentPage = createNewPage(pageNum); // Création nouvelle page
-                currentPage.appendChild(div); // On met la ligne sur la nouvelle
+                currentPage = createNewPage(pageNum);
+                currentPage.appendChild(div);
             }
+
         });
     }
 
