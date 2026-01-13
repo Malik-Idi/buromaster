@@ -1,98 +1,67 @@
-/* ... (Gardez votre BASE, HEADER et WORK-AREA tels quels) ... */
+/* BASE */
+* { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, sans-serif; }
+body { margin: 0; background: #f4f4f9; color: #333; }
 
-/* COLONNE DROITE (L'APERÇU) */
-.preview-area { 
-    flex: 1; 
-    min-width: 320px; 
-    background: #525659; 
-    padding: 20px; 
-    border-radius: 8px; 
-    display: flex; 
-    flex-direction: column; 
-    align-items: center;
-    overflow: hidden; /* Empêche le débordement horizontal */
-}
+header { background: #0aa64b; color: white; padding: 15px; text-align: center; }
+.steps { margin-top: 10px; display: flex; justify-content: center; gap: 10px; }
+.steps span { padding: 5px 15px; background: rgba(255,255,255,0.2); border-radius: 15px; font-size: 0.8em; }
+.steps .active { background: #ffcc00; color: #000; font-weight: bold; }
 
-.preview-header { width: 100%; display: flex; justify-content: space-between; color: white; margin-bottom: 10px; align-items: center; }
+.theme { padding: 15px; background: white; text-align: center; border-bottom: 1px solid #ddd; }
+.theme input { width: 90%; max-width: 400px; padding: 12px; border: 2px solid #eee; border-radius: 8px; font-size: 1rem; }
 
-/* Conteneur pour le scroll et le zoom */
+/* MISE EN PAGE */
+.container { display: flex; flex-wrap: wrap; gap: 20px; padding: 20px; justify-content: center; }
+
+.work-area { flex: 1; min-width: 320px; max-width: 450px; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+.editor { width: 100%; height: 400px; padding: 15px; border: 1px solid #ddd; border-radius: 8px; resize: none; font-size: 14px; line-height: 1.5; }
+
+.primary-btn { background: #ffeb00; border: none; padding: 12px; width: 100%; margin-bottom: 15px; cursor: pointer; font-weight: bold; border-radius: 8px; }
+.actions-bar { display: flex; flex-direction: column; gap: 10px; margin-top: 15px; }
+.validate-btn, .next-btn, .pdf-btn { border: none; padding: 12px; border-radius: 8px; cursor: pointer; color: white; font-weight: bold; }
+.validate-btn { background: #4CAF50; }
+.next-btn { background: #2196F3; }
+.pdf-btn { background: #FF5722; }
+
+/* APERÇU A4 */
+.preview-area { flex: 1; min-width: 350px; background: #525659; padding: 20px; border-radius: 12px; display: flex; flex-direction: column; align-items: center; }
+.preview-header { width: 100%; display: flex; justify-content: space-between; color: white; margin-bottom: 15px; }
+
 .preview-scroll { 
     width: 100%; 
-    height: 80vh; /* Hauteur fixe pour scroller entre les pages */
+    height: 85vh; 
     overflow-y: auto; 
-    overflow-x: hidden; 
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 20px; /* Espace entre les pages A4 */
+    display: flex; 
+    flex-direction: column; 
+    align-items: center; 
+    gap: 25px; 
+    scroll-behavior: smooth;
 }
 
 .preview-sheet {
     background: white;
     width: 210mm;
-    min-width: 210mm;
-    height: 297mm;
     min-height: 297mm;
     padding: 20mm;
     position: relative;
-    overflow: hidden; 
-    flex-shrink: 0; /* Empêche l'écrasement de la page */
-    transform-origin: top center;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
     font-family: 'Times New Roman', serif;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.5);
     color: black;
+    flex-shrink: 0;
 }
 
-/* Zone où le texte est réellement écrit */
-.page-content {
-    height: 230mm; /* Hauteur utile après retrait header/footer */
-    width: 100%;
-    overflow: hidden;
-    text-align: justify;
-    line-height: 1.5;
-}
+.page-header { border: 2px solid #0aa64b; padding: 15px; text-align: center; margin-bottom: 20px; color: #0aa64b; font-weight: bold; font-size: 1.2rem; }
+.page-content { height: 235mm; overflow: hidden; }
 
-.page-header { 
-    border: 2px solid #0aa64b; 
-    padding: 10px; 
-    text-align: center; 
-    margin-bottom: 15px; 
-    color: #0aa64b; 
-    font-weight: bold; 
-    font-size: 1.2rem;
-}
+/* STYLES TEXTE AUTO */
+.title-style { font-weight: bold; font-size: 1.4rem; text-decoration: underline; margin-top: 20px; margin-bottom: 10px; display: block; }
+.subtitle-style { font-weight: bold; margin-left: 20px; margin-top: 10px; display: block; }
+.text-style { margin-left: 40px; display: block; margin-top: 5px; line-height: 1.6; }
 
-/* Styles des textes générés par le JS */
-.title-style { font-weight: bold; font-size: 1.3em; margin-top: 15px; display: block; text-decoration: underline; }
-.subtitle-style { font-weight: bold; margin-left: 20px; display: block; margin-top: 10px; }
-.text-style { margin-left: 40px; display: block; margin-top: 5px; }
+.page-footer { position: absolute; bottom: 10mm; right: 20mm; font-size: 12px; color: #777; }
 
-.page-footer {
-    position: absolute;
-    bottom: 10mm;
-    right: 20mm;
-    font-size: 12px;
-    color: #888;
-}
-
-/* ADAPTATION MOBILE (2026 Ready) */
+/* MOBILE */
 @media screen and (max-width: 768px) {
-    .container { padding: 5px; }
-    
-    .preview-area {
-        padding: 10px;
-    }
-
-    /* On force l'échelle sur mobile pour voir toute la largeur de la feuille */
-    .preview-scroll {
-        zoom: 0.45; /* Plus efficace que scale pour le responsive mobile */
-    }
-    
-    /* Si 'zoom' ne fonctionne pas sur certains navigateurs, on utilise scale */
-    @supports not (zoom: 0.45) {
-        .preview-sheet {
-            transform: scale(0.45);
-            margin-bottom: -150mm; /* Compense le vide laissé par scale */
-        }
-    }
+    .container { flex-direction: column; }
+    .preview-scroll { zoom: 0.4; } /* Adapte la feuille à l'écran mobile */
 }
