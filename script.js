@@ -87,3 +87,19 @@ function createNewPage() {
     pageNumber++;
     return page.querySelector(".page-content");
 }
+
+function addLineToPreview(text) {
+    let p = document.createElement("p");
+    p.textContent = text;
+
+    currentPage.appendChild(p);
+
+    const pageHeight = currentPage.parentElement.clientHeight;
+    const contentHeight = currentPage.scrollHeight;
+
+    if (contentHeight > pageHeight - 100) {
+        currentPage.removeChild(p);
+        currentPage = createNewPage();
+        currentPage.appendChild(p);
+    }
+}
