@@ -3,6 +3,9 @@ document.addEventListener("DOMContentLoaded", function () {
     const pagesContainer = document.getElementById("preview-pages");
     const themeInput = document.getElementById("theme");
 
+    // Ajustement de la sensibilité du saut de page
+    // 950px est généralement la limite de sécurité pour une page A4 avec padding
+    const MAX_PAGE_HEIGHT = 950; 
 
     function createNewPage(num) {
         const page = document.createElement("div");
@@ -19,72 +22,41 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     function updatePreview() {
-        // On réinitialise l'aperçu
         pagesContainer.innerHTML = "";
         let pageNum = 1;
         let currentPage = createNewPage(pageNum);
+
+        // On ne traite les lignes que s'il y a du texte
+        if (editor.value.trim() === "" && themeInput.value.trim() === "") {
+            return; // Garde une seule page vide propre
+        }
 
         const lines = editor.value.split("\n");
 
         lines.forEach(lineText => {
             const div = document.createElement("div");
-            // Gérer les lignes vides
             div.textContent = lineText.trim() === "" ? "\u00A0" : lineText.trim();
 
-            // Attribution des styles selon le début de la ligne
-            if (/^[IVX]+\./.test(lineText)) {
-                div.className = "title-style";
-            } else if (/^[A-Z]\./.test(lineText.trim())) {
-                div.className = "subtitle-style";
-            } else {
-                div.className = "text-style";
-            }
+            if (/^[IVX]+\./.test(lineText)) div.className = "title-style";
+            else if (/^[A-Z]\./.test(lineText.trim())) div.className = "subtitle-style";
+            else div.className = "text-style";
 
             currentPage.appendChild(div);
 
-            const pageElement = currentPage.closest(".preview-sheet");
-
-            if (pageElement.scrollHeight > pageElement.clientHeight) {
-                currentPage.removeChild(div);
+            // LOGIQUE DE SAUT DE PAGE
+            // On vérifie si la hauteur réelle du contenu dépasse la limite
+            if (currentPage.scrollHeight > MAX_PAGE_HEIGHT) {
+                currentPage.removeChild(div); 
                 pageNum++;
                 currentPage = createNewPage(pageNum);
                 currentPage.appendChild(div);
             }
-
         });
     }
 
-    // Événements de frappe
     editor.addEventListener("input", updatePreview);
     themeInput.addEventListener("input", updatePreview);
 
-    // Contrôles du Zoom
-    document.querySelectorAll(".zoom-btn").forEach(btn => {
-        btn.addEventListener("click", () => {
-            const val = btn.getAttribute("data-zoom");
-            pagesContainer.style.zoom = val;
-        });
-    });
-
-    // Modèle de plan
-    document.getElementById("generatePlan").addEventListener("click", () => {
-        editor.value = "I. INTRODUCTION\n\nII. DÉVELOPPEMENT\n   A. Première idée\n   B. Deuxième idée\n\nIII. CONCLUSION";
-        updatePreview();
-    });
-
-    // Téléchargement PDF
-    document.getElementById("downloadPdf").addEventListener("click", () => {
-        const element = document.getElementById("preview-pages");
-        const opt = {
-            margin: 0,
-            filename: `Expose_${themeInput.value || 'BuroMaster'}.pdf`,
-            image: { type: 'jpeg', quality: 0.98 },
-            html2canvas: { scale: 2 },
-            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-        };
-        html2pdf().set(opt).from(element).save();
-    });
-
-    // Initialisation
+    // Initialisation forcée au démarrage (une seule page)
     updatePreview();
 });
