@@ -1,61 +1,98 @@
-/* BASE */
-* { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, sans-serif; }
-body { margin: 0; background: #f4f4f9; color: #333; }
-
-header { background: #0aa64b; color: white; padding: 15px; text-align: center; }
-.steps { margin-top: 10px; display: flex; justify-content: center; flex-wrap: wrap; gap: 5px; }
-.steps span { padding: 5px 10px; background: rgba(255,255,255,0.2); border-radius: 15px; font-size: 0.8em; }
-.steps .active { background: #ffcc00; color: #000; font-weight: bold; }
-
-.theme { padding: 15px; background: white; text-align: center; border-bottom: 1px solid #ddd; }
-.theme input { width: 90%; max-width: 400px; padding: 10px; border: 1px solid #ccc; border-radius: 5px; }
-
-/* MISE EN PAGE FLEXIBLE */
-.container { display: flex; flex-wrap: wrap; gap: 20px; padding: 15px; justify-content: center; }
-
-/* COLONNE GAUCHE */
-.work-area { flex: 1; min-width: 300px; max-width: 500px; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-.primary-btn { background: #ffeb00; border: none; padding: 12px; width: 100%; margin-bottom: 10px; cursor: pointer; font-weight: bold; border-radius: 5px; }
-.editor { width: 100%; height: 300px; padding: 10px; border: 1px solid #ddd; border-radius: 5px; resize: none; }
-
-.actions-bar { display: flex; flex-direction: column; gap: 8px; margin-top: 10px; }
-.validate-btn { background: #6ac36a; color: white; border: none; padding: 10px; border-radius: 5px; cursor: pointer; }
-.next-btn { background: #2f6fd6; color: white; border: none; padding: 10px; border-radius: 5px; cursor: pointer; }
-.pdf-btn { background: #d96c1f; color: white; border: none; padding: 10px; border-radius: 5px; cursor: pointer; }
+/* ... (Gardez votre BASE, HEADER et WORK-AREA tels quels) ... */
 
 /* COLONNE DROITE (L'APERÇU) */
-.preview-area { flex: 1; min-width: 300px; background: #525659; padding: 20px; border-radius: 8px; display: flex; flex-direction: column; align-items: center; }
-.preview-header { width: 100%; display: flex; justify-content: space-between; color: white; margin-bottom: 10px; }
-.preview-scroll { width: 100%; overflow-x: auto; padding-bottom: 20px; } /* Permet de glisser sur mobile */
+.preview-area { 
+    flex: 1; 
+    min-width: 320px; 
+    background: #525659; 
+    padding: 20px; 
+    border-radius: 8px; 
+    display: flex; 
+    flex-direction: column; 
+    align-items: center;
+    overflow: hidden; /* Empêche le débordement horizontal */
+}
+
+.preview-header { width: 100%; display: flex; justify-content: space-between; color: white; margin-bottom: 10px; align-items: center; }
+
+/* Conteneur pour le scroll et le zoom */
+.preview-scroll { 
+    width: 100%; 
+    height: 80vh; /* Hauteur fixe pour scroller entre les pages */
+    overflow-y: auto; 
+    overflow-x: hidden; 
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px; /* Espace entre les pages A4 */
+}
 
 .preview-sheet {
     background: white;
     width: 210mm;
-    height: 297mm;              /* ✅ A4 FIXE */
+    min-width: 210mm;
+    height: 297mm;
+    min-height: 297mm;
     padding: 20mm;
     position: relative;
-    overflow: hidden;           /* ✅ empêche l’agrandissement */
+    overflow: hidden; 
+    flex-shrink: 0; /* Empêche l'écrasement de la page */
     transform-origin: top center;
     font-family: 'Times New Roman', serif;
-    box-shadow: 0 0 10px rgba(0,0,0,0.2);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+    color: black;
 }
 
-.page-header { border: 2px solid #0aa64b; padding: 10px; text-align: center; margin-bottom: 20px; color: #0aa64b; font-weight: bold; }
-.preview-sheet .title { font-weight: bold; margin-top: 15px; display: block; }
-.preview-sheet .subtitle { margin-left: 20px; font-style: italic; display: block; }
-.preview-sheet .text { margin-left: 40px; display: block; }
+/* Zone où le texte est réellement écrit */
+.page-content {
+    height: 230mm; /* Hauteur utile après retrait header/footer */
+    width: 100%;
+    overflow: hidden;
+    text-align: justify;
+    line-height: 1.5;
+}
+
+.page-header { 
+    border: 2px solid #0aa64b; 
+    padding: 10px; 
+    text-align: center; 
+    margin-bottom: 15px; 
+    color: #0aa64b; 
+    font-weight: bold; 
+    font-size: 1.2rem;
+}
+
+/* Styles des textes générés par le JS */
+.title-style { font-weight: bold; font-size: 1.3em; margin-top: 15px; display: block; text-decoration: underline; }
+.subtitle-style { font-weight: bold; margin-left: 20px; display: block; margin-top: 10px; }
+.text-style { margin-left: 40px; display: block; margin-top: 5px; }
 
 .page-footer {
     position: absolute;
-    bottom: 15mm;       /* distance du bas */
-    right: 20mm;        /* aligné comme Word */
+    bottom: 10mm;
+    right: 20mm;
     font-size: 12px;
-    color: #555;
+    color: #888;
 }
 
-/* ADAPTATION MOBILE (Android / Tablettes) */
+/* ADAPTATION MOBILE (2026 Ready) */
 @media screen and (max-width: 768px) {
-    .container { flex-direction: column; align-items: center; }
-    .work-area, .preview-area { width: 100%; max-width: none; }
-    .preview-sheet { transform: scale(0.4); } /* La feuille s'adapte à la largeur du téléphone */
+    .container { padding: 5px; }
+    
+    .preview-area {
+        padding: 10px;
+    }
+
+    /* On force l'échelle sur mobile pour voir toute la largeur de la feuille */
+    .preview-scroll {
+        zoom: 0.45; /* Plus efficace que scale pour le responsive mobile */
+    }
+    
+    /* Si 'zoom' ne fonctionne pas sur certains navigateurs, on utilise scale */
+    @supports not (zoom: 0.45) {
+        .preview-sheet {
+            transform: scale(0.45);
+            margin-bottom: -150mm; /* Compense le vide laissé par scale */
+        }
+    }
 }
