@@ -38,26 +38,26 @@
         </div>
     </section>
 
-    <!-- ZONE APERÇU (S'adapte sur Mobile) -->
+    <!-- ZONE APERÇU -->
     <section class="preview-area">
         <div class="preview-header">
             <h2>Aperçu A4</h2>
             <div class="zoom-controls">
-                <button type="button" data-zoom="0.5">50%</button>
-                <button type="button" data-zoom="0.8">80%</button>
-                <button type="button" data-zoom="1">100%</button>
+                <button type="button" class="zoom-btn" data-zoom="0.5">50%</button>
+                <button type="button" class="zoom-btn" data-zoom="0.8">80%</button>
+                <button type="button" class="zoom-btn" data-zoom="1">100%</button>
             </div>
         </div>
 
         <div class="preview-scroll" id="preview-pages">
-            <!-- Les pages A4 seront générées ici -->
-        </div>
-
+            <!-- Une page virtuelle A4 -->
+            <div class="a4-page">
                 <div class="page-header">
                     <div id="doc-title">EXPOSÉ</div>
                 </div>
                 <div id="preview-content">
-                    <!-- Le plan s'affiche ici -->
+                    <!-- Le plan s'affichera ici via le JavaScript -->
+                    <p style="color: #888;">Le texte de votre plan apparaîtra ici...</p>
                 </div>
                 <div class="page-footer">Page 1</div>
             </div>
@@ -65,6 +65,7 @@
     </section>
 </main>
     
+<!-- Bibliothèque pour le PDF (exemple avec html2pdf.js) -->
 <script src="cdnjs.cloudflare.com"></script>
 <script src="script.js"></script>
 
