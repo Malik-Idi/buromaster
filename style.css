@@ -24,12 +24,12 @@ header { background: #0aa64b; color: white; padding: 15px; text-align: center; }
 .pdf-btn { background: #FF5722; }
 
 /* APERÇU A4 */
-.preview-area { flex: 1; min-width: 350px; background: #525659; padding: 20px; border-radius: 12px; display: flex; flex-direction: column; align-items: center; }
+.preview-area { flex: 1; min-width: 350px; background: #525659; padding: 20px; border-radius: 12px; display: flex; flex-direction: column; align-items: center; min-height: 100vh; }
 .preview-header { width: 100%; display: flex; justify-content: space-between; color: white; margin-bottom: 15px; }
 
 .preview-scroll { 
     width: 100%; 
-    height: 85vh; 
+    height: calc(100vh - 220px); /* plus de place pour voir le A4 */
     overflow-y: auto; 
     display: flex; 
     flex-direction: column; 
