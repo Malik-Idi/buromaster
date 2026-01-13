@@ -65,3 +65,25 @@ document.addEventListener("DOMContentLoaded", function () {
 
     updatePreview();
 });
+
+const pagesContainer = document.getElementById("preview-pages");
+
+let pageNumber = 1;
+let currentPage = createNewPage();
+
+function createNewPage() {
+    const page = document.createElement("div");
+    page.className = "preview-sheet";
+
+    page.innerHTML = `
+        <div class="page-header">
+            <div id="doc-title">EXPOSÉ</div>
+        </div>
+        <div class="page-content"></div>
+        <div class="page-footer">Page ${pageNumber}</div>
+    `;
+
+    pagesContainer.appendChild(page);
+    pageNumber++;
+    return page.querySelector(".page-content");
+}
