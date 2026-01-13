@@ -1,105 +1,98 @@
 document.addEventListener("DOMContentLoaded", function () {
     const editor = document.getElementById("editor");
-    const preview = document.getElementById("preview-content");
+    const pagesContainer = document.getElementById("preview-pages");
     const themeInput = document.getElementById("theme");
-    const docTitle = document.getElementById("doc-title");
-    const previewSheet = document.querySelector(".preview-sheet");
-    
-    // Mise à jour de l'aperçu
+
+    // Paramètres de la page A4 (en pixels pour le calcul)
+    const PAGE_HEIGHT_PX = 1050; // Hauteur max du contenu avant de sauter de page
+
+    function createNewPage(num) {
+        const page = document.createElement("div");
+        page.className = "preview-sheet"; 
+        page.innerHTML = `
+            <div class="page-header">
+                <div class="doc-title-text">${themeInput.value ? "EXPOSÉ : " + themeInput.value.toUpperCase() : "EXPOSÉ"}</div>
+            </div>
+            <div class="page-content"></div>
+            <div class="page-footer">Page ${num}</div>
+        `;
+        pagesContainer.appendChild(page);
+        return page.querySelector(".page-content");
+    }
+
     function updatePreview() {
-        preview.innerHTML = "<h3 style='text-align:center; text-decoration:underline;'>PLAN</h3>";
+        // 1. On vide tout avant de recalculer
+        pagesContainer.innerHTML = "";
+        let currentPageNumber = 1;
+        let currentPageContent = createNewPage(currentPageNumber);
+
+        // 2. On découpe le texte par lignes
         const lines = editor.value.split("\n");
-        lines.forEach(line => {
-            if (line.trim() === "") return;
-            const span = document.createElement("span");
-            span.textContent = line.trim();
-            
-            if (/^[IVX]+\./.test(line)) span.className = "title";
-            else if (/^[A-Z]\./.test(line.trim())) span.className = "subtitle";
-            else span.className = "text";
-            
-            preview.appendChild(span);
-            preview.appendChild(document.createElement("br"));
+
+        lines.forEach(lineText => {
+            // Création d'un élément temporaire pour tester la hauteur
+            const lineElement = document.createElement("div");
+            lineElement.style.wordWrap = "break-word";
+            lineElement.textContent = lineText.trim() === "" ? "\u00A0" : lineText.trim();
+
+            // Application des styles selon le type de ligne
+            if (/^[IVX]+\./.test(lineText)) lineElement.className = "title-style";
+            else if (/^[A-Z]\./.test(lineText.trim())) lineElement.className = "subtitle-style";
+            else lineElement.className = "text-style";
+
+            // 3. On ajoute la ligne à la page actuelle
+            currentPageContent.appendChild(lineElement);
+
+            // 4. VERIFICATION DU DEBORDEMENT
+            // Si la hauteur du contenu dépasse la limite A4
+            if (currentPageContent.scrollHeight > PAGE_HEIGHT_PX) {
+                // On retire la ligne de la page pleine
+                currentPageContent.removeChild(lineElement);
+                
+                // On crée une nouvelle page
+                currentPageNumber++;
+                currentPageContent = createNewPage(currentPageNumber);
+                
+                // On ajoute la ligne sur la nouvelle page
+                currentPageContent.appendChild(lineElement);
+            }
         });
     }
 
-    // Événements
-    editor.addEventListener("input", updatePreview);
-    themeInput.addEventListener("input", () => {
-        docTitle.textContent = themeInput.value ? "EXPOSÉ : " + themeInput.value.toUpperCase() : "EXPOSÉ";
-    });
+    // --- ÉVÉNEMENTS ---
 
-    // Bouton Modèle
-    document.getElementById("generatePlan").addEventListener("click", () => {
-        editor.value = "I. Introduction\nII. Développement\n   A. Première partie\n   B. Deuxième partie\nIII. Conclusion";
-        updatePreview();
-    });
+    // Met à jour l'aperçu dès qu'on tape
+    editor.addEventListener("input", updatePreview);
+    
+    // Met à jour le titre sur toutes les pages quand le thème change
+    themeInput.addEventListener("input", updatePreview);
 
     // Zoom
     document.querySelectorAll(".zoom-controls button").forEach(btn => {
         btn.addEventListener("click", () => {
-            previewSheet.style.transform = `scale(${btn.getAttribute("data-zoom")})`;
+            const scale = btn.getAttribute("data-zoom");
+            pagesContainer.style.transform = `scale(${scale})`;
+            pagesContainer.style.transformOrigin = "top center";
         });
     });
 
-    // Téléchargement PDF (Fonctionne sur Android et PC)
+    // Générer un modèle
+    document.getElementById("generatePlan").addEventListener("click", () => {
+        editor.value = "I. Introduction\nCeci est un texte de test pour voir le saut de page automatique...\n\nII. Développement\n" + "Ligne de remplissage\n".repeat(40) + "III. Conclusion";
+        updatePreview();
+    });
+
+    // PDF
     document.getElementById("downloadPdf").addEventListener("click", () => {
-        const originalTransform = previewSheet.style.transform;
-        previewSheet.style.transform = "scale(1)"; // On remet à 100% pour le PDF
-        
-        const options = {
-            margin: 10,
-            filename: 'mon-expose-buromaster.pdf',
-            image: { type: 'jpeg', quality: 0.98 },
+        const element = document.getElementById("preview-pages");
+        const opt = {
+            margin: 0,
+            filename: 'mon-expose.pdf',
             html2canvas: { scale: 2 },
             jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
         };
-
-        html2pdf().set(options).from(document.getElementById("pdf-content")).save().then(() => {
-            previewSheet.style.transform = originalTransform; // On remet le zoom d'origine après
-        });
+        html2pdf().set(opt).from(element).save();
     });
-
-    // Validation
-    document.getElementById("validatePlan").addEventListener("click", () => alert("Plan enregistré !"));
 
     updatePreview();
 });
-
-const pagesContainer = document.getElementById("preview-pages");
-
-let pageNumber = 1;
-let currentPage = createNewPage();
-
-function createNewPage() {
-    const page = document.createElement("div");
-    page.className = "preview-sheet";
-
-    page.innerHTML = `
-        <div class="page-header">
-            <div id="doc-title">EXPOSÉ</div>
-        </div>
-        <div class="page-content"></div>
-        <div class="page-footer">Page ${pageNumber}</div>
-    `;
-
-    pagesContainer.appendChild(page);
-    pageNumber++;
-    return page.querySelector(".page-content");
-}
-
-function addLineToPreview(text) {
-    let p = document.createElement("p");
-    p.textContent = text;
-
-    currentPage.appendChild(p);
-
-    const pageHeight = currentPage.parentElement.clientHeight;
-    const contentHeight = currentPage.scrollHeight;
-
-    if (contentHeight > pageHeight - 100) {
-        currentPage.removeChild(p);
-        currentPage = createNewPage();
-        currentPage.appendChild(p);
-    }
-}
