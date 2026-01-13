@@ -24,12 +24,12 @@ header { background: #0aa64b; color: white; padding: 15px; text-align: center; }
 .pdf-btn { background: #FF5722; }
 
 /* APERÇU A4 */
-.preview-area { flex: 1; min-width: 350px; background: #525659; padding: 20px; border-radius: 12px; display: flex; flex-direction: column; align-items: center; min-height: 100vh; }
+.preview-area { flex: 1; min-width: 350px; background: #525659; padding: 20px; border-radius: 12px; display: flex; flex-direction: column; align-items: center; }
 .preview-header { width: 100%; display: flex; justify-content: space-between; color: white; margin-bottom: 15px; }
 
 .preview-scroll { 
     width: 100%; 
-    height: calc(100vh - 220px); /* plus de place pour voir le A4 */
+    height: 85vh; 
     overflow-y: auto; 
     display: flex; 
     flex-direction: column; 
@@ -41,23 +41,17 @@ header { background: #0aa64b; color: white; padding: 15px; text-align: center; }
 .preview-sheet {
     background: white;
     width: 210mm;
-    height: 297mm;          /* 🔒 HAUTEUR FIXE */
+    min-height: 297mm;
     padding: 20mm;
     position: relative;
     box-shadow: 0 10px 30px rgba(0,0,0,0.5);
     font-family: 'Times New Roman', serif;
     color: black;
-    overflow: hidden;       /* 🔒 INTERDIT LE DÉBORDEMENT */
     flex-shrink: 0;
-    display: flex;
-    flex-direction: column;
 }
 
 .page-header { border: 2px solid #0aa64b; padding: 15px; text-align: center; margin-bottom: 20px; color: #0aa64b; font-weight: bold; font-size: 1.2rem; }
-.page-content {
-    flex: 1;
-    overflow: hidden;   /* empêche l’extension */
-}
+.page-content { height: 235mm; overflow: hidden; }
 
 /* STYLES TEXTE AUTO */
 .title-style { font-weight: bold; font-size: 1.4rem; text-decoration: underline; margin-top: 20px; margin-bottom: 10px; display: block; }
