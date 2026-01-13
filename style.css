@@ -29,6 +29,7 @@ header { background: #0aa64b; color: white; padding: 15px; text-align: center; }
 .preview-scroll { width: 100%; overflow-x: auto; padding-bottom: 20px; } /* Permet de glisser sur mobile */
 
 .preview-sheet { 
+    position: relative; /* OBLIGATOIRE */
     background: white; 
     width: 210mm; 
     min-height: 297mm; 
@@ -42,6 +43,14 @@ header { background: #0aa64b; color: white; padding: 15px; text-align: center; }
 .preview-sheet .title { font-weight: bold; margin-top: 15px; display: block; }
 .preview-sheet .subtitle { margin-left: 20px; font-style: italic; display: block; }
 .preview-sheet .text { margin-left: 40px; display: block; }
+
+.page-footer {
+    position: absolute;
+    bottom: 15mm;       /* distance du bas */
+    right: 20mm;        /* aligné comme Word */
+    font-size: 12px;
+    color: #555;
+}
 
 /* ADAPTATION MOBILE (Android / Tablettes) */
 @media screen and (max-width: 768px) {
