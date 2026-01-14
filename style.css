@@ -65,3 +65,9 @@ header { background: #0aa64b; color: white; padding: 15px; text-align: center; }
     .container { flex-direction: column; }
     .preview-scroll { zoom: 0.4; } /* Adapte la feuille à l'écran mobile */
 }
+
+.preview-sheet {
+    transform: scale(0.8); /* Réduit la taille visuelle */
+    transform-origin: top center;
+    margin-bottom: -50px; /* Compense l'espace vide créé par le scale */
+}
