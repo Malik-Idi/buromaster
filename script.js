@@ -2,10 +2,36 @@ document.addEventListener("DOMContentLoaded", function () {
     const editor = document.getElementById("editor");
     const pagesContainer = document.getElementById("preview-pages");
     const themeInput = document.getElementById("theme");
+    const generateBtn = document.getElementById("generatePlan"); // Le bouton manquant
 
-    // On définit la hauteur max utilisable à l'intérieur de .page-content (en pixels environ)
-    const MAX_CONTENT_HEIGHT = 880; 
+    // Hauteur max d'une page A4 en pixels (environ)
+    const MAX_PAGE_HEIGHT = 900; 
 
+    // --- 1. FONCTION DE GÉNÉRATION DE MODÈLE ---
+    generateBtn.addEventListener("click", function() {
+        const theme = themeInput.value || "Mon exposé";
+        const modele = `I. Introduction
+A. Présentation du sujet : ${theme}
+B. Problématique
+C. Annonce du plan
+
+II. Développement - Axe 1
+A. Premier argument
+B. Deuxième argument
+
+III. Développement - Axe 2
+A. Premier argument
+B. Deuxième argument
+
+IV. Conclusion
+A. Synthèse des idées
+B. Ouverture`;
+
+        editor.value = modele; // Remplit l'éditeur
+        updatePreview();       // Met à jour l'aperçu A4 immédiatement
+    });
+
+    // --- 2. LOGIQUE DE L'APERÇU A4 ---
     function createNewPage(num) {
         const page = document.createElement("div");
         page.className = "preview-sheet";
@@ -28,11 +54,12 @@ document.addEventListener("DOMContentLoaded", function () {
         const lines = editor.value.split("\n");
 
         lines.forEach(lineText => {
+            if (lineText.trim() === "" && lines.length === 1) return;
+
             const div = document.createElement("div");
-            // Gestion du texte vide pour garder l'espace
             div.textContent = lineText.trim() === "" ? "\u00A0" : lineText;
 
-            // Attribution des classes
+            // Détection des styles (I. ou A.)
             if (/^[IVX]+\./.test(lineText.trim())) {
                 div.className = "title-style";
             } else if (/^[A-Z]\./.test(lineText.trim())) {
@@ -43,8 +70,8 @@ document.addEventListener("DOMContentLoaded", function () {
 
             currentPage.appendChild(div);
 
-            // Vérification du dépassement
-            if (currentPage.offsetHeight > MAX_CONTENT_HEIGHT) {
+            // Vérification du saut de page
+            if (currentPage.scrollHeight > MAX_PAGE_HEIGHT) {
                 currentPage.removeChild(div); 
                 pageNum++;
                 currentPage = createNewPage(pageNum);
@@ -53,22 +80,10 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
-    // Écouteurs d'événements
+    // --- 3. ÉCOUTEURS D'ÉVÉNEMENTS ---
     editor.addEventListener("input", updatePreview);
     themeInput.addEventListener("input", updatePreview);
-    
-    // Bouton de téléchargement PDF (Fonctionnel)
-    document.getElementById("downloadPdf").addEventListener("click", () => {
-        const element = document.getElementById("preview-pages");
-        const opt = {
-            margin: 0,
-            filename: 'expose.pdf',
-            image: { type: 'jpeg', quality: 0.98 },
-            html2canvas: { scale: 2 },
-            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-        };
-        html2pdf().set(opt).from(element).save();
-    });
 
+    // Initialisation
     updatePreview();
 });
