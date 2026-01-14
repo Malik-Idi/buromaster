@@ -3,9 +3,8 @@ document.addEventListener("DOMContentLoaded", function () {
     const pagesContainer = document.getElementById("preview-pages");
     const themeInput = document.getElementById("theme");
 
-    // Ajustement de la sensibilité du saut de page
-    // 950px est généralement la limite de sécurité pour une page A4 avec padding
-    const MAX_PAGE_HEIGHT = 950; 
+    // On définit la hauteur max utilisable à l'intérieur de .page-content (en pixels environ)
+    const MAX_CONTENT_HEIGHT = 880; 
 
     function createNewPage(num) {
         const page = document.createElement("div");
@@ -26,26 +25,26 @@ document.addEventListener("DOMContentLoaded", function () {
         let pageNum = 1;
         let currentPage = createNewPage(pageNum);
 
-        // On ne traite les lignes que s'il y a du texte
-        if (editor.value.trim() === "" && themeInput.value.trim() === "") {
-            return; // Garde une seule page vide propre
-        }
-
         const lines = editor.value.split("\n");
 
         lines.forEach(lineText => {
             const div = document.createElement("div");
-            div.textContent = lineText.trim() === "" ? "\u00A0" : lineText.trim();
+            // Gestion du texte vide pour garder l'espace
+            div.textContent = lineText.trim() === "" ? "\u00A0" : lineText;
 
-            if (/^[IVX]+\./.test(lineText)) div.className = "title-style";
-            else if (/^[A-Z]\./.test(lineText.trim())) div.className = "subtitle-style";
-            else div.className = "text-style";
+            // Attribution des classes
+            if (/^[IVX]+\./.test(lineText.trim())) {
+                div.className = "title-style";
+            } else if (/^[A-Z]\./.test(lineText.trim())) {
+                div.className = "subtitle-style";
+            } else {
+                div.className = "text-style";
+            }
 
             currentPage.appendChild(div);
 
-            // LOGIQUE DE SAUT DE PAGE
-            // On vérifie si la hauteur réelle du contenu dépasse la limite
-            if (currentPage.scrollHeight > MAX_PAGE_HEIGHT) {
+            // Vérification du dépassement
+            if (currentPage.offsetHeight > MAX_CONTENT_HEIGHT) {
                 currentPage.removeChild(div); 
                 pageNum++;
                 currentPage = createNewPage(pageNum);
@@ -54,9 +53,22 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
+    // Écouteurs d'événements
     editor.addEventListener("input", updatePreview);
     themeInput.addEventListener("input", updatePreview);
+    
+    // Bouton de téléchargement PDF (Fonctionnel)
+    document.getElementById("downloadPdf").addEventListener("click", () => {
+        const element = document.getElementById("preview-pages");
+        const opt = {
+            margin: 0,
+            filename: 'expose.pdf',
+            image: { type: 'jpeg', quality: 0.98 },
+            html2canvas: { scale: 2 },
+            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+        };
+        html2pdf().set(opt).from(element).save();
+    });
 
-    // Initialisation forcée au démarrage (une seule page)
     updatePreview();
 });
