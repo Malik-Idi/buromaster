@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>BuroMaster – Faire mon exposé</title>
     <link rel="stylesheet" href="style.css">
-    <!-- Bibliothèque PDF -->
+    <!-- Bibliothèque pour l'export PDF -->
     <script src="cdnjs.cloudflare.com"></script>
 </head>
 <body>
@@ -13,8 +13,8 @@
 <header>
     <h1>BuroMaster</h1>
     <nav class="steps">
-        <span class="active">Plan</span>
-        <span>Intro</span>
+        <span class="active" id="step-plan">Plan</span>
+        <span id="step-intro">Intro</span>
         <span>Développement</span>
         <span>Conclusion</span>
     </nav>
@@ -33,7 +33,8 @@
         
         <div class="actions-bar">
             <button type="button" id="validatePlan" class="validate-btn">Valider ce plan</button>
-            <button type="button" id="nextStep" class="next-btn">Passer à l’introduction</button>
+            <!-- Bouton suivant caché par défaut -->
+            <button type="button" id="nextStep" class="next-btn" style="display: none;">Passer à l’introduction</button>
             <button type="button" id="downloadPdf" class="pdf-btn">Télécharger en PDF</button>
         </div>
     </section>
@@ -42,14 +43,12 @@
         <div class="preview-header">
             <h2>Aperçu A4</h2>
             <div class="zoom-controls">
-                <button type="button" class="zoom-btn" data-zoom="0.5">50%</button>
-                <button type="button" class="zoom-btn" data-zoom="0.8">80%</button>
-                <button type="button" class="zoom-btn" data-zoom="1">100%</button>
+                <button type="button" class="zoom-btn">A4 Standard</button>
             </div>
         </div>
 
         <div class="preview-scroll" id="preview-pages">
-            <!-- Les pages A4 sont générées ici par JS -->
+            <!-- Les pages A4 sont générées ici -->
         </div>
     </section>
 </main>
