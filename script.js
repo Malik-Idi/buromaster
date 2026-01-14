@@ -1,24 +1,52 @@
 document.addEventListener("DOMContentLoaded", function () {
-    // Éléments HTML
     const editor = document.getElementById("editor");
     const themeInput = document.getElementById("theme");
     const pagesContainer = document.getElementById("preview-pages");
-    const generateBtn = document.getElementById("generatePlan");
-    const validateBtn = document.getElementById("validatePlan");
-    const nextBtn = document.getElementById("nextStep");
-    const downloadBtn = document.getElementById("downloadPdf");
+    const stepTitle = document.getElementById("step-title");
+    const generateBtn = document.getElementById("generateBtn");
+    const validateBtn = document.getElementById("validateBtn");
+    const nextStepBtn = document.getElementById("nextStepBtn");
 
-    const MAX_PAGE_HEIGHT = 920; // Limite de pixels par page
-    let isLocked = false;
+    // Données de l'exposé
+    let currentStep = "plan"; // plan ou intro
+    let content = { plan: "", intro: "" };
+    let isLocked = { plan: false, intro: false };
 
-    // --- 1. GESTION DE L'APERÇU ---
+    // --- RENDU DE L'APERÇU ---
+    function updatePreview() {
+        pagesContainer.innerHTML = "";
+        let pageNum = 1;
+        let currentPage = createNewPage(pageNum);
+
+        // Rendu du PLAN
+        renderText(content.plan, currentPage, (p) => {
+            pageNum++;
+            currentPage = createNewPage(pageNum);
+            return currentPage;
+        });
+
+        // SAUT DE PAGE FORCÉ POUR L'INTRO
+        if (content.intro !== "" || currentStep === "intro") {
+            pageNum++;
+            currentPage = createNewPage(pageNum);
+            const sectionTitle = document.createElement("div");
+            sectionTitle.className = "title-style";
+            sectionTitle.textContent = "INTRODUCTION";
+            currentPage.appendChild(sectionTitle);
+
+            renderText(content.intro, currentPage, (p) => {
+                pageNum++;
+                currentPage = createNewPage(pageNum);
+                return currentPage;
+            });
+        }
+    }
+
     function createNewPage(num) {
         const page = document.createElement("div");
         page.className = "preview-sheet";
         page.innerHTML = `
-            <div class="page-header">
-                <div class="doc-title-text">${themeInput.value ? "EXPOSÉ : " + themeInput.value.toUpperCase() : "VOTRE EXPOSÉ"}</div>
-            </div>
+            <div class="page-header">EXPOSÉ : ${themeInput.value.toUpperCase() || "MON EXPOSÉ"}</div>
             <div class="page-content"></div>
             <div class="page-footer">Page ${num}</div>
         `;
@@ -26,78 +54,84 @@ document.addEventListener("DOMContentLoaded", function () {
         return page.querySelector(".page-content");
     }
 
-    function updatePreview() {
-        pagesContainer.innerHTML = "";
-        let pageNum = 1;
-        let currentPage = createNewPage(pageNum);
-
-        const lines = editor.value.split("\n");
-
-        lines.forEach(lineText => {
+    function renderText(text, pageElement, onPageBreak) {
+        if (!text) return;
+        const lines = text.split("\n");
+        lines.forEach(line => {
             const div = document.createElement("div");
-            div.textContent = lineText.trim() === "" ? "\u00A0" : lineText;
-
-            // Détection du style par ligne
-            if (/^[IVX]+\./.test(lineText.trim())) div.className = "title-style";
-            else if (/^[A-Z]\./.test(lineText.trim())) div.className = "subtitle-style";
+            div.textContent = line.trim() === "" ? "\u00A0" : line;
+            if (/^[IVX]+\./.test(line.trim())) div.className = "title-style";
+            else if (/^[A-Z]\./.test(line.trim())) div.className = "subtitle-style";
             else div.className = "text-style";
-
-            currentPage.appendChild(div);
-
-            // Saut de page automatique
-            if (currentPage.scrollHeight > MAX_PAGE_HEIGHT) {
-                currentPage.removeChild(div);
-                pageNum++;
-                currentPage = createNewPage(pageNum);
-                currentPage.appendChild(div);
+            
+            pageElement.appendChild(div);
+            if (pageElement.scrollHeight > 850) {
+                pageElement.removeChild(div);
+                pageElement = onPageBreak();
+                pageElement.appendChild(div);
             }
         });
     }
 
-    // --- 2. BOUTON GÉNÉRER MODÈLE ---
-    generateBtn.addEventListener("click", () => {
-        const theme = themeInput.value || "Sujet de l'exposé";
-        editor.value = `I. INTRODUCTION\nA. Présentation du sujet : ${theme}\nB. Problématique\nC. Annonce du plan\n\nII. DÉVELOPPEMENT\nA. Premier axe d'analyse\nB. Deuxième axe d'analyse\n\nIII. CONCLUSION\nA. Synthèse des résultats\nB. Ouverture du sujet`;
+    // --- ACTIONS ---
+    editor.addEventListener("input", () => {
+        content[currentStep] = editor.value;
         updatePreview();
     });
 
-    // --- 3. BOUTON VALIDER / MODIFIER ---
     validateBtn.addEventListener("click", () => {
-        if (!isLocked) {
-            // Mode verrouillé
-            editor.readOnly = true;
-            generateBtn.disabled = true;
-            validateBtn.textContent = "Modifier le Plan";
-            validateBtn.style.background = "#ff9800";
-            nextBtn.style.display = "block"; // Affiche le bouton suivant
-            isLocked = true;
+        isLocked[currentStep] = !isLocked[currentStep];
+        applyLockState();
+    });
+
+    function applyLockState() {
+        const locked = isLocked[currentStep];
+        editor.readOnly = locked;
+        validateBtn.textContent = locked ? `Modifier l'étape` : `Valider cette étape`;
+        validateBtn.style.background = locked ? "#ff9800" : "#4CAF50";
+        nextStepBtn.style.display = locked && currentStep === "plan" ? "block" : "none";
+        
+        // Débloquer le lien du haut
+        if (isLocked.plan) document.getElementById("link-intro").classList.add("unlocked");
+    }
+
+    nextStepBtn.addEventListener("click", () => {
+        goToStep("intro");
+    });
+
+    // Navigation du haut
+    document.getElementById("link-plan").addEventListener("click", () => goToStep("plan"));
+    document.getElementById("link-intro").addEventListener("click", () => {
+        if (isLocked.plan) goToStep("intro");
+    });
+
+    function goToStep(step) {
+        currentStep = step;
+        stepTitle.textContent = step === "plan" ? "Édition du Plan" : "Rédaction de l'Introduction";
+        generateBtn.textContent = step === "plan" ? "Générer un plan" : "Générer une introduction";
+        editor.value = content[step];
+        
+        document.querySelectorAll(".step-link").forEach(l => l.classList.remove("active"));
+        document.getElementById(`link-${step}`).classList.add("active");
+        
+        applyLockState();
+        updatePreview();
+    }
+
+    generateBtn.addEventListener("click", () => {
+        if (currentStep === "plan") {
+            editor.value = "I. INTRODUCTION\nA. Sujet\nII. DÉVELOPPEMENT\nA. Axe 1\nIII. CONCLUSION";
         } else {
-            // Mode édition
-            editor.readOnly = false;
-            generateBtn.disabled = false;
-            validateBtn.textContent = "Valider ce plan";
-            validateBtn.style.background = "#4CAF50";
-            nextBtn.style.display = "none"; // Cache le bouton suivant
-            isLocked = false;
+            editor.value = "L'introduction de mon exposé sur " + themeInput.value + " se compose d'une accroche...";
         }
+        content[currentStep] = editor.value;
+        updatePreview();
     });
 
-    // --- 4. EXPORT PDF ---
-    downloadBtn.addEventListener("click", () => {
-        const opt = {
-            margin: 0,
-            filename: 'mon_expose_plan.pdf',
-            image: { type: 'jpeg', quality: 0.98 },
-            html2canvas: { scale: 2 },
-            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-        };
-        html2pdf().set(opt).from(pagesContainer).save();
+    document.getElementById("downloadPdf").addEventListener("click", () => {
+        html2pdf().set({ margin: 0, filename: 'expose-complet.pdf', jsPDF: { unit: 'mm', format: 'a4' } })
+                 .from(pagesContainer).save();
     });
 
-    // Écouteurs pour mise à jour en direct
-    editor.addEventListener("input", updatePreview);
-    themeInput.addEventListener("input", updatePreview);
-
-    // Lancer l'aperçu au démarrage
     updatePreview();
 });
