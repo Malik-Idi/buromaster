@@ -3,9 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BuroMaster – Faire mon exposé</title>
+    <title>BuroMaster 2026 – Assistant d'Exposé</title>
     <link rel="stylesheet" href="style.css">
-    <!-- Bibliothèque pour l'export PDF -->
     <script src="cdnjs.cloudflare.com"></script>
 </head>
 <body>
@@ -13,10 +12,10 @@
 <header>
     <h1>BuroMaster</h1>
     <nav class="steps">
-        <span class="active" id="step-plan">Plan</span>
-        <span id="step-intro">Intro</span>
-        <span>Développement</span>
-        <span>Conclusion</span>
+        <span class="step-link active" id="link-plan">Plan</span>
+        <span class="step-link" id="link-intro">Intro</span>
+        <span class="step-link" id="link-dev">Développement</span>
+        <span class="step-link" id="link-conclu">Conclusion</span>
     </nav>
 </header>
 
@@ -27,28 +26,23 @@
 
 <main class="container">
     <section class="work-area">
-        <h2>Édition du Plan</h2>
-        <button type="button" id="generatePlan" class="primary-btn">Générer un modèle</button>
-        <textarea id="editor" class="editor" placeholder="Tapez votre plan ici..."></textarea>
+        <h2 id="step-title">Édition du Plan</h2>
+        <button type="button" id="generateBtn" class="primary-btn">Générer un modèle</button>
+        <textarea id="editor" class="editor" placeholder="Commencez à rédiger..."></textarea>
         
         <div class="actions-bar">
-            <button type="button" id="validatePlan" class="validate-btn">Valider ce plan</button>
-            <!-- Bouton suivant caché par défaut -->
-            <button type="button" id="nextStep" class="next-btn" style="display: none;">Passer à l’introduction</button>
-            <button type="button" id="downloadPdf" class="pdf-btn">Télécharger en PDF</button>
+            <button type="button" id="validateBtn" class="validate-btn">Valider cette étape</button>
+            <button type="button" id="nextStepBtn" class="next-btn" style="display: none;">Passer à l'étape suivante</button>
+            <button type="button" id="downloadPdf" class="pdf-btn">Télécharger le PDF complet</button>
         </div>
     </section>
 
     <section class="preview-area">
         <div class="preview-header">
             <h2>Aperçu A4</h2>
-            <div class="zoom-controls">
-                <button type="button" class="zoom-btn">A4 Standard</button>
-            </div>
         </div>
-
         <div class="preview-scroll" id="preview-pages">
-            <!-- Les pages A4 sont générées ici -->
+            <!-- Pages générées ici -->
         </div>
     </section>
 </main>
