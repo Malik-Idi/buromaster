@@ -7,80 +7,74 @@ document.addEventListener("DOMContentLoaded", function () {
     const validateBtn = document.getElementById("validateBtn");
     const nextStepBtn = document.getElementById("nextStepBtn");
     const generateBtn = document.getElementById("generateBtn");
+    const downloadBtn = document.getElementById("downloadPdf");
 
     let currentStep = "plan"; 
     const stepsOrder = ["plan", "intro", "dev", "conclu"];
     let content = { plan: "", intro: "", dev: {}, conclu: "" };
     let isLocked = { plan: false, intro: false, dev: false, conclu: false };
-    let reachedStep = 0; // Index de l'étape maximale atteinte
+    let reachedStepIndex = 0;
 
-    // --- 1. GESTION DE LA NAVIGATION (HEADER) ---
+    // --- 1. NAVIGATION DU HEADER ---
     document.querySelectorAll(".step-link").forEach((link, index) => {
         link.addEventListener("click", () => {
-            if (index <= reachedStep) {
-                goToStep(stepsOrder[index]);
-            }
+            if (index <= reachedStepIndex) goToStep(stepsOrder[index]);
         });
     });
 
-    function updateStepHeader() {
+    function updateHeaderUI() {
         document.querySelectorAll(".step-link").forEach((link, index) => {
             link.classList.remove("active", "unlocked");
             if (stepsOrder[index] === currentStep) link.classList.add("active");
-            else if (index <= reachedStep) link.classList.add("unlocked");
+            else if (index <= reachedStepIndex) link.classList.add("unlocked");
         });
     }
 
-    // --- 2. LOGIQUE DES BOUTONS DE VALIDATION ---
+    // --- 2. LOGIQUE VALIDATION / MODIFICATION ---
     validateBtn.addEventListener("click", () => {
         if (!isLocked[currentStep]) {
             // ACTION : VALIDER
-            if (currentStep !== "dev" && editor.value.trim() === "") return alert("Le contenu est vide !");
-            
             isLocked[currentStep] = true;
-            reachedStep = Math.max(reachedStep, stepsOrder.indexOf(currentStep) + 1);
+            reachedStepIndex = Math.max(reachedStepIndex, stepsOrder.indexOf(currentStep) + 1);
             
             validateBtn.textContent = "Modifier cette étape";
-            validateBtn.style.background = "#ff9800"; // Orange pour modification
+            validateBtn.style.background = "#ff9800";
             nextStepBtn.style.display = "block";
-            generateBtn.style.display = "none"; // On cache le bouton générer
+            generateBtn.style.display = "none";
             
-            if(currentStep === "dev") {
-                document.querySelectorAll(".sub-editor").forEach(ed => ed.readOnly = true);
-                document.querySelectorAll(".generate-sub-btn").forEach(btn => btn.style.display = "none");
-            } else {
-                editor.readOnly = true;
-            }
+            toggleInputs(true);
         } else {
-            // ACTION : MODIFIER (Déverrouillage)
+            // ACTION : MODIFIER
             isLocked[currentStep] = false;
             validateBtn.textContent = "Valider cette étape";
-            validateBtn.style.background = "#4CAF50"; 
+            validateBtn.style.background = "#4CAF50";
             nextStepBtn.style.display = "none";
+            if(currentStep !== "dev") generateBtn.style.display = "block";
             
-            if(currentStep !== "dev") {
-                generateBtn.style.display = "block";
-                editor.readOnly = false;
-            } else {
-                document.querySelectorAll(".sub-editor").forEach(ed => ed.readOnly = false);
-                document.querySelectorAll(".generate-sub-btn").forEach(btn => btn.style.display = "block");
-            }
+            toggleInputs(false);
         }
-        updateStepHeader();
+        updateHeaderUI();
     });
+
+    function toggleInputs(lock) {
+        if (currentStep === "dev") {
+            document.querySelectorAll(".sub-editor").forEach(ed => ed.readOnly = lock);
+            document.querySelectorAll(".generate-sub-btn").forEach(btn => btn.style.display = lock ? "none" : "block");
+        } else {
+            editor.readOnly = lock;
+        }
+    }
 
     nextStepBtn.addEventListener("click", () => {
         const index = stepsOrder.indexOf(currentStep);
-        if (index < stepsOrder.length - 1) {
-            goToStep(stepsOrder[index + 1]);
-        }
+        if (index < stepsOrder.length - 1) goToStep(stepsOrder[index + 1]);
     });
 
     function goToStep(step) {
         currentStep = step;
         stepTitle.textContent = "Édition : " + step.toUpperCase();
         
-        // Reset l'état des boutons pour la nouvelle étape
+        // Configuration Boutons
         if (isLocked[step]) {
             validateBtn.textContent = "Modifier cette étape";
             validateBtn.style.background = "#ff9800";
@@ -93,7 +87,7 @@ document.addEventListener("DOMContentLoaded", function () {
             generateBtn.style.display = (step === "dev") ? "none" : "block";
         }
 
-        // Affichage des éditeurs
+        // Configuration Éditeurs
         if (step === "dev") {
             editor.style.display = "none";
             devContainer.style.display = "block";
@@ -104,8 +98,7 @@ document.addEventListener("DOMContentLoaded", function () {
             editor.value = content[step] || "";
             editor.readOnly = isLocked[step];
         }
-
-        updateStepHeader();
+        updateHeaderUI();
         updatePreview();
     }
 
@@ -125,9 +118,8 @@ document.addEventListener("DOMContentLoaded", function () {
                     <textarea class="sub-editor" ${isLocked['dev'] ? 'readonly' : ''}>${content.dev[line] || ""}</textarea>
                 `;
                 devContainer.appendChild(block);
-
-                const subEditor = block.querySelector(".sub-editor");
-                subEditor.addEventListener("input", (e) => {
+                const subEd = block.querySelector(".sub-editor");
+                subEd.addEventListener("input", (e) => {
                     content.dev[line] = e.target.value;
                     updatePreview();
                 });
@@ -135,22 +127,19 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
-    // --- 4. RENDU (Simplifié pour rester court) ---
+    // --- 4. APERÇU ET PDF ---
     function updatePreview() {
         pagesContainer.innerHTML = "";
         let pageNum = 1;
         let currentPage = createNewPage(pageNum);
 
-        // Plan
         renderSection("PLAN", content.plan, currentPage, () => { pageNum++; return createNewPage(pageNum); });
 
-        // Intro
         if (content.intro || currentStep === "intro") {
             pageNum++; currentPage = createNewPage(pageNum);
             renderSection("INTRODUCTION", content.intro, currentPage, () => { pageNum++; return createNewPage(pageNum); });
         }
 
-        // Dev
         if (Object.keys(content.dev).length > 0 || currentStep === "dev") {
             pageNum++; currentPage = createNewPage(pageNum);
             const t = document.createElement("div"); t.className = "title-style"; t.textContent = "DÉVELOPPEMENT";
@@ -160,11 +149,25 @@ document.addEventListener("DOMContentLoaded", function () {
             }
         }
 
-        // Conclu
         if (content.conclu || currentStep === "conclu") {
             pageNum++; currentPage = createNewPage(pageNum);
             renderSection("CONCLUSION", content.conclu, currentPage, () => { pageNum++; return createNewPage(pageNum); });
         }
+    }
+
+    function renderSection(title, text, pageElement, onBreak) {
+        if (!text) return;
+        text.split("\n").forEach(line => {
+            const div = document.createElement("div");
+            div.textContent = line.trim() === "" ? "\u00A0" : line;
+            div.className = /^[IVX]+\./.test(line.trim()) ? "title-style" : (/^[A-Z]\./.test(line.trim()) ? "subtitle-style" : "text-style");
+            pageElement.appendChild(div);
+            if (pageElement.scrollHeight > 850) { 
+                pageElement.removeChild(div); 
+                pageElement = onBreak(); 
+                pageElement.appendChild(div); 
+            }
+        });
     }
 
     function createNewPage(num) {
@@ -175,16 +178,17 @@ document.addEventListener("DOMContentLoaded", function () {
         return page.querySelector(".page-content");
     }
 
-    function renderSection(title, text, pageElement, onBreak) {
-        if (!text) return;
-        text.split("\n").forEach(line => {
-            const div = document.createElement("div");
-            div.textContent = line.trim() === "" ? "\u00A0" : line;
-            div.className = /^[IVX]+\./.test(line.trim()) ? "title-style" : (/^[A-Z]\./.test(line.trim()) ? "subtitle-style" : "text-style");
-            pageElement.appendChild(div);
-            if (pageElement.scrollHeight > 850) { pageElement.removeChild(div); pageElement = onBreak(); pageElement.appendChild(div); }
-        });
-    }
+    downloadBtn.addEventListener("click", () => {
+        const element = document.getElementById("preview-pages");
+        const opt = {
+            margin: 0,
+            filename: `Expose_${themeInput.value || "BuroMaster"}.pdf`,
+            html2canvas: { scale: 2 },
+            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+            pagebreak: { mode: 'css', after: '.preview-sheet' }
+        };
+        html2pdf().set(opt).from(element).save();
+    });
 
     editor.addEventListener("input", () => { content[currentStep] = editor.value; updatePreview(); });
     themeInput.addEventListener("input", updatePreview);
