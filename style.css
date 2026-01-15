@@ -3,7 +3,7 @@ body { margin: 0; background: #f4f4f9; }
 
 header { background: #0aa64b; color: white; padding: 15px; text-align: center; }
 .steps { margin-top: 10px; display: flex; justify-content: center; gap: 10px; }
-.steps span { padding: 5px 15px; background: rgba(255,255,255,0.2); border-radius: 15px; font-size: 0.8em; cursor: not-allowed; }
+.steps span { padding: 5px 15px; background: rgba(255,255,255,0.2); border-radius: 15px; font-size: 0.8em; cursor: default; transition: 0.3s; }
 .steps .active { background: #ffcc00; color: #000; font-weight: bold; cursor: pointer; }
 .steps .unlocked { cursor: pointer; background: rgba(255,255,255,0.5); }
 
@@ -13,12 +13,18 @@ header { background: #0aa64b; color: white; padding: 15px; text-align: center; }
 .container { display: flex; flex-wrap: wrap; gap: 20px; padding: 20px; justify-content: center; }
 .work-area { flex: 1; min-width: 320px; max-width: 450px; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
 .editor { width: 100%; height: 400px; padding: 15px; border-radius: 8px; border: 1px solid #ddd; resize: none; }
-.editor[readonly] { background: #f0f0f0; cursor: not-allowed; }
+
+/* Styles spécifiques au Développement par blocs */
+#dev-blocks-container { margin-bottom: 20px; }
+.dev-block { border: 2px solid #0aa64b; border-radius: 8px; margin-bottom: 15px; padding: 12px; background: #f9f9f9; }
+.block-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; font-size: 0.9em; }
+.sub-editor { width: 100%; height: 120px; border: 1px solid #ccc; border-radius: 5px; padding: 10px; resize: vertical; }
+.generate-sub-btn { background: #ffcc00; border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer; font-weight: bold; }
 
 .primary-btn { background: #ffeb00; border: none; padding: 12px; width: 100%; margin-bottom: 15px; cursor: pointer; font-weight: bold; border-radius: 8px; }
 .actions-bar { display: flex; flex-direction: column; gap: 10px; margin-top: 15px; }
 .validate-btn { background: #4CAF50; border: none; padding: 12px; border-radius: 8px; color: white; font-weight: bold; cursor: pointer; }
-.next-btn { background: #2196F3; border: none; padding: 12px; border-radius: 8px; color: white; cursor: pointer; }
+.next-btn { background: #2196F3; border: none; padding: 12px; border-radius: 8px; color: white; cursor: pointer; font-weight: bold; }
 .pdf-btn { background: #FF5722; border: none; padding: 12px; border-radius: 8px; color: white; cursor: pointer; }
 
 /* APERÇU A4 */
@@ -27,10 +33,10 @@ header { background: #0aa64b; color: white; padding: 15px; text-align: center; }
 .preview-sheet { 
     background: white; width: 210mm; min-height: 297mm; padding: 20mm; position: relative; 
     box-shadow: 0 10px 30px rgba(0,0,0,0.5); font-family: 'Times New Roman', serif; 
-    transform: scale(0.7); transform-origin: top center; margin-bottom: -80px;
+    transform: scale(0.65); transform-origin: top center; margin-bottom: -100px;
 }
-.page-header { border: 2px solid #0aa64b; padding: 10px; text-align: center; margin-bottom: 20px; color: #0aa64b; font-weight: bold; }
-.title-style { font-weight: bold; font-size: 1.4rem; text-decoration: underline; margin-top: 15px; }
+.page-header { border: 2px solid #0aa64b; padding: 10px; text-align: center; margin-bottom: 20px; color: #0aa64b; font-weight: bold; text-transform: uppercase; }
+.title-style { font-weight: bold; font-size: 1.3rem; text-decoration: underline; margin-top: 20px; }
 .subtitle-style { font-weight: bold; margin-left: 20px; margin-top: 10px; }
-.text-style { margin-left: 30px; margin-top: 5px; line-height: 1.5; white-space: pre-wrap; }
+.text-style { margin-left: 30px; margin-top: 5px; line-height: 1.5; white-space: pre-wrap; text-align: justify; }
 .page-footer { position: absolute; bottom: 10mm; right: 10mm; font-size: 12px; }
