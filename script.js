@@ -179,16 +179,34 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     downloadBtn.addEventListener("click", () => {
-        const element = document.getElementById("preview-pages");
-        const opt = {
-            margin: 0,
-            filename: `Expose_${themeInput.value || "BuroMaster"}.pdf`,
-            html2canvas: { scale: 2 },
-            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
-            pagebreak: { mode: 'css', after: '.preview-sheet' }
-        };
-        html2pdf().set(opt).from(element).save();
+    const element = document.getElementById("preview-pages");
+
+    // Sauvegarde des styles actuels
+    const sheets = document.querySelectorAll(".preview-sheet");
+    sheets.forEach(sheet => {
+        sheet.dataset.oldTransform = sheet.style.transform;
+        sheet.dataset.oldMargin = sheet.style.margin;
+        sheet.style.transform = "none";
+        sheet.style.margin = "0";
     });
+
+    const opt = {
+        margin: 0,
+        filename: `Expose_${themeInput.value || "BuroMaster"}.pdf`,
+        image: { type: "jpeg", quality: 0.98 },
+        html2canvas: { scale: 2, useCORS: true },
+        jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
+        pagebreak: { mode: ["css", "after"], after: ".preview-sheet" }
+    };
+
+    html2pdf().set(opt).from(element).save().then(() => {
+        // Restauration des styles après export
+        sheets.forEach(sheet => {
+            sheet.style.transform = sheet.dataset.oldTransform;
+            sheet.style.margin = sheet.dataset.oldMargin;
+        });
+    });
+});
 
     editor.addEventListener("input", () => { content[currentStep] = editor.value; updatePreview(); });
     themeInput.addEventListener("input", updatePreview);
