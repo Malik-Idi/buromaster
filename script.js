@@ -1,79 +1,69 @@
 document.addEventListener("DOMContentLoaded", function () {
-    // Éléments HTML
+    // Éléments
     const editor = document.getElementById("editor");
+    const devContainer = document.getElementById("dev-blocks-container");
     const themeInput = document.getElementById("theme");
     const pagesContainer = document.getElementById("preview-pages");
     const stepTitle = document.getElementById("step-title");
-    const generateBtn = document.getElementById("generateBtn");
     const validateBtn = document.getElementById("validateBtn");
     const nextStepBtn = document.getElementById("nextStepBtn");
+    const generateBtn = document.getElementById("generateBtn");
 
-    // Données de l'exposé (Mémoire du site)
-    let currentStep = "plan"; // État actuel : 'plan' ou 'intro'
-    let content = { plan: "", intro: "" };
-    let isLocked = { plan: false, intro: false };
+    // Données
+    let currentStep = "plan"; 
+    const stepsOrder = ["plan", "intro", "dev", "conclu"];
+    let content = { plan: "", intro: "", dev: {}, conclu: "" };
+    let isLocked = { plan: false, intro: false, dev: false, conclu: false };
 
-    // --- 1. FONCTION DE RENDU (L'aperçu A4) ---
+    // --- 1. RENDU DE L'APERÇU ---
     function updatePreview() {
-        pagesContainer.innerHTML = ""; // On vide l'aperçu pour reconstruire
+        pagesContainer.innerHTML = "";
         let pageNum = 1;
         let currentPage = createNewPage(pageNum);
 
-        // Rendu du PLAN
-        renderText(content.plan, currentPage, () => {
-            pageNum++;
-            currentPage = createNewPage(pageNum);
-            return currentPage;
-        });
+        // Rendu Plan
+        renderSection("PLAN", content.plan, currentPage, (p) => { pageNum++; return createNewPage(pageNum); });
 
-        // SAUT DE PAGE FORCÉ ET RENDU DE L'INTRODUCTION
-        // On affiche l'intro si elle contient du texte OU si on est en train de l'écrire
-        if (content.intro.trim() !== "" || currentStep === "intro") {
-            pageNum++;
-            currentPage = createNewPage(pageNum);
-            
-            // Titre de section sur la nouvelle page
-            const sectionTitle = document.createElement("div");
-            sectionTitle.className = "title-style";
-            sectionTitle.textContent = "INTRODUCTION";
-            currentPage.appendChild(sectionTitle);
+        // Rendu Intro
+        if (content.intro || currentStep === "intro") {
+            pageNum++; currentPage = createNewPage(pageNum);
+            renderSection("INTRODUCTION", content.intro, currentPage, (p) => { pageNum++; return createNewPage(pageNum); });
+        }
 
-            renderText(content.intro, currentPage, () => {
-                pageNum++;
-                currentPage = createNewPage(pageNum);
-                return currentPage;
-            });
+        // Rendu Développement (Bloc par bloc)
+        if (Object.keys(content.dev).length > 0 || currentStep === "dev") {
+            pageNum++; currentPage = createNewPage(pageNum);
+            const devTitle = document.createElement("div");
+            devTitle.className = "title-style";
+            devTitle.textContent = "DÉVELOPPEMENT";
+            currentPage.appendChild(devTitle);
+
+            for (let section in content.dev) {
+                renderSection(section, content.dev[section], currentPage, (p) => { pageNum++; return createNewPage(pageNum); });
+            }
+        }
+
+        // Rendu Conclusion
+        if (content.conclu || currentStep === "conclu") {
+            pageNum++; currentPage = createNewPage(pageNum);
+            renderSection("CONCLUSION", content.conclu, currentPage, (p) => { pageNum++; return createNewPage(pageNum); });
         }
     }
 
-    function createNewPage(num) {
-        const page = document.createElement("div");
-        page.className = "preview-sheet";
-        page.innerHTML = `
-            <div class="page-header">EXPOSÉ : ${themeInput.value.toUpperCase() || "MON EXPOSÉ"}</div>
-            <div class="page-content"></div>
-            <div class="page-footer">Page ${num}</div>
-        `;
-        pagesContainer.appendChild(page);
-        return page.querySelector(".page-content");
-    }
-
-    function renderText(text, pageElement, onPageBreak) {
-        if (!text) return;
-        const lines = text.split("\n");
+    function renderSection(title, text, pageElement, onPageBreak) {
+        if (!text && currentStep !== title.toLowerCase()) return;
+        
+        const lines = text ? text.split("\n") : [];
         lines.forEach(line => {
             const div = document.createElement("div");
             div.textContent = line.trim() === "" ? "\u00A0" : line;
             
-            // Styles auto (I. ou A.)
             if (/^[IVX]+\./.test(line.trim())) div.className = "title-style";
             else if (/^[A-Z]\./.test(line.trim())) div.className = "subtitle-style";
             else div.className = "text-style";
             
             pageElement.appendChild(div);
-
-            // Gestion du débordement de page
-            if (pageElement.scrollHeight > 880) {
+            if (pageElement.scrollHeight > 850) {
                 pageElement.removeChild(div);
                 pageElement = onPageBreak();
                 pageElement.appendChild(div);
@@ -81,101 +71,84 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
-    // --- 2. GESTION DU VERROUILLAGE (La correction demandée) ---
-    function applyLockState() {
-        const locked = isLocked[currentStep];
-        
-        // Verrouiller l'éditeur
-        editor.readOnly = locked;
-        
-        // BLOQUAGE DU BOUTON GÉNÉRER (Sécurité ajoutée)
-        generateBtn.disabled = locked;
-        generateBtn.style.opacity = locked ? "0.5" : "1";
-        generateBtn.style.cursor = locked ? "not-allowed" : "pointer";
-        
-        // Bouton Valider / Modifier
-        validateBtn.textContent = locked ? `Modifier l'étape` : `Valider cette étape`;
-        validateBtn.style.background = locked ? "#ff9800" : "#4CAF50";
-        
-        // Bouton Suivant (uniquement visible si le plan est validé)
-        nextStepBtn.style.display = (locked && currentStep === "plan") ? "block" : "none";
-        
-        // Débloquer l'onglet du haut
-        if (isLocked.plan) {
-            const linkIntro = document.getElementById("link-intro");
-            linkIntro.classList.add("unlocked");
-            linkIntro.style.cursor = "pointer";
-        }
+    function createNewPage(num) {
+        const page = document.createElement("div");
+        page.className = "preview-sheet";
+        page.innerHTML = `
+            <div class="page-header">${themeInput.value || "MON EXPOSÉ"}</div>
+            <div class="page-content"></div>
+            <div class="page-footer">Page ${num}</div>
+        `;
+        pagesContainer.appendChild(page);
+        return page.querySelector(".page-content");
     }
 
-    // --- 3. NAVIGATION ET ACTIONS ---
+    // --- 2. LOGIQUE DE NAVIGATION ET BLOCS ---
+    function setupDevBlocks() {
+        editor.style.display = "none";
+        devContainer.style.display = "block";
+        devContainer.innerHTML = "";
 
-    // Écriture
-    editor.addEventListener("input", () => {
-        content[currentStep] = editor.value;
-        updatePreview();
-    });
+        const lines = content.plan.split("\n");
+        lines.forEach(line => {
+            // On prend les titres II, III, etc. (On ignore I et Conclusion)
+            if (/^[IVX]+\./.test(line.trim()) && !line.toLowerCase().includes("intro") && !line.toLowerCase().includes("conclu")) {
+                const block = document.createElement("div");
+                block.className = "dev-block";
+                block.innerHTML = `
+                    <div class="block-header">
+                        <strong>${line}</strong>
+                        <button class="generate-sub-btn">Générer</button>
+                    </div>
+                    <textarea class="sub-editor" data-section="${line}">${content.dev[line] || ""}</textarea>
+                `;
+                devContainer.appendChild(block);
 
-    // Thème
-    themeInput.addEventListener("input", updatePreview);
-
-    // Valider
-    validateBtn.addEventListener("click", () => {
-        isLocked[currentStep] = !isLocked[currentStep];
-        applyLockState();
-    });
-
-    // Bouton Suivant
-    nextStepBtn.addEventListener("click", () => {
-        goToStep("intro");
-    });
-
-    // Générer modèle
-    generateBtn.addEventListener("click", () => {
-        if (currentStep === "plan") {
-            editor.value = "I. INTRODUCTION\nA. Accroche\nB. Problématique\nII. DÉVELOPPEMENT\nA. Premier axe\nIII. CONCLUSION";
-        } else {
-            editor.value = "L'exposé que nous présentons aujourd'hui porte sur " + (themeInput.value || "notre sujet") + ". Dans un premier temps...";
-        }
-        content[currentStep] = editor.value;
-        updatePreview();
-    });
-
-    // Navigation via les liens du haut
-    document.getElementById("link-plan").addEventListener("click", () => goToStep("plan"));
-    document.getElementById("link-intro").addEventListener("click", () => {
-        if (isLocked.plan) goToStep("intro");
-    });
+                block.querySelector(".sub-editor").addEventListener("input", (e) => {
+                    content.dev[line] = e.target.value;
+                    updatePreview();
+                });
+            }
+        });
+    }
 
     function goToStep(step) {
-        // Sauvegarde de l'étape actuelle avant de changer
-        content[currentStep] = editor.value;
-        
         currentStep = step;
+        stepTitle.textContent = "Édition : " + step.toUpperCase();
         
-        // Mise à jour visuelle
-        stepTitle.textContent = step === "plan" ? "Édition du Plan" : "Rédaction de l'Introduction";
-        generateBtn.textContent = step === "plan" ? "Générer un plan" : "Générer une introduction";
-        editor.value = content[step];
-        
-        // Onglets actifs
+        // Basculer l'affichage si c'est le développement
+        if (step === "dev") {
+            setupDevBlocks();
+        } else {
+            editor.style.display = "block";
+            devContainer.style.display = "none";
+            editor.value = content[step] || "";
+        }
+
         document.querySelectorAll(".step-link").forEach(l => l.classList.remove("active"));
         document.getElementById(`link-${step}`).classList.add("active");
         
-        applyLockState();
+        nextStepBtn.style.display = "none";
+        validateBtn.style.display = "block";
         updatePreview();
     }
 
-    // Export PDF
-    document.getElementById("downloadPdf").addEventListener("click", () => {
-        const opt = {
-            margin: 0,
-            filename: 'mon-expose-2026.pdf',
-            image: { type: 'jpeg', quality: 0.98 },
-            html2canvas: { scale: 2 },
-            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-        };
-        html2pdf().set(opt).from(pagesContainer).save();
+    validateBtn.addEventListener("click", () => {
+        isLocked[currentStep] = true;
+        validateBtn.style.display = "none";
+        nextStepBtn.style.display = "block";
+        document.getElementById(`link-${currentStep}`).classList.add("unlocked");
+    });
+
+    nextStepBtn.addEventListener("click", () => {
+        const index = stepsOrder.indexOf(currentStep);
+        if (index < stepsOrder.length - 1) goToStep(stepsOrder[index + 1]);
+    });
+
+    themeInput.addEventListener("input", updatePreview);
+    editor.addEventListener("input", () => {
+        content[currentStep] = editor.value;
+        updatePreview();
     });
 
     // Initialisation
