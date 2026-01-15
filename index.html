@@ -28,10 +28,10 @@
         <h2 id="step-title">Édition du Plan</h2>
         <button type="button" id="generateBtn" class="primary-btn">Générer un modèle</button>
         
-        <!-- Éditeur Standard -->
+        <!-- Éditeur classique -->
         <textarea id="editor" class="editor" placeholder="Commencez à rédiger..."></textarea>
         
-        <!-- Zone spécifique au Développement (cachée par défaut) -->
+        <!-- Zone Développement par blocs -->
         <div id="dev-blocks-container" style="display: none;"></div>
         
         <div class="actions-bar">
@@ -42,13 +42,13 @@
     </section>
 
     <section class="preview-area">
-        <div class="preview-header">
-            <h2>Aperçu A4</h2>
-        </div>
+        <div class="preview-header"><h2>Aperçu A4</h2></div>
         <div class="preview-scroll" id="preview-pages"></div>
     </section>
 </main>
 
+<!-- Bibliothèque PDF -->
+<script src="cdnjs.cloudflare.com"></script>
 <script src="script.js"></script>
 </body>
 </html>
