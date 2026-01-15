@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>BuroMaster 2026 – Assistant d'Exposé</title>
     <link rel="stylesheet" href="style.css">
-    <script src="cdnjs.cloudflare.com"></script>
 </head>
 <body>
 
@@ -28,7 +27,12 @@
     <section class="work-area">
         <h2 id="step-title">Édition du Plan</h2>
         <button type="button" id="generateBtn" class="primary-btn">Générer un modèle</button>
+        
+        <!-- Éditeur Standard -->
         <textarea id="editor" class="editor" placeholder="Commencez à rédiger..."></textarea>
+        
+        <!-- Zone spécifique au Développement (cachée par défaut) -->
+        <div id="dev-blocks-container" style="display: none;"></div>
         
         <div class="actions-bar">
             <button type="button" id="validateBtn" class="validate-btn">Valider cette étape</button>
@@ -41,9 +45,7 @@
         <div class="preview-header">
             <h2>Aperçu A4</h2>
         </div>
-        <div class="preview-scroll" id="preview-pages">
-            <!-- Pages générées ici -->
-        </div>
+        <div class="preview-scroll" id="preview-pages"></div>
     </section>
 </main>
 
