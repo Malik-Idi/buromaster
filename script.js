@@ -181,4 +181,86 @@ document.addEventListener("DOMContentLoaded", function () {
     downloadBtn.addEventListener("click", () => {
     const element = document.getElementById("preview-pages");
 
-    
+    // --- GÉNÉRATION IA (PLAN / INTRO / CONCLUSION) ---
+    generateBtn.addEventListener("click", async () => {
+    let prompt = "";
+
+    if (!themeInput.value.trim()) {
+        alert("Veuillez d'abord entrer un thème.");
+        return;
+    }
+
+    if (currentStep === "plan") {
+        prompt = `Génère un plan structuré d’exposé scolaire (niveau collège) sur le thème : "${themeInput.value}". 
+        Utilise une structure claire avec I, II, III et A, B.`;
+    }
+
+    if (currentStep === "intro") {
+        prompt = `Rédige une introduction formelle, fluide et académique pour un exposé scolaire sur le thème : "${themeInput.value}". 
+        Le texte doit être sérieux et bien rédigé, sans liste ni conseils.`;
+    }
+
+    if (currentStep === "conclu") {
+        prompt = `Rédige une conclusion claire et synthétique pour un exposé scolaire sur le thème : "${themeInput.value}".`;
+    }
+
+    editor.value = "⏳ Génération en cours...";
+    generateBtn.disabled = true;
+
+    const result = await generateWithAI(prompt);
+
+    editor.value = result;
+    content[currentStep] = result;
+
+    generateBtn.disabled = false;
+    updatePreview();
+});
+        
+    // Sauvegarde des styles actuels
+    const sheets = document.querySelectorAll(".preview-sheet");
+    sheets.forEach(sheet => {
+        sheet.dataset.oldTransform = sheet.style.transform;
+        sheet.dataset.oldMargin = sheet.style.margin;
+        sheet.style.transform = "none";
+        sheet.style.margin = "0";
+    });
+
+    const opt = {
+        margin: 0,
+        filename: `Expose_${themeInput.value || "BuroMaster"}.pdf`,
+        image: { type: "jpeg", quality: 0.98 },
+        html2canvas: { scale: 2, useCORS: true },
+        jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
+        pagebreak: { mode: ["css", "after"], after: ".preview-sheet" }
+    };
+
+    html2pdf().set(opt).from(element).save().then(() => {
+        // Restauration des styles après export
+        sheets.forEach(sheet => {
+            sheet.style.transform = sheet.dataset.oldTransform;
+            sheet.style.margin = sheet.dataset.oldMargin;
+        });
+    });
+});
+
+    editor.addEventListener("input", () => { content[currentStep] = editor.value; updatePreview(); });
+    themeInput.addEventListener("input", updatePreview);
+    updatePreview();
+});
+
+async function generateWithAI(prompt) {
+    try {
+        const response = await fetch("/api/generate", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ prompt })
+        });
+
+        const data = await response.json();
+        return data.text || "Erreur de génération";
+    } catch (err) {
+        return "Impossible de contacter l’IA.";
+    }
+}
