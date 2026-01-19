@@ -212,3 +212,20 @@ document.addEventListener("DOMContentLoaded", function () {
     themeInput.addEventListener("input", updatePreview);
     updatePreview();
 });
+
+async function generateWithAI(prompt) {
+    try {
+        const response = await fetch("/api/generate", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ prompt })
+        });
+
+        const data = await response.json();
+        return data.text || "Erreur de génération";
+    } catch (err) {
+        return "Impossible de contacter l’IA.";
+    }
+}
