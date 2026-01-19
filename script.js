@@ -1,7 +1,8 @@
 // ==========================================
-// PORTION 1 : INITIALISATION ET NAVIGATION
+// PORTION 1 : CONFIGURATION ET SAUVEGARDE
 // ==========================================
 document.addEventListener("DOMContentLoaded", function () {
+    // Sélection des éléments du DOM
     const editor = document.getElementById("editor");
     const devContainer = document.getElementById("dev-blocks-container");
     const themeInput = document.getElementById("theme");
@@ -12,43 +13,63 @@ document.addEventListener("DOMContentLoaded", function () {
     const generateBtn = document.getElementById("generateBtn");
     const downloadBtn = document.getElementById("downloadPdf");
 
+    // État de l'application (Variables globales)
     let currentStep = "plan"; 
     const stepsOrder = ["plan", "intro", "dev", "conclu"];
     let content = { plan: "", intro: "", dev: {}, conclu: "" };
     let isLocked = { plan: false, intro: false, dev: false, conclu: false };
     let reachedStepIndex = 0;
 
+    // --- FONCTION DE SAUVEGARDE (Filet de sécurité) ---
+    // Cette fonction transforme vos variables en texte (JSON) et les stocke dans le navigateur
+    function saveData() {
+        const snapshot = {
+            content,
+            isLocked,
+            reachedStepIndex,
+            theme: themeInput.value,
+            currentStep
+        };
+        localStorage.setItem("buroMaster_save_2026", JSON.stringify(snapshot));
+    }
+
+    // --- FONCTION DE CHARGEMENT ---
+    // Au démarrage, on vérifie si une sauvegarde existe pour tout restaurer
+    function loadData() {
+        const saved = localStorage.getItem("buroMaster_save_2026");
+        if (saved) {
+            const data = JSON.parse(saved);
+            content = data.content;
+            isLocked = data.isLocked;
+            reachedStepIndex = data.reachedStepIndex;
+            themeInput.value = data.theme || "";
+            // On retourne à l'étape où l'utilisateur s'était arrêté
+            goToStep(data.currentStep || "plan");
+        }
+    }
+
+    // ==========================================
+// PORTION 2 : NAVIGATION ET UI DYNAMIQUE
+// ==========================================
+
     // --- MISE À JOUR VISUELLE DU HEADER ---
+    // Cette fonction colore l'onglet actuel et grise les étapes non atteintes
     function updateHeaderUI() {
         document.querySelectorAll(".step-link").forEach((link, index) => {
-            // On ajoute la classe "active" à l'étape actuelle
             if (stepsOrder[index] === currentStep) {
-                link.classList.add("active");
-                link.style.fontWeight = "bold";
-                link.style.color = "#4CAF50";
+                link.style.color = "#4CAF50"; // Vert pour l'étape active
+                link.style.borderBottom = "2px solid #4CAF50";
             } else {
-                link.classList.remove("active");
-                link.style.fontWeight = "normal";
+                link.style.borderBottom = "none";
+                // Gris si l'étape est bloquée, noir si elle est accessible
                 link.style.color = index <= reachedStepIndex ? "#333" : "#ccc";
             }
         });
     }
 
-    // --- NAVIGATION ---
-    document.querySelectorAll(".step-link").forEach((link, index) => {
-        link.addEventListener("click", () => {
-            if (index <= reachedStepIndex) goToStep(stepsOrder[index]);
-        });
-    });
-
-    nextStepBtn.addEventListener("click", () => {
-        const index = stepsOrder.indexOf(currentStep);
-        if (index < stepsOrder.length - 1) goToStep(stepsOrder[index + 1]);
-    });
-
-       // --- VERROUILLAGE DYNAMIQUE DES INPUTS ---
+    // --- GESTION DU VERROUILLAGE (CORRIGÉE) ---
     function toggleInputs(lock) {
-        // 1. Gestion des éditeurs (Dev ou Classique)
+        // Verrouillage des éditeurs
         if (currentStep === "dev") {
             document.querySelectorAll(".sub-editor").forEach(ed => ed.readOnly = lock);
             document.querySelectorAll(".generate-sub-btn").forEach(btn => btn.style.display = lock ? "none" : "block");
@@ -56,22 +77,15 @@ document.addEventListener("DOMContentLoaded", function () {
             if (editor) editor.readOnly = lock;
         }
 
-        // 2. CORRECTION DU THÈME : 
-        // Le thème ne doit être verrouillé QUE si l'étape actuelle est verrouillée.
-        // On permet la modification du thème si on revient sur une étape non verrouillée.
+        // CORRECTION : Le thème est modifiable si l'étape actuelle n'est pas verrouillée
         if (themeInput) {
             themeInput.disabled = isLocked[currentStep]; 
         }
     }
 
-    // (La suite des fonctions goToStep et Validation sera dans la Portion 2)
-
-   // =========================================================
-// PORTION 2 : LOGIQUE DES ÉTAPES ET DÉVELOPPEMENT PAR BLOCS
-// =========================================================
-
+    // --- NAVIGATION ENTRE LES ÉTAPES ---
     function goToStep(step) {
-        // Sauvegarder le contenu actuel avant de changer (si on n'est pas en mode dev)
+        // On sauvegarde le texte actuel avant de changer d'onglet
         if (currentStep !== "dev" && editor) {
             content[currentStep] = editor.value;
         }
@@ -79,7 +93,7 @@ document.addEventListener("DOMContentLoaded", function () {
         currentStep = step;
         if (stepTitle) stepTitle.textContent = "Édition : " + step.toUpperCase();
         
-        // Configuration Visuelle des Boutons
+        // On ajuste l'affichage des boutons selon l'état de l'étape choisie
         if (isLocked[step]) {
             validateBtn.textContent = "Modifier cette étape";
             validateBtn.style.background = "#ff9800";
@@ -89,11 +103,10 @@ document.addEventListener("DOMContentLoaded", function () {
             validateBtn.textContent = "Valider cette étape";
             validateBtn.style.background = "#4CAF50";
             if (nextStepBtn) nextStepBtn.style.display = "none";
-            // On affiche le bouton générer principal sauf pour l'étape "dev"
             if (generateBtn) generateBtn.style.display = (step === "dev") ? "none" : "block";
         }
 
-        // Configuration des Éditeurs
+        // Basculement entre l'éditeur simple et les blocs de développement
         if (step === "dev") {
             if (editor) editor.style.display = "none";
             if (devContainer) {
@@ -104,51 +117,78 @@ document.addEventListener("DOMContentLoaded", function () {
             if (editor) {
                 editor.style.display = "block";
                 editor.value = content[step] || "";
-                editor.readOnly = isLocked[step];
             }
             if (devContainer) devContainer.style.display = "none";
         }
+
+        toggleInputs(isLocked[step]);
         updateHeaderUI();
         updatePreview();
+        saveData(); // On enregistre l'étape actuelle dans la sauvegarde
     }
 
-    // --- GESTION DU BOUTON VALIDER ---
-    validateBtn.addEventListener("click", () => {
-        if (!isLocked[currentStep]) {
-            // Sauvegarde finale avant verrouillage
-            if (currentStep !== "dev") content[currentStep] = editor.value;
-            
-            isLocked[currentStep] = true;
-            reachedStepIndex = Math.max(reachedStepIndex, stepsOrder.indexOf(currentStep) + 1);
-            
-            validateBtn.textContent = "Modifier cette étape";
-            validateBtn.style.background = "#ff9800";
-            nextStepBtn.style.display = "block";
-            generateBtn.style.display = "none";
-            
-            toggleInputs(true);
-        } else {
-            isLocked[currentStep] = false;
-            validateBtn.textContent = "Valider cette étape";
-            validateBtn.style.background = "#4CAF50";
-            nextStepBtn.style.display = "none";
-            if(currentStep !== "dev") generateBtn.style.display = "block";
-            
-            toggleInputs(false);
-        }
-        updateHeaderUI();
+    // Écouteur pour les clics sur les liens du header
+    document.querySelectorAll(".step-link").forEach((link, index) => {
+        link.addEventListener("click", () => {
+            if (index <= reachedStepIndex) goToStep(stepsOrder[index]);
+        });
     });
+
+    // Bouton "Étape Suivante"
+    if (nextStepBtn) {
+        nextStepBtn.addEventListener("click", () => {
+            const index = stepsOrder.indexOf(currentStep);
+            if (index < stepsOrder.length - 1) goToStep(stepsOrder[index + 1]);
+        });
+    }
+
+    // ==========================================
+// PORTION 3 : VALIDATION ET BLOCS DEV
+// ==========================================
+
+    // --- GESTION DU BOUTON VALIDER ---
+    if (validateBtn) {
+        validateBtn.addEventListener("click", () => {
+            if (!isLocked[currentStep]) {
+                // ACTION : VALIDER
+                if (currentStep !== "dev") content[currentStep] = editor.value;
+                
+                isLocked[currentStep] = true;
+                // On débloque l'accès à l'étape suivante dans le menu
+                reachedStepIndex = Math.max(reachedStepIndex, stepsOrder.indexOf(currentStep) + 1);
+                
+                validateBtn.textContent = "Modifier cette étape";
+                validateBtn.style.background = "#ff9800";
+                nextStepBtn.style.display = "block";
+                generateBtn.style.display = "none";
+                
+                toggleInputs(true);
+            } else {
+                // ACTION : MODIFIER
+                isLocked[currentStep] = false;
+                validateBtn.textContent = "Valider cette étape";
+                validateBtn.style.background = "#4CAF50";
+                nextStepBtn.style.display = "none";
+                // On réaffiche "Générer" sauf pour le dev qui a ses propres boutons
+                if(currentStep !== "dev") generateBtn.style.display = "block";
+                
+                toggleInputs(false);
+            }
+            updateHeaderUI();
+            saveData(); // On sauvegarde l'état verrouillé/déverrouillé
+        });
+    }
 
     // --- GÉNÉRATION DES BLOCS DE DÉVELOPPEMENT ---
     function setupDevBlocks() {
         if (!devContainer) return;
         devContainer.innerHTML = "";
         
-        // On récupère les lignes du plan pour créer les sections
+        // On découpe le plan pour trouver les titres (ex: I. L'histoire)
         const lines = (content.plan || "").split("\n");
         lines.forEach(line => {
             const cleanLine = line.trim();
-            // Détection des titres (ex: I. Titre) excluant Intro/Conclu
+            // Regex : cherche un chiffre romain suivi d'un point au début de la ligne
             if (/^[IVX]+\./.test(cleanLine) && 
                 !cleanLine.toLowerCase().includes("intro") && 
                 !cleanLine.toLowerCase().includes("conclu")) {
@@ -160,43 +200,44 @@ document.addEventListener("DOMContentLoaded", function () {
                     <div class="block-header" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
                         <strong>${cleanLine}</strong>
                         <button class="generate-sub-btn" data-section="${cleanLine}" 
-                                style="background:#2196F3; color:white; border:none; padding:5px 10px; cursor:pointer; border-radius:4px; ${isLocked['dev'] ? 'display:none' : ''}">
+                                style="background:#2196F3; color:white; border:none; padding:8px; cursor:pointer; border-radius:4px; ${isLocked['dev'] ? 'display:none' : ''}">
                             Générer cette partie
                         </button>
                     </div>
-                    <textarea class="sub-editor" style="width:100%; min-height:100px;" ${isLocked['dev'] ? 'readonly' : ''}>${content.dev[cleanLine] || ""}</textarea>
+                    <textarea class="sub-editor" placeholder="Développez cette partie ici..." style="width:100%; min-height:120px; padding:10px; border-radius:5px; border:1px solid #ccc;" ${isLocked['dev'] ? 'readonly' : ''}>${content.dev[cleanLine] || ""}</textarea>
                 `;
                 devContainer.appendChild(block);
 
                 const subEd = block.querySelector(".sub-editor");
                 const subGenBtn = block.querySelector(".generate-sub-btn");
 
-                // Sauvegarde en temps réel du sous-bloc
+                // Sauvegarde immédiate quand on écrit dans un bloc
                 subEd.addEventListener("input", (e) => {
                     content.dev[cleanLine] = e.target.value;
                     updatePreview();
+                    saveData();
                 });
 
-                // Événement pour générer chaque partie (sera lié à l'IA dans la portion 4)
-                subGenBtn.addEventListener("click", async () => {
-                    await handleSubGeneration(cleanLine, subEd, subGenBtn);
+                // Événement pour l'IA (la fonction sera définie en Portion 5)
+                subGenBtn.addEventListener("click", () => {
+                    handleSubGeneration(cleanLine, subEd, subGenBtn);
                 });
             }
         });
     }
 
-    // =========================================================
-// PORTION 3 : APERÇU, PAGINATION ET MISE EN PAGE
-// =========================================================
+     // ==========================================
+// PORTION 4 : APERÇU ET GESTION DES PAGES
+// ==========================================
 
-    // --- MISE À JOUR DE L'APERÇU ---
+    // --- MISE À JOUR DE LA PREVIEW ---
     function updatePreview() {
         if (!pagesContainer) return;
-        pagesContainer.innerHTML = "";
+        pagesContainer.innerHTML = ""; // On vide tout pour reconstruire proprement
         let pageNum = 1;
         let currentPage = createNewPage(pageNum);
 
-        // 1. Rendu du PLAN
+        // 1. Rendu du SOMMAIRE (Plan)
         if (content.plan) {
             renderSection("SOMMAIRE", content.plan, currentPage, () => { 
                 pageNum++; 
@@ -207,10 +248,10 @@ document.addEventListener("DOMContentLoaded", function () {
 
         // 2. Rendu de l'INTRODUCTION
         if (content.intro || currentStep === "intro") {
+            // On force souvent un saut de page pour l'intro pour faire "propre"
             pageNum++; currentPage = createNewPage(pageNum);
             renderSection("INTRODUCTION", content.intro, currentPage, () => { 
-                pageNum++; 
-                currentPage = createNewPage(pageNum);
+                pageNum++; currentPage = createNewPage(pageNum);
                 return currentPage;
             });
         }
@@ -218,18 +259,16 @@ document.addEventListener("DOMContentLoaded", function () {
         // 3. Rendu du DÉVELOPPEMENT
         if (Object.keys(content.dev).length > 0 || currentStep === "dev") {
             pageNum++; currentPage = createNewPage(pageNum);
-            const t = document.createElement("div"); 
-            t.className = "title-style"; 
-            t.style.textAlign = "center";
-            t.style.fontSize = "1.4em";
-            t.style.marginBottom = "20px";
-            t.textContent = "DÉVELOPPEMENT";
-            currentPage.appendChild(t);
+            const devTitle = document.createElement("div");
+            devTitle.className = "title-style";
+            devTitle.style.textAlign = "center";
+            devTitle.style.textDecoration = "underline";
+            devTitle.textContent = "DÉVELOPPEMENT";
+            currentPage.appendChild(devTitle);
 
             for (let sectionTitle in content.dev) {
                 renderSection(sectionTitle, content.dev[sectionTitle], currentPage, () => { 
-                    pageNum++; 
-                    currentPage = createNewPage(pageNum);
+                    pageNum++; currentPage = createNewPage(pageNum);
                     return currentPage;
                 });
             }
@@ -239,177 +278,152 @@ document.addEventListener("DOMContentLoaded", function () {
         if (content.conclu || currentStep === "conclu") {
             pageNum++; currentPage = createNewPage(pageNum);
             renderSection("CONCLUSION", content.conclu, currentPage, () => { 
-                pageNum++; 
-                currentPage = createNewPage(pageNum);
+                pageNum++; currentPage = createNewPage(pageNum);
                 return currentPage;
             });
         }
     }
 
-    // --- RENDU D'UNE SECTION AVEC SAUT DE PAGE AUTOMATIQUE ---
+    // --- FONCTION DE RENDU D'UN TEXTE SUR LES PAGES ---
     function renderSection(title, text, pageElement, onBreak) {
         if (!text && !title) return;
 
-        // Ajouter le titre de la section
         if (title) {
             const t = document.createElement("div");
             t.className = "title-style";
-            t.style.color = "#2c3e50";
             t.style.marginTop = "15px";
+            t.style.fontWeight = "bold";
             t.textContent = title.toUpperCase();
             pageElement.appendChild(t);
         }
 
         if (!text) return;
 
-        // Traiter chaque ligne de texte
         const lines = text.split("\n");
         lines.forEach(line => {
             const cleanLine = line.trim();
             const div = document.createElement("div");
             
-            // Gestion du style selon le format de la ligne
+            // Stylisation intelligente selon le contenu
             if (/^[IVX]+\./.test(cleanLine)) {
-                div.className = "title-style";
+                div.className = "title-style"; // Titre principal
             } else if (/^[A-Z]\./.test(cleanLine)) {
-                div.className = "subtitle-style";
-                div.style.paddingLeft = "20px";
+                div.className = "subtitle-style"; // Sous-titre
+                div.style.paddingLeft = "15px";
             } else {
-                div.className = "text-style";
+                div.className = "text-style"; // Texte normal
                 div.style.textAlign = "justify";
-                div.style.marginBottom = "8px";
             }
 
             div.textContent = cleanLine === "" ? "\u00A0" : cleanLine;
             pageElement.appendChild(div);
 
-            // Détection du débordement (Hauteur max A4 simulée)
+            // GESTION DU SAUT DE PAGE : si la page est trop pleine (850px)
             if (pageElement.scrollHeight > 850) { 
                 pageElement.removeChild(div); 
-                pageElement = onBreak(); // Crée une nouvelle page
+                pageElement = onBreak(); // Appelle la création d'une nouvelle page
                 pageElement.appendChild(div); 
             }
         });
     }
 
-    // --- CRÉATION D'UNE PAGE BLANCHE ---
+    // --- CRÉATION PHYSIQUE D'UNE PAGE ---
     function createNewPage(num) {
         const page = document.createElement("div");
         page.className = "preview-sheet";
-        // Header et Footer
-        const titleText = themeInput && themeInput.value ? themeInput.value.toUpperCase() : "MON EXPOSÉ";
+        const currentTheme = themeInput.value.trim() || "MON EXPOSÉ";
+        
         page.innerHTML = `
-            <div class="page-header" style="border-bottom:1px solid #eee; margin-bottom:20px; font-size:12px; color:#888;">${titleText}</div>
-            <div class="page-content" style="flex-grow:1;"></div>
-            <div class="page-footer" style="border-top:1px solid #eee; margin-top:20px; text-align:right; font-size:12px; color:#888;">Page ${num}</div>
+            <div class="page-header" style="font-size:10px; color:#999; border-bottom:1px solid #eee; margin-bottom:10px;">${currentTheme.toUpperCase()}</div>
+            <div class="page-content"></div>
+            <div class="page-footer" style="position:absolute; bottom:20px; right:40px; font-size:10px; color:#999;">Page ${num}</div>
         `;
         pagesContainer.appendChild(page);
         return page.querySelector(".page-content");
     }
 
-    // --- ÉCOUTEURS POUR LA MISE À JOUR ---
-    if (editor) {
-        editor.addEventListener("input", () => { 
-            content[currentStep] = editor.value; 
-            updatePreview(); 
-        });
-    }
-    if (themeInput) {
-        themeInput.addEventListener("input", updatePreview);
-    }
-// =========================================================
-// PORTION 4 : GÉNÉRATION IA, EXPORT PDF ET CLÔTURE
-// =========================================================
+    // --- ÉCOUTEURS D'ENTRÉE POUR SAUVEGARDE ---
+    editor.addEventListener("input", () => { 
+        content[currentStep] = editor.value; 
+        updatePreview(); 
+        saveData(); // Sauvegarde à chaque lettre tapée
+    });
 
-    // --- 1. GÉNÉRATION IA PRINCIPALE (PLAN / INTRO / CONCLU) ---
+    themeInput.addEventListener("input", () => {
+        updatePreview();
+        saveData();
+    });
+
+    // ==========================================
+// PORTION 5 : INTELLIGENCE ARTIFICIELLE
+// ==========================================
+
+    // --- 1. GÉNÉRATION PRINCIPALE (PLAN / INTRO / CONCLUSION) ---
     if (generateBtn) {
         generateBtn.addEventListener("click", async () => {
-            if (!themeInput.value.trim()) {
-                alert("Veuillez d'abord entrer un thème.");
+            const theme = themeInput.value.trim();
+            if (!theme) {
+                alert("Veuillez d'abord entrer un thème pour l'exposé.");
                 return;
             }
 
+            // Préparation du message pour l'IA (Prompt)
             let prompt = "";
             if (currentStep === "plan") {
-                prompt = `Génère un plan structuré d’exposé scolaire sur le thème : "${themeInput.value}". Utilise une structure avec I, II, III et A, B.`;
+                prompt = `Génère un plan structuré d’exposé scolaire sur le thème : "${theme}". Utilise impérativement une structure avec I, II, III et A, B. Ne mets pas d'introduction ou de conclusion dans le plan.`;
             } else if (currentStep === "intro") {
-                prompt = `Rédige une introduction académique pour un exposé sur : "${themeInput.value}".`;
+                prompt = `Rédige une introduction formelle et captivante pour un exposé sur : "${theme}". Le texte doit être continu, sans listes.`;
             } else if (currentStep === "conclu") {
-                prompt = `Rédige une conclusion synthétique pour un exposé sur : "${themeInput.value}".`;
+                prompt = `Rédige une conclusion synthétique qui résume les points clés et ouvre sur une réflexion pour un exposé sur : "${theme}".`;
             }
 
-            // UI State
-            editor.value = "⏳ Génération en cours...";
+            // Interface : on indique que l'IA travaille
+            const originalText = editor.value;
+            editor.value = "⏳ Génération en cours par l'IA... Veuillez patienter.";
             generateBtn.disabled = true;
 
-            const result = await generateWithAI(prompt);
+            const result = await callAiAPI(prompt);
             
+            // Mise à jour du contenu
             editor.value = result;
             content[currentStep] = result;
             generateBtn.disabled = false;
+            
             updatePreview();
+            saveData();
         });
     }
 
-    // --- 2. GÉNÉRATION IA POUR LES BLOCS DE DÉVELOPPEMENT ---
+    // --- 2. GÉNÉRATION SPÉCIFIQUE POUR LES BLOCS DE DÉVELOPPEMENT ---
     async function handleSubGeneration(sectionTitle, textarea, button) {
-        if (!themeInput.value.trim()) {
-            alert("Veuillez entrer un thème.");
+        const theme = themeInput.value.trim();
+        if (!theme) {
+            alert("Veuillez entrer un thème avant de générer.");
             return;
         }
 
-        const originalText = button.textContent;
+        // Feedback visuel sur le bouton concerné
+        const originalBtnText = button.textContent;
         button.textContent = "⏳...";
         button.disabled = true;
-        textarea.value = "Génération du contenu en cours...";
+        textarea.value = "L'IA développe cette partie...";
 
-        const prompt = `Développe de manière détaillée la partie suivante de mon exposé sur "${themeInput.value}" : "${sectionTitle}". Rédige un texte fluide et éducatif.`;
+        const prompt = `Développe de manière détaillée et pédagogique la partie intitulée "${sectionTitle}" pour un exposé sur le thème "${theme}". Rédige au moins deux paragraphes complets.`;
         
-        const result = await generateWithAI(prompt);
+        const result = await callAiAPI(prompt);
         
         textarea.value = result;
-        content.dev[sectionTitle] = result;
-        button.textContent = originalText;
+        content.dev[sectionTitle] = result; // On enregistre dans l'objet dev
+        
+        button.textContent = originalBtnText;
         button.disabled = false;
+        
         updatePreview();
+        saveData();
     }
 
-    // --- 3. EXPORT PDF ---
-    if (downloadBtn) {
-        downloadBtn.addEventListener("click", () => {
-            const element = document.getElementById("preview-pages");
-            if (!element) return;
-
-            // Préparation visuelle pour l'export
-            const sheets = document.querySelectorAll(".preview-sheet");
-            sheets.forEach(sheet => {
-                sheet.dataset.oldTransform = sheet.style.transform;
-                sheet.style.transform = "none";
-                sheet.style.margin = "0";
-            });
-
-            const opt = {
-                margin: 0,
-                filename: `Expose_${themeInput.value || "BuroMaster"}.pdf`,
-                image: { type: "jpeg", quality: 0.98 },
-                html2canvas: { scale: 2, useCORS: true },
-                jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
-                pagebreak: { mode: ["css", "after"], after: ".preview-sheet" }
-            };
-
-            // Utilisation de la librairie html2pdf
-            html2pdf().set(opt).from(element).save().then(() => {
-                // Restauration du zoom à l'écran après export
-                sheets.forEach(sheet => {
-                    sheet.style.transform = sheet.dataset.oldTransform || "scale(1)";
-                    sheet.style.margin = "20px auto";
-                });
-            });
-        });
-    }
-
-    // --- 4. FONCTION APPEL API ---
-    async function generateWithAI(prompt) {
+    // --- 3. LA FONCTION COMMUNE D'APPEL À L'API (Lien avec generate.js) ---
+    async function callAiAPI(prompt) {
         try {
             const response = await fetch("/api/generate", {
                 method: "POST",
@@ -417,16 +431,77 @@ document.addEventListener("DOMContentLoaded", function () {
                 body: JSON.stringify({ prompt })
             });
 
-            if (!response.ok) throw new Error("Erreur serveur");
+            if (!response.ok) throw new Error("Le serveur a renvoyé une erreur.");
+            
             const data = await response.json();
-            return data.text || "Erreur de réponse de l'IA.";
+            return data.text || "L'IA n'a pas renvoyé de texte.";
         } catch (err) {
-            console.error("Erreur IA:", err);
-            return "Désolé, impossible de contacter l’IA. Vérifiez votre connexion.";
+            console.error("Erreur API:", err);
+            return "Désolé, une erreur est survenue lors de la connexion à l'IA. Vérifiez votre clé API ou votre connexion.";
         }
     }
 
-    // Initialisation au chargement
-    updatePreview();
-    updateHeaderUI();
-});
+     // ==========================================
+// PORTION 6 : EXPORT PDF ET CHARGEMENT FINAL
+// ==========================================
+
+    // --- 1. FONCTION D'EXPORTATION PDF ---
+    if (downloadBtn) {
+        downloadBtn.addEventListener("click", () => {
+            const element = document.getElementById("preview-pages");
+            if (!element || !element.innerHTML.trim()) {
+                alert("L'exposé est vide. Veuillez rédiger du contenu avant d'exporter.");
+                return;
+            }
+
+            // Préparation visuelle : On retire temporairement les effets de zoom
+            // pour que le PDF soit généré à taille réelle (A4)
+            const sheets = document.querySelectorAll(".preview-sheet");
+            sheets.forEach(sheet => {
+                sheet.dataset.oldTransform = sheet.style.transform;
+                sheet.style.transform = "none";
+                sheet.style.margin = "0";
+            });
+
+            const options = {
+                margin: 0,
+                filename: `Expose_${themeInput.value || "Mon_Projet"}.pdf`,
+                image: { type: "jpeg", quality: 0.98 },
+                html2canvas: { scale: 2, useCORS: true, letterRendering: true },
+                jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
+                pagebreak: { mode: ["css", "after"], after: ".preview-sheet" }
+            };
+
+            // Utilisation de la librairie html2pdf
+            // Assurez-vous qu'elle est chargée dans votre HTML
+            html2pdf().set(options).from(element).save().then(() => {
+                // Restauration de l'affichage à l'écran après l'export
+                sheets.forEach(sheet => {
+                    sheet.style.transform = sheet.dataset.oldTransform || "scale(1)";
+                    sheet.style.margin = "20px auto";
+                });
+            }).catch(err => {
+                console.error("Erreur PDF:", err);
+                alert("Une erreur est survenue lors de la création du PDF.");
+            });
+        });
+    }
+
+    // --- 2. INITIALISATION AU DÉMARRAGE DU NAVIGATEUR ---
+    // Cette étape est CRUCIALE : c'est elle qui réveille tout le script
+    
+    // On tente de charger une sauvegarde existante
+    loadData();
+
+    // Si aucune sauvegarde n'existe, on initialise l'affichage par défaut
+    if (reachedStepIndex === 0 && !themeInput.value) {
+        goToStep("plan"); 
+    } else {
+        // Sinon, on rafraîchit simplement l'interface avec les données chargées
+        updateHeaderUI();
+        updatePreview();
+    }
+
+    console.log("Système BuroMaster 2026 prêt et chargé.");
+}); // Fermeture finale du document.addEventListener("DOMContentLoaded", ...)
+                     
