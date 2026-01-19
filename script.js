@@ -46,15 +46,22 @@ document.addEventListener("DOMContentLoaded", function () {
         if (index < stepsOrder.length - 1) goToStep(stepsOrder[index + 1]);
     });
 
-    // --- VERROUILLAGE DES INPUTS ---
+       // --- VERROUILLAGE DYNAMIQUE DES INPUTS ---
     function toggleInputs(lock) {
+        // 1. Gestion des éditeurs (Dev ou Classique)
         if (currentStep === "dev") {
             document.querySelectorAll(".sub-editor").forEach(ed => ed.readOnly = lock);
             document.querySelectorAll(".generate-sub-btn").forEach(btn => btn.style.display = lock ? "none" : "block");
         } else {
             if (editor) editor.readOnly = lock;
         }
-        if (themeInput) themeInput.disabled = (reachedStepIndex > 0); // Verrouille le thème dès que le plan est validé
+
+        // 2. CORRECTION DU THÈME : 
+        // Le thème ne doit être verrouillé QUE si l'étape actuelle est verrouillée.
+        // On permet la modification du thème si on revient sur une étape non verrouillée.
+        if (themeInput) {
+            themeInput.disabled = isLocked[currentStep]; 
+        }
     }
 
     // (La suite des fonctions goToStep et Validation sera dans la Portion 2)
