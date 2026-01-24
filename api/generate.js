@@ -1,5 +1,3 @@
-// /api/generate.js — VERSION CORRIGÉE ET FONCTIONNELLE
-
 export default async function handler(req, res) {
     if (req.method !== "POST") {
         return res.status(405).json({ error: "Method not allowed" });
@@ -33,16 +31,25 @@ export default async function handler(req, res) {
 
         const data = await response.json();
 
-        let text = "Aucune réponse générée.";
-
-        if (data.candidates?.length > 0) {
-            text = data.candidates[0].content.parts[0].text;
+        if (!response.ok) {
+            console.error("Erreur Gemini:", data);
+            return res.status(500).json({
+                error: "Erreur Gemini API",
+                details: data
+            });
         }
 
-        return res.status(200).json({ text });
+        const text =
+            data.candidates?.[0]?.content?.parts?.[0]?.text ||
+            "Aucune réponse générée.";
+
+        res.status(200).json({ text });
 
     } catch (error) {
-        console.error("Erreur serveur API Gemini :", error);
-        return res.status(500).json({ error: "Erreur serveur interne" });
+        console.error("Erreur serveur:", error);
+        res.status(500).json({
+            error: "Erreur serveur interne",
+            details: error.message
+        });
     }
 }
