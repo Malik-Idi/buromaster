@@ -437,7 +437,7 @@ document.addEventListener("DOMContentLoaded", function () {
             return data.text || "L'IA n'a pas renvoyé de texte.";
         } catch (err) {
             console.error("Erreur API:", err);
-            return "Désolé, une erreur est survenue lors de la connexion à l'IA. Vérifiez votre clé API ou votre connexion.";
+            return "Erreur IA : " + err.message;
         }
     }
 
