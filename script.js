@@ -354,7 +354,7 @@ document.addEventListener("DOMContentLoaded", function () {
         saveData();
     });
 
-    // ==========================================
+ // ==========================================
 // PORTION 5 : INTELLIGENCE ARTIFICIELLE
 // ==========================================
 
@@ -425,21 +425,27 @@ document.addEventListener("DOMContentLoaded", function () {
     // --- 3. LA FONCTION COMMUNE D'APPEL À L'API (Lien avec generate.js) ---
     async function callAiAPI(prompt) {
         try {
-            const API_URL = "https://buromaster.vercel.app/api/generate";
-            
+            // !! MODIFICATION CLÉ : Utilisation de l'URL Vercel absolue !!
+            // ASSURE-TOI QUE L'URL CI-DESSOUS EST LA BONNE POUR TON PROJET VERCEl
+            const API_URL = "https://buromaster.vercel.app"; 
+
             const response = await fetch(API_URL, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ prompt })
-        });
-           
-            if (!response.ok) throw new Error("Le serveur a renvoyé une erreur.");
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ prompt })
+            });
+
+            if (!response.ok) {
+                // On inclut le statut et l'URL dans l'erreur pour un meilleur débogage
+                const errorDetails = await response.json();
+                throw new Error(`Le serveur a renvoyé une erreur ${response.status}: ${errorDetails.error}`);
+            }
             
             const data = await response.json();
             return data.text || "L'IA n'a pas renvoyé de texte.";
         } catch (err) {
             console.error("Erreur API:", err);
-            return "Erreur IA : " + err.message + " | URL appelée : " + API_URL;
+            return "Erreur IA : " + err.message;
         }
     }
 
