@@ -425,7 +425,7 @@ document.addEventListener("DOMContentLoaded", function () {
     // --- 3. LA FONCTION COMMUNE D'APPEL À L'API (Lien avec generate.js) ---
     async function callAiAPI(prompt) {
         try {
-            const API_URL = "https://buromaster.vercel.app";
+            const API_URL = "https://buromaster.vercel.app/api/generate";
             
             const response = await fetch("API_URL", {
                 method: "POST",
