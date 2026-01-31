@@ -427,7 +427,7 @@ document.addEventListener("DOMContentLoaded", function () {
         try {
             // !! MODIFICATION CLÉ : Utilisation de l'URL Vercel absolue !!
             // ASSURE-TOI QUE L'URL CI-DESSOUS EST LA BONNE POUR TON PROJET VERCEl
-            const API_URL = "https://buromaster.vercel.app"; 
+            const API_URL = "https://buromaster.vercel.app/api/generate"; 
 
             const response = await fetch(API_URL, {
                 method: "POST",
