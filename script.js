@@ -425,7 +425,9 @@ document.addEventListener("DOMContentLoaded", function () {
     // --- 3. LA FONCTION COMMUNE D'APPEL À L'API (Lien avec generate.js) ---
     async function callAiAPI(prompt) {
         try {
-            const response = await fetch("/api/generate", {
+            const API_URL = "https://buromaster.vercel.app";
+            
+            const response = await fetch("API_URL", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ prompt })
@@ -437,7 +439,7 @@ document.addEventListener("DOMContentLoaded", function () {
             return data.text || "L'IA n'a pas renvoyé de texte.";
         } catch (err) {
             console.error("Erreur API:", err);
-            return "Erreur IA : " + err.message;
+            return "Erreur IA : " + err.message + " | URL appelée : " + API_URL;
         }
     }
 
