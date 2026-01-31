@@ -427,12 +427,12 @@ document.addEventListener("DOMContentLoaded", function () {
         try {
             const API_URL = "https://buromaster.vercel.app/api/generate";
             
-            const response = await fetch("API_URL", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ prompt })
-            });
-
+            const response = await fetch(API_URL, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ prompt })
+        });
+           
             if (!response.ok) throw new Error("Le serveur a renvoyé une erreur.");
             
             const data = await response.json();
