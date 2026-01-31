@@ -10,7 +10,7 @@ export default async function handler(req, res) {
             return res.status(400).json({ error: "Prompt manquant" });
         }
 
-        const GEMINI_MODEL = "gemini-3-flash";
+        const GEMINI_MODEL = "gemini-1.5-flash";
 
         const response = await fetch(
             `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${process.env.GEMINI_API_KEY}`,
