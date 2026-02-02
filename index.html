@@ -19,16 +19,20 @@
 </header>
 
 <!-- NOUVEAU : Section thème, classe et options sur une seule ligne -->
-<section class="theme" style="display: flex; justify-content: center; align-items: center; gap: 20px; padding: 15px; background: white; border-bottom: 1px solid #ddd; flex-wrap: wrap;">
-    <div>
+<section class="theme" style="display: flex; justify-content: space-between; align-items: center; padding: 15px 30px; background: white; border-bottom: 1px solid #ddd; flex-wrap: wrap;">
+    <!-- Gauche : Classe -->
+    <div style="display: flex; align-items: center; gap: 10px;">
         <label for="studentClass">Classe :</label>
         <input type="text" id="studentClass" placeholder="Ex : 3ème A" style="max-width: 150px;">
     </div>
-    <div>
+    
+    <!-- Centre : Thème -->
+    <div style="display: flex; align-items: center; gap: 10px;">
         <label for="theme">Thème :</label>
         <input type="text" id="theme" placeholder="Ex : La déforestation au Bénin" style="max-width: 300px;">
     </div>
-    <!-- NOUVEAU : Bouton Options avancées -->
+
+    <!-- Droite : Bouton Options avancées -->
     <div>
         <button id="advancedOptionsBtn" style="background: #f4f4f4; border: 1px solid #ccc; padding: 10px 15px; cursor: pointer; border-radius: 5px;">Options avancées</button>
     </div>
@@ -38,7 +42,6 @@
     <section class="work-area">
         <div class="work-header">
             <h2 id="step-title" style="margin: 0;">Édition du Plan</h2>
-            <!-- L'ancienne case à cocher est déplacée vers la zone d'aperçu -->
         </div>
         
         <button type="button" id="generateBtn" class="primary-btn">Générer un modèle</button>
@@ -57,7 +60,6 @@
     </section>
 
     <section class="preview-area">
-        <!-- NOUVEAU : Contrôles d'aperçu alignés horizontalement -->
         <div class="preview-header" style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 10px; border-bottom: 1px solid #ccc;">
             <h2>Aperçu A4</h2>
             <div style="display: flex; align-items: center; gap: 10px;">
