@@ -460,8 +460,30 @@ document.addEventListener("DOMContentLoaded", function () {
         button.disabled = true;
         textarea.value = "L'IA développe cette partie...";
 
-        const prompt = `Développe de manière détaillée et pédagogique la partie intitulée "${sectionTitle}" pour un exposé sur le thème "${theme}". Rédige au moins deux paragraphes complets.`;
-        
+        // 🔹 NOUVEAU : on récupère la partie + ses sous-parties
+        const structuredSection = extractSectionWithSubparts(
+        content.plan,
+        sectionTitle
+        );
+
+        const prompt = `Agis comme un professeur et développe uniquement la partie suivante d’un exposé scolaire.
+
+            THÈME :
+            "${theme}"
+
+            PLAN À RESPECTER STRICTEMENT :
+            ${structuredSection}
+
+            CONSIGNES STRICTES :
+            1. Commence par un petit paragraphe d'introduction (très courte), 
+            2. Ensuite Développe toutes les sous-parties indiquées (très bien détaillé)
+            3. Puis termine par un petit paragraphe de conclusion  (très courte).
+            4. Respecte l’ordre du plan.
+            5. N’écris pas les titres (I.,II., etc.) dans le texte.
+            6. Adopte un ton neutre, informatif et scolaire.
+            7. N'utilise pas de formules orales ou littéraires excessives.
+            8. Le texte doit être compréhensible par un élève.`;
+       
         const result = await callAiAPI(prompt);
         
         textarea.value = result;
