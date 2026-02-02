@@ -622,3 +622,35 @@ document.addEventListener("DOMContentLoaded", function () {
     console.log("🚀 Système BuroMaster 2026 prêt.");
 
 }); // FERMETURE FINALE DU DOMContentLoaded
+
+    // --- 5. GESTION DU ZOOM (NOUVEAU) ---
+    const zoomOutBtn = document.getElementById("zoomOutBtn");
+    const zoomInBtn = document.getElementById("zoomInBtn");
+    const zoomLevelSpan = document.getElementById("zoomLevel");
+
+    if (zoomOutBtn && zoomInBtn && zoomLevelSpan && pagesContainer) {
+        let currentZoom = 0.6; // 60% par défaut
+
+        function updateZoomUI() {
+            // Applique le zoom à toutes les pages de l'aperçu
+            document.querySelectorAll(".preview-sheet").forEach(sheet => {
+                 // Remarque : Le CSS gère déjà un scale initial, il faudra ajuster ici si nécessaire
+                 // sheet.style.transform = `scale(${currentZoom})`; 
+            });
+            zoomLevelSpan.textContent = `${Math.round(currentZoom * 100)}%`;
+        }
+        
+        zoomInBtn.addEventListener("click", () => {
+            if (currentZoom < 1.0) currentZoom += 0.1;
+            updateZoomUI();
+        });
+
+        zoomOutBtn.addEventListener("click", () => {
+            if (currentZoom > 0.4) currentZoom -= 0.1;
+            updateZoomUI();
+        });
+
+        // Applique le zoom initial au chargement
+        updateZoomUI();
+    }
+    
