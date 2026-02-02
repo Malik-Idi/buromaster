@@ -12,6 +12,12 @@ document.addEventListener("DOMContentLoaded", function () {
     const nextStepBtn = document.getElementById("nextStepBtn");
     const generateBtn = document.getElementById("generateBtn");
     const downloadBtn = document.getElementById("downloadPdf");
+    
+    // NOUVEAUX ÉLÉMENTS DU DOM
+    const studentClassInput = document.getElementById("studentClass");
+    const autoFormatCheckbox = document.getElementById("autoFormatCheckbox");
+    const advancedOptionsBtn = document.getElementById("advancedOptionsBtn");
+    // NOTE : Les boutons Zoom + et - ne sont pas dans votre HTML, je ne peux pas les sélectionner ici.
 
     // État de l'application (Variables globales)
     let currentStep = "plan"; 
@@ -28,6 +34,9 @@ document.addEventListener("DOMContentLoaded", function () {
                 isLocked,
                 reachedStepIndex,
                 theme: themeInput ? themeInput.value : "",
+                // NOUVEAU : Sauvegarde de la classe et de l'état de la checkbox
+                studentClass: studentClassInput ? studentClassInput.value : "",
+                autoFormat: autoFormatCheckbox ? autoFormatCheckbox.checked : true,
                 currentStep
             };
             localStorage.setItem("buroMaster_save_2026", JSON.stringify(snapshot));
@@ -50,6 +59,15 @@ document.addEventListener("DOMContentLoaded", function () {
                 if (themeInput) {
                     themeInput.value = data.theme || "";
                 }
+                // NOUVEAU : Restauration de la classe et de l'état de la checkbox
+                if (studentClassInput) {
+                    studentClassInput.value = data.studentClass || "";
+                }
+                if (autoFormatCheckbox) {
+                    // Par défaut, si pas de sauvegarde, on active la mise en forme auto (checked=true)
+                    autoFormatCheckbox.checked = (data.autoFormat !== undefined) ? data.autoFormat : true;
+                }
+
                 return data.currentStep || "plan";
             }
         } catch (e) {
