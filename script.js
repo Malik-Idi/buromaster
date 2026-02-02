@@ -396,23 +396,37 @@ document.addEventListener("DOMContentLoaded", function () {
             } else if (currentStep === "intro") {
                 prompt = `Agis comme un professeur et rédige une introduction scolaire claire et pédagogique pour un exposé sur le thème : "${theme}".
 
-                CONSIGNES STRICTES :
-                1. N'utilise aucune formule orale (pas de "Mesdames et Messieurs").
-                2. Adopte un ton neutre, informatif et scolaire.
-                3. Le texte doit être compréhensible par un élève.
-                4. L'introduction doit capter l'attention avec une accroche, définir le sujet de manière claire (sans formuler explicitement une question) et annoncer les grandes étapes du plan.
-                5. Utilise des phrases claires et structurées, sans style littéraire excessif.
-                6. Organise le texte en plusieurs paragraphes logiques.
+                    CONSIGNES STRICTES :
+                    1. N'utilise aucune formule orale (pas de "Mesdames et Messieurs").
+                    2. Adopte un ton neutre, informatif et scolaire.
+                    3. Le texte doit être compréhensible par un élève.
+                    4. L'introduction doit capter l'attention avec une accroche, définir le sujet de manière claire (sans formuler explicitement une question) et annoncer les grandes étapes du plan.
+                    5. Utilise des phrases claires et structurées, sans style littéraire excessif.
+                    6. Organise le texte en plusieurs paragraphes logiques.
 
-                AUTRES RÈGLES :
-                - Texte continu (pas de listes).
-                - Longueur moyenne (ni trop courte, ni trop longue).
-                - Vocabulaire précis mais accessible.`;
+                    AUTRES RÈGLES :
+                    - Texte continu (pas de listes).
+                    - Longueur moyenne (ni trop courte, ni trop longue).
+                    - Vocabulaire précis mais accessible.`;
                 
             } else if (currentStep === "conclu") {
-                prompt = `Rédige une conclusion synthétique qui résume les points clés et ouvre sur une réflexion pour un exposé sur : "${theme}".`;
-            }
+                prompt = `Agis comme un professeur et rédige une conclusion scolaire claire et structurée pour un exposé sur le thème : "${theme}".
 
+                    CONSIGNES STRICTES :
+                    1. Adopte un ton neutre, informatif et scolaire.
+                    2. Récapitule brièvement les points essentiels abordés dans l'exposé.
+                    3. Répond clairement à la problématique annoncée dans l'introduction.
+                    4. Termine par une ouverture simple ou une invitation aux questions des camarades.
+                    5. N'utilise pas de questions rhétoriques complexes.
+                    6. N'utilise pas de formules orales ou littéraires excessives.
+
+                    FORMAT ATTENDU :
+                    - Texte continu (pas de listes).
+                    - 2 à 3 paragraphes bien distincts.
+                    - Longueur moyenne (ni trop courte, ni trop longue).
+                    - Vocabulaire précis mais compréhensible par un élève.`;
+                }
+            
             // Interface : on indique que l'IA travaille
             const originalText = editor.value;
             editor.value = "⏳ Génération en cours par l'IA... Veuillez patienter.";
