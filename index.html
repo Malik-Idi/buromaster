@@ -18,31 +18,27 @@
     </nav>
 </header>
 
-<!-- NOUVEAU : Barre d'options avancées -->
-<div class="options-bar">
-    <button id="advancedOptionsBtn">Options avancées</button>
-</div>
-
-<!-- NOUVEAU : Section thème et classe -->
-<section class="theme">
-    <div>
-        <label for="theme">Thème :</label>
-        <input type="text" id="theme" placeholder="Ex : La déforestation au Bénin">
-    </div>
+<!-- NOUVEAU : Section thème, classe et options sur une seule ligne -->
+<section class="theme" style="display: flex; justify-content: center; align-items: center; gap: 20px; padding: 15px; background: white; border-bottom: 1px solid #ddd; flex-wrap: wrap;">
     <div>
         <label for="studentClass">Classe :</label>
-        <input type="text" id="studentClass" placeholder="Ex : 3ème A">
+        <input type="text" id="studentClass" placeholder="Ex : 3ème A" style="max-width: 150px;">
+    </div>
+    <div>
+        <label for="theme">Thème :</label>
+        <input type="text" id="theme" placeholder="Ex : La déforestation au Bénin" style="max-width: 300px;">
+    </div>
+    <!-- NOUVEAU : Bouton Options avancées -->
+    <div>
+        <button id="advancedOptionsBtn" style="background: #f4f4f4; border: 1px solid #ccc; padding: 10px 15px; cursor: pointer; border-radius: 5px;">Options avancées</button>
     </div>
 </section>
 
 <main class="container">
     <section class="work-area">
-        <!-- NOUVEAU : Alignement titre/checkbox -->
         <div class="work-header">
             <h2 id="step-title" style="margin: 0;">Édition du Plan</h2>
-            <label for="autoFormatCheckbox" class="auto-format-label">
-                <input type="checkbox" id="autoFormatCheckbox" checked> Mise en forme auto
-            </label>
+            <!-- L'ancienne case à cocher est déplacée vers la zone d'aperçu -->
         </div>
         
         <button type="button" id="generateBtn" class="primary-btn">Générer un modèle</button>
@@ -61,13 +57,20 @@
     </section>
 
     <section class="preview-area">
-        <div class="preview-header">
+        <!-- NOUVEAU : Contrôles d'aperçu alignés horizontalement -->
+        <div class="preview-header" style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 10px; border-bottom: 1px solid #ccc;">
             <h2>Aperçu A4</h2>
-            <!-- NOUVEAU : Contrôles de Zoom -->
-            <div class="preview-controls">
-                <button id="zoomOutBtn">-</button>
-                <span id="zoomLevel">60%</span>
-                <button id="zoomInBtn">+</button>
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <!-- Contrôles de Zoom -->
+                <div class="preview-controls">
+                    <button id="zoomOutBtn">-</button>
+                    <span id="zoomLevel">60%</span>
+                    <button id="zoomInBtn">+</button>
+                </div>
+                <!-- Case à cocher Mise en forme automatique -->
+                <label for="autoFormatCheckbox" class="auto-format-label" style="margin: 0;">
+                    <input type="checkbox" id="autoFormatCheckbox" checked> Mise en forme auto
+                </label>
             </div>
         </div>
         <div class="preview-scroll" id="preview-pages"></div>
