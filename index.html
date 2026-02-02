@@ -18,14 +18,33 @@
     </nav>
 </header>
 
-<section class="theme">
-    <label for="theme">Thème :</label>
-    <input type="text" id="theme" placeholder="Ex : La déforestation au Bénin">
+<!-- NOUVEAU : Bouton Options avancées -->
+<div style="padding: 10px 20px; text-align: right; background: #e9e9e9; border-bottom: 1px solid #ddd;">
+    <button id="advancedOptionsBtn" style="background: #f4f4f4; border: 1px solid #ccc; padding: 8px 15px; cursor: pointer; border-radius: 5px;">Options avancées</button>
+</div>
+
+<section class="theme" style="display: flex; justify-content: center; gap: 20px;">
+    <div>
+        <label for="theme">Thème :</label>
+        <input type="text" id="theme" placeholder="Ex : La déforestation au Bénin" style="max-width: 300px;">
+    </div>
+    <!-- NOUVEAU : Champ Classe -->
+    <div>
+        <label for="studentClass">Classe :</label>
+        <input type="text" id="studentClass" placeholder="Ex : 3ème A" style="max-width: 150px;">
+    </div>
 </section>
 
 <main class="container">
     <section class="work-area">
-        <h2 id="step-title">Édition du Plan</h2>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+            <h2 id="step-title" style="margin: 0;">Édition du Plan</h2>
+            <!-- NOUVEAU : Case à cocher Mise en forme automatique -->
+            <label for="autoFormatCheckbox" style="font-size: 0.9em; display: flex; align-items: center; gap: 5px;">
+                <input type="checkbox" id="autoFormatCheckbox" checked> Mise en forme auto
+            </label>
+        </div>
+        
         <button type="button" id="generateBtn" class="primary-btn">Générer un modèle</button>
         
         <!-- Éditeur classique -->
@@ -47,10 +66,13 @@
     </section>
 </main>
 
-<!-- Bibliothèque PDF complète et corrigée -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<!-- Bibliothèque PDF -->
+<script src="https://cdnjs.cloudflare.com"></script>
 
-<!-- Votre script personnel doit TOUJOURS être après la bibliothèque -->
+<!-- NOUVEAU : Bibliothèque Word -->
+<script src="https://cdn.jsdelivr.net"></script>
+
+<!-- Votre script personnel doit TOUJOURS être après les bibliothèques -->
 <script src="script.js"></script>
 
 </body>
