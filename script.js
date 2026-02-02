@@ -370,7 +370,29 @@ document.addEventListener("DOMContentLoaded", function () {
             // Préparation du message pour l'IA (Prompt)
             let prompt = "";
             if (currentStep === "plan") {
-                prompt = `Génère un plan structuré d’exposé scolaire sur le thème : "${theme}". Utilise impérativement une structure avec I, II, III et A, B. Ne mets pas d'introduction ou de conclusion dans le plan.`;
+                prompt = `Agis comme un expert en rédaction scolaire. Génère UNIQUEMENT un plan détaillé pour l'exposé : "${theme}".
+
+                    CONSIGNES STRICTES :
+                    1. Ne rédige aucun contenu pour l’Introduction ni la Conclusion (écris uniquement les mots).
+                    2. Utilise exclusivement la hiérarchie : Introduction, I, II, III… et A, B, C, D si nécessaire.
+                    3. Ne descends jamais en dessous du niveau A, B, C, D (pas de 1, 2, 3).
+                    4. Le texte doit être brut, sans phrases inutiles ni décoration.
+                    5. Le plan doit être suffisamment détaillé pour un exposé complet.
+
+                    IMPORTANT :
+                    Le modèle ci-dessous est un EXEMPLE DE FORMAT, il ne limite ni le nombre de parties ni de sous-parties.
+
+                    EXEMPLE DE FORMAT :
+                    Introduction
+                    I. [Titre de partie]
+                    A. [Sous-partie]
+                    B. [Sous-partie]
+                    C. [Sous-partie]
+                    II. [Titre de partie]
+                    A. [Sous-partie]
+                    B. [Sous-partie]
+                    Conclusion`;
+                   
             } else if (currentStep === "intro") {
                 prompt = `Rédige une introduction formelle et captivante pour un exposé sur : "${theme}". Le texte doit être continu, sans listes.`;
             } else if (currentStep === "conclu") {
