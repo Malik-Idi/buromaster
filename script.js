@@ -89,7 +89,6 @@ document.addEventListener("DOMContentLoaded", function () {
         } else {
             if (editor) editor.readOnly = lock;
         }
-
         if (themeInput) {
             themeInput.disabled = isLocked[currentStep]; 
         }
@@ -97,42 +96,59 @@ document.addEventListener("DOMContentLoaded", function () {
 
     // --- NAVIGATION ENTRE LES ÉTAPES ---
     function goToStep(step) {
-        // Sauvegarde du texte de l'éditeur simple avant de changer (sauf si on quitte le dev)
+        // 1. Sauvegarde du texte actuel (sauf en mode dev qui a sa propre logique)
         if (currentStep !== "dev" && editor) {
             content[currentStep] = editor.value;
         }
 
         currentStep = step;
 
-        // Mise à jour du titre
+        // 2. Mise à jour du titre de l'étape
         if (stepTitle) {
             const stepNames = { plan: "Plan", intro: "Introduction", dev: "Développement", conclu: "Conclusion" };
             stepTitle.textContent = "Édition : " + (stepNames[step] || step.toUpperCase());
         }
         
-        // Gestion de l'état des boutons selon le verrouillage
         const locked = isLocked[step];
+
+        // 3. Gestion du bouton VALIDATION / MODIFICATION
         if (validateBtn) {
             validateBtn.textContent = locked ? "Modifier cette étape" : "Valider cette étape";
             validateBtn.style.background = locked ? "#ff9800" : "#4CAF50";
         }
 
+        // 4. TRANSFORMATION DU BOUTON SUIVANT (Logique demandée)
         if (nextStepBtn) {
-            const isNotLast = stepsOrder.indexOf(step) < stepsOrder.length - 1;
-            nextStepBtn.style.display = (locked && isNotLast) ? "block" : "none";
+            const isLastStep = (step === "conclu");
+            
+            if (isLastStep && locked) {
+                // Si conclusion verrouillée : devient bouton WORD
+                nextStepBtn.textContent = "Télécharger en Word (.doc)";
+                nextStepBtn.style.display = "block";
+                nextStepBtn.style.background = "#2b5797"; // Bleu Word
+                nextStepBtn.classList.add("is-word-btn");
+            } else {
+                // Sinon : bouton SUIVANT classique
+                nextStepBtn.textContent = "Étape Suivante";
+                nextStepBtn.style.background = ""; // Style CSS original
+                nextStepBtn.classList.remove("is-word-btn");
+                
+                const isNotLast = stepsOrder.indexOf(step) < stepsOrder.length - 1;
+                nextStepBtn.style.display = (locked && isNotLast) ? "block" : "none";
+            }
         }
 
+        // 5. Gestion du bouton GÉNÉRER
         if (generateBtn) {
-            // On n'affiche le bouton Générer que si non verrouillé ET pas en mode dev
             generateBtn.style.display = (!locked && step !== "dev") ? "block" : "none";
         }
 
-        // Basculement entre l'éditeur simple et les blocs de développement
+        // 6. Basculement des éditeurs (Simple vs Blocs Dev)
         if (step === "dev") {
             if (editor) editor.style.display = "none";
             if (devContainer) {
                 devContainer.style.display = "block";
-                setupDevBlocks(); // Sera défini en portion 3
+                setupDevBlocks(); 
             }
         } else {
             if (editor) {
@@ -144,25 +160,17 @@ document.addEventListener("DOMContentLoaded", function () {
 
         toggleInputs(locked);
         updateHeaderUI();
-        if (typeof updatePreview === "function") updatePreview(); // Portion 4
+        if (typeof updatePreview === "function") updatePreview();
         saveData(); 
     }
 
-    // Écouteurs pour les clics sur les liens du menu
+    // --- ÉCOUTEURS DE NAVIGATION ---
     document.querySelectorAll(".step-link").forEach((link, index) => {
         link.addEventListener("click", (e) => {
             e.preventDefault();
             if (index <= reachedStepIndex) goToStep(stepsOrder[index]);
         });
     });
-
-    // Bouton "Étape Suivante"
-    if (nextStepBtn) {
-        nextStepBtn.addEventListener("click", () => {
-            const index = stepsOrder.indexOf(currentStep);
-            if (index < stepsOrder.length - 1) goToStep(stepsOrder[index + 1]);
-        });
-    }
 
 // ==========================================
 // PORTION 3 : VALIDATION ET BLOCS DEV
@@ -519,8 +527,8 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }
 
-    // ==========================================
-// PORTION 6 : EXPORT PDF ET CHARGEMENT FINAL
+   // ==========================================
+// PORTION 6 : EXPORTS ET CHARGEMENT FINAL
 // ==========================================
 
     // --- 1. FONCTION D'EXPORTATION PDF ---
@@ -532,11 +540,10 @@ document.addEventListener("DOMContentLoaded", function () {
                 return;
             }
 
-            // Préparation visuelle : On gère le zoom pour html2pdf
             const sheets = document.querySelectorAll(".preview-sheet");
             sheets.forEach(sheet => {
                 sheet.dataset.oldTransform = sheet.style.transform;
-                sheet.style.transform = "none"; // On remet à 100% pour la capture
+                sheet.style.transform = "none"; 
                 sheet.style.margin = "0";
             });
 
@@ -551,35 +558,73 @@ document.addEventListener("DOMContentLoaded", function () {
                 pagebreak: { mode: ["css", "after"], after: ".preview-sheet" }
             };
 
-            // Appel de la librairie html2pdf
             html2pdf().set(options).from(element).save().then(() => {
-                // Restauration de l'affichage initial
                 sheets.forEach(sheet => {
                     sheet.style.transform = sheet.dataset.oldTransform || "scale(1)";
                     sheet.style.margin = "20px auto";
                 });
             }).catch(err => {
                 console.error("Erreur PDF:", err);
-                alert("Une erreur est survenue lors de la création du PDF.");
+                alert("Erreur lors de la création du PDF.");
             });
         });
     }
 
-    // --- 2. INITIALISATION FINALE ---
-    
-    // On charge les données et on récupère la dernière étape active
+    // --- 2. GESTION DU BOUTON SUIVANT / WORD ---
+    if (nextStepBtn) {
+        nextStepBtn.addEventListener("click", () => {
+            // Si le bouton est en mode "Export Word" (configuré dans Portion 2)
+            if (nextStepBtn.classList.contains("is-word-btn")) {
+                exportToWord();
+            } else {
+                // Comportement normal : étape suivante
+                const index = stepsOrder.indexOf(currentStep);
+                if (index < stepsOrder.length - 1) {
+                    goToStep(stepsOrder[index + 1]);
+                }
+            }
+        });
+    }
+
+    // --- 3. FONCTION D'EXPORTATION WORD ---
+    function exportToWord() {
+        const element = document.getElementById("preview-pages");
+        if (!element || !element.innerHTML.trim()) return;
+
+        // Préparation du contenu avec encodage pour les accents
+        const contentHtml = element.innerHTML;
+        const fullHtml = `
+            <!DOCTYPE html>
+            <html>
+                <head><meta charset="utf-8"></head>
+                <body>${contentHtml}</body>
+            </html>
+        `;
+
+        try {
+            // Utilise la bibliothèque html-docx-js
+            const converted = htmlDocx.asBlob(fullHtml);
+            const link = document.createElement("a");
+            const themeName = themeInput ? themeInput.value.replace(/[^a-z0-9]/gi, '_') : "BuroMaster";
+            
+            link.href = URL.createObjectURL(converted);
+            link.download = `Expose_${themeName}.docx`;
+            link.click();
+        } catch (error) {
+            console.error("Erreur Export Word:", error);
+            alert("Vérifiez que la bibliothèque html-docx est bien chargée.");
+        }
+    }
+
+    // --- 4. INITIALISATION AU DÉMARRAGE ---
     const lastStep = loadData(); 
 
-    // On rafraîchit l'aperçu immédiatement si des données existent
-    if (content.plan || content.intro) {
+    if (content.plan || content.intro || content.dev || content.conclu) {
         updatePreview();
     }
 
-    // On lance la navigation vers l'étape de reprise
-    // Cela déclenchera aussi updateHeaderUI() et toggleInputs()
+    // On lance la navigation finale
     goToStep(lastStep);
 
-    console.log("Système BuroMaster 2026 opérationnel.");
-
-}); // FERMETURE FINALE DU DOMContentLoaded
-                      
+    console.log("🚀 Système BuroMaster 2026 prêt.");
+       
