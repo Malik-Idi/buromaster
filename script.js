@@ -394,7 +394,21 @@ document.addEventListener("DOMContentLoaded", function () {
                     Conclusion`;
                    
             } else if (currentStep === "intro") {
-                prompt = `Rédige une introduction formelle et captivante pour un exposé sur : "${theme}". Le texte doit être continu, sans listes.`;
+                prompt = `Agis comme un professeur et rédige une introduction scolaire claire et pédagogique pour un exposé sur le thème : "${theme}".
+
+                CONSIGNES STRICTES :
+                1. N'utilise aucune formule orale (pas de "Mesdames et Messieurs").
+                2. Adopte un ton neutre, informatif et scolaire.
+                3. Le texte doit être compréhensible par un élève.
+                4. L'introduction doit capter l'attention avec une accroche, définir le sujet via une problématique claire et annoncer les étapes du plan.
+                5. Utilise des phrases claires et structurées, sans style littéraire excessif.
+                6. Organise le texte en plusieurs paragraphes logiques.
+
+                AUTRES RÈGLES :
+                - Texte continu (pas de listes).
+                - Longueur moyenne (ni trop courte, ni trop longue).
+                - Vocabulaire précis mais accessible.`;
+                
             } else if (currentStep === "conclu") {
                 prompt = `Rédige une conclusion synthétique qui résume les points clés et ouvre sur une réflexion pour un exposé sur : "${theme}".`;
             }
