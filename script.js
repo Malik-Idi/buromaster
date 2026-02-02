@@ -329,8 +329,11 @@ document.addEventListener("DOMContentLoaded", function () {
         pagesContainer.appendChild(fragment);
     }
 
+    // --- FONCTION DE RENDU D'UN TEXTE SUR LES PAGES (MISE À JOUR) ---
     function renderSection(title, text, pageElement, onBreak) {
         if (!text && !title) return pageElement;
+
+        const isAutoFormatEnabled = autoFormatCheckbox ? autoFormatCheckbox.checked : true;
 
         if (title) {
             const t = document.createElement("div");
@@ -348,15 +351,23 @@ document.addEventListener("DOMContentLoaded", function () {
             const cleanLine = line.trim();
             const div = document.createElement("div");
             
-            if (/^[IVX]+\./.test(cleanLine)) {
-                div.className = "title-style"; 
-            } else if (/^[A-Z]\./.test(cleanLine)) {
-                div.className = "subtitle-style";
-                div.style.paddingLeft = "15px";
+            // Stylisation selon la hiérarchie du plan UNIQUEMENT SI "Mise en forme auto" est cochée
+            if (isAutoFormatEnabled) {
+                if (/^[IVX]+\./.test(cleanLine)) {
+                    div.className = "title-style"; 
+                } else if (/^[A-Z]\./.test(cleanLine)) {
+                    div.className = "subtitle-style";
+                    div.style.paddingLeft = "15px";
+                } else {
+                    div.className = "text-style";
+                    div.style.textAlign = "justify";
+                }
             } else {
-                div.className = "text-style";
-                div.style.textAlign = "justify";
+                 // Si décoché, on utilise juste le style de texte par défaut
+                 div.className = "text-style";
+                 div.style.textAlign = "left"; // Alignement gauche simple sans justification
             }
+
 
             div.textContent = cleanLine === "" ? "\u00A0" : cleanLine;
             pageElement.appendChild(div);
@@ -395,6 +406,14 @@ document.addEventListener("DOMContentLoaded", function () {
 
     if (themeInput) {
         themeInput.addEventListener("input", () => {
+            updatePreview();
+            saveData();
+        });
+    }
+    
+    // NOUVEL ÉCOUTEUR : Quand l'utilisateur coche/décoche, on met à jour la preview et on sauvegarde
+    if (autoFormatCheckbox) {
+        autoFormatCheckbox.addEventListener("change", () => {
             updatePreview();
             saveData();
         });
