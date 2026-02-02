@@ -7,12 +7,23 @@ header { background: #0aa64b; color: white; padding: 15px; text-align: center; }
 .steps .active { background: #ffcc00; color: #000; font-weight: bold; cursor: pointer; }
 .steps .unlocked { cursor: pointer; background: rgba(255,255,255,0.5); }
 
-.theme { padding: 15px; background: white; text-align: center; border-bottom: 1px solid #ddd; }
-.theme input { width: 90%; max-width: 400px; padding: 12px; border: 2px solid #eee; border-radius: 8px; }
+/* NOUVEAU : Barre d'options avancées */
+.options-bar { padding: 10px 20px; text-align: right; background: #e9e9e9; border-bottom: 1px solid #ddd; }
+#advancedOptionsBtn { background: #f4f4f4; border: 1px solid #ccc; padding: 8px 15px; cursor: pointer; border-radius: 5px; }
+
+/* NOUVEAU : Section thème et classe */
+.theme { padding: 15px; background: white; text-align: center; border-bottom: 1px solid #ddd; display: flex; justify-content: center; gap: 20px; flex-wrap: wrap; }
+.theme input { padding: 12px; border: 2px solid #eee; border-radius: 8px; }
+#theme { width: 90%; max-width: 300px; }
+#studentClass { width: 90%; max-width: 150px; }
 
 .container { display: flex; flex-wrap: wrap; gap: 20px; padding: 20px; justify-content: center; }
 .work-area { flex: 1; min-width: 320px; max-width: 450px; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
 .editor { width: 100%; height: 400px; padding: 15px; border-radius: 8px; border: 1px solid #ddd; resize: none; font-size: 1rem; }
+
+/* NOUVEAU : Alignement titre/checkbox */
+.work-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+.auto-format-label { font-size: 0.9em; display: flex; align-items: center; gap: 5px; }
 
 .dev-block { border: 2px solid #0aa64b; border-radius: 8px; margin-bottom: 15px; padding: 12px; background: #f9f9f9; }
 .block-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; font-size: 0.9em; }
