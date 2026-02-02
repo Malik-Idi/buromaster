@@ -20,32 +20,46 @@ document.addEventListener("DOMContentLoaded", function () {
     let isLocked = { plan: false, intro: false, dev: false, conclu: false };
     let reachedStepIndex = 0;
 
-    // --- FONCTION DE SAUVEGARDE (Filet de sécurité) ---
-    // Cette fonction transforme vos variables en texte (JSON) et les stocke dans le navigateur
+    // --- FONCTION DE SAUVEGARDE ---
     function saveData() {
-        const snapshot = {
-            content,
-            isLocked,
-            reachedStepIndex,
-            theme: themeInput.value,
-            currentStep
-        };
-        localStorage.setItem("buroMaster_save_2026", JSON.stringify(snapshot));
+        try {
+            const snapshot = {
+                content,
+                isLocked,
+                reachedStepIndex,
+                theme: themeInput ? themeInput.value : "",
+                currentStep
+            };
+            localStorage.setItem("buroMaster_save_2026", JSON.stringify(snapshot));
+        } catch (e) {
+            console.warn("Impossible de sauvegarder dans le localStorage :", e);
+        }
     }
 
     // --- FONCTION DE CHARGEMENT ---
-    // Au démarrage, on vérifie si une sauvegarde existe pour tout restaurer
     function loadData() {
-        const saved = localStorage.getItem("buroMaster_save_2026");
-        if (saved) {
-            const data = JSON.parse(saved);
-            content = data.content;
-            isLocked = data.isLocked;
-            reachedStepIndex = data.reachedStepIndex;
-            themeInput.value = data.theme || "";
-            // On retourne à l'étape où l'utilisateur s'était arrêté
-            goToStep(data.currentStep || "plan");
+        try {
+            const saved = localStorage.getItem("buroMaster_save_2026");
+            if (saved) {
+                const data = JSON.parse(saved);
+                
+                // Restauration sécurisée des données
+                content = data.content || { plan: "", intro: "", dev: {}, conclu: "" };
+                isLocked = data.isLocked || { plan: false, intro: false, dev: false, conclu: false };
+                reachedStepIndex = data.reachedStepIndex || 0;
+                
+                if (themeInput) {
+                    themeInput.value = data.theme || "";
+                }
+
+                // Note : goToStep sera appelé à la toute fin du script global 
+                // pour s'assurer que toutes les fonctions sont bien définies.
+                return data.currentStep || "plan";
+            }
+        } catch (e) {
+            console.error("Erreur lors du chargement des données :", e);
         }
+        return "plan"; // Étape par défaut
     }
 
     // ==========================================
@@ -53,31 +67,29 @@ document.addEventListener("DOMContentLoaded", function () {
 // ==========================================
 
     // --- MISE À JOUR VISUELLE DU HEADER ---
-    // Cette fonction colore l'onglet actuel et grise les étapes non atteintes
     function updateHeaderUI() {
         document.querySelectorAll(".step-link").forEach((link, index) => {
             if (stepsOrder[index] === currentStep) {
-                link.style.color = "#4CAF50"; // Vert pour l'étape active
+                link.style.color = "#4CAF50"; 
                 link.style.borderBottom = "2px solid #4CAF50";
             } else {
                 link.style.borderBottom = "none";
-                // Gris si l'étape est bloquée, noir si elle est accessible
                 link.style.color = index <= reachedStepIndex ? "#333" : "#ccc";
             }
         });
     }
 
-    // --- GESTION DU VERROUILLAGE (CORRIGÉE) ---
+    // --- GESTION DU VERROUILLAGE DES INPUTS ---
     function toggleInputs(lock) {
-        // Verrouillage des éditeurs
         if (currentStep === "dev") {
             document.querySelectorAll(".sub-editor").forEach(ed => ed.readOnly = lock);
-            document.querySelectorAll(".generate-sub-btn").forEach(btn => btn.style.display = lock ? "none" : "block");
+            document.querySelectorAll(".generate-sub-btn").forEach(btn => {
+                btn.style.display = lock ? "none" : "block";
+            });
         } else {
             if (editor) editor.readOnly = lock;
         }
 
-        // CORRECTION : Le thème est modifiable si l'étape actuelle n'est pas verrouillée
         if (themeInput) {
             themeInput.disabled = isLocked[currentStep]; 
         }
@@ -85,25 +97,34 @@ document.addEventListener("DOMContentLoaded", function () {
 
     // --- NAVIGATION ENTRE LES ÉTAPES ---
     function goToStep(step) {
-        // On sauvegarde le texte actuel avant de changer d'onglet
+        // Sauvegarde du texte de l'éditeur simple avant de changer (sauf si on quitte le dev)
         if (currentStep !== "dev" && editor) {
             content[currentStep] = editor.value;
         }
 
         currentStep = step;
-        if (stepTitle) stepTitle.textContent = "Édition : " + step.toUpperCase();
+
+        // Mise à jour du titre
+        if (stepTitle) {
+            const stepNames = { plan: "Plan", intro: "Introduction", dev: "Développement", conclu: "Conclusion" };
+            stepTitle.textContent = "Édition : " + (stepNames[step] || step.toUpperCase());
+        }
         
-        // On ajuste l'affichage des boutons selon l'état de l'étape choisie
-        if (isLocked[step]) {
-            validateBtn.textContent = "Modifier cette étape";
-            validateBtn.style.background = "#ff9800";
-            if (nextStepBtn) nextStepBtn.style.display = "block";
-            if (generateBtn) generateBtn.style.display = "none";
-        } else {
-            validateBtn.textContent = "Valider cette étape";
-            validateBtn.style.background = "#4CAF50";
-            if (nextStepBtn) nextStepBtn.style.display = "none";
-            if (generateBtn) generateBtn.style.display = (step === "dev") ? "none" : "block";
+        // Gestion de l'état des boutons selon le verrouillage
+        const locked = isLocked[step];
+        if (validateBtn) {
+            validateBtn.textContent = locked ? "Modifier cette étape" : "Valider cette étape";
+            validateBtn.style.background = locked ? "#ff9800" : "#4CAF50";
+        }
+
+        if (nextStepBtn) {
+            const isNotLast = stepsOrder.indexOf(step) < stepsOrder.length - 1;
+            nextStepBtn.style.display = (locked && isNotLast) ? "block" : "none";
+        }
+
+        if (generateBtn) {
+            // On n'affiche le bouton Générer que si non verrouillé ET pas en mode dev
+            generateBtn.style.display = (!locked && step !== "dev") ? "block" : "none";
         }
 
         // Basculement entre l'éditeur simple et les blocs de développement
@@ -111,7 +132,7 @@ document.addEventListener("DOMContentLoaded", function () {
             if (editor) editor.style.display = "none";
             if (devContainer) {
                 devContainer.style.display = "block";
-                setupDevBlocks();
+                setupDevBlocks(); // Sera défini en portion 3
             }
         } else {
             if (editor) {
@@ -121,15 +142,16 @@ document.addEventListener("DOMContentLoaded", function () {
             if (devContainer) devContainer.style.display = "none";
         }
 
-        toggleInputs(isLocked[step]);
+        toggleInputs(locked);
         updateHeaderUI();
-        updatePreview();
-        saveData(); // On enregistre l'étape actuelle dans la sauvegarde
+        if (typeof updatePreview === "function") updatePreview(); // Portion 4
+        saveData(); 
     }
 
-    // Écouteur pour les clics sur les liens du header
+    // Écouteurs pour les clics sur les liens du menu
     document.querySelectorAll(".step-link").forEach((link, index) => {
-        link.addEventListener("click", () => {
+        link.addEventListener("click", (e) => {
+            e.preventDefault();
             if (index <= reachedStepIndex) goToStep(stepsOrder[index]);
         });
     });
@@ -142,161 +164,174 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
-    // ==========================================
+// ==========================================
 // PORTION 3 : VALIDATION ET BLOCS DEV
 // ==========================================
 
     // --- GESTION DU BOUTON VALIDER ---
     if (validateBtn) {
         validateBtn.addEventListener("click", () => {
-            if (!isLocked[currentStep]) {
+            const isCurrentlyLocked = isLocked[currentStep];
+            
+            if (!isCurrentlyLocked) {
                 // ACTION : VALIDER
-                if (currentStep !== "dev") content[currentStep] = editor.value;
-                
+                if (currentStep !== "dev" && editor) {
+                    content[currentStep] = editor.value;
+                }
                 isLocked[currentStep] = true;
-                // On débloque l'accès à l'étape suivante dans le menu
+                // Débloque l'étape suivante
                 reachedStepIndex = Math.max(reachedStepIndex, stepsOrder.indexOf(currentStep) + 1);
-                
-                validateBtn.textContent = "Modifier cette étape";
-                validateBtn.style.background = "#ff9800";
-                nextStepBtn.style.display = "block";
-                generateBtn.style.display = "none";
-                
-                toggleInputs(true);
             } else {
                 // ACTION : MODIFIER
                 isLocked[currentStep] = false;
-                validateBtn.textContent = "Valider cette étape";
-                validateBtn.style.background = "#4CAF50";
-                nextStepBtn.style.display = "none";
-                // On réaffiche "Générer" sauf pour le dev qui a ses propres boutons
-                if(currentStep !== "dev") generateBtn.style.display = "block";
-                
-                toggleInputs(false);
             }
-            updateHeaderUI();
-            saveData(); // On sauvegarde l'état verrouillé/déverrouillé
+            
+            // Rafraîchit l'interface pour appliquer les changements (boutons, readonly, etc.)
+            goToStep(currentStep);
         });
+    }
+
+    // --- ANALYSE DU PLAN (LOGIQUE INTERNE) ---
+    function parsePlanForDev(planText) {
+        const sections = [];
+        const lines = planText.split('\n');
+        let currentSection = null;
+
+        lines.forEach(line => {
+            const cleanLine = line.trim();
+            // On ignore l'intro et la conclu qui ont leurs propres onglets
+            if (!cleanLine || /intro/i.test(cleanLine) || /conclu/i.test(cleanLine)) return;
+
+            // Détecte les titres principaux (I. Titre ou II. Titre)
+            if (/^[IVX]+\./.test(cleanLine)) {
+                currentSection = { title: cleanLine, subparts: [] };
+                sections.push(currentSection);
+            } 
+            // Détecte les sous-parties (A. Sous-titre)
+            else if (/^[A-Z]\./.test(cleanLine) && currentSection) {
+                currentSection.subparts.push(cleanLine);
+            }
+        });
+        return sections;
     }
 
     // --- GÉNÉRATION DES BLOCS DE DÉVELOPPEMENT ---
     function setupDevBlocks() {
-    if (!devContainer) return;
-    devContainer.innerHTML = "";
+        if (!devContainer) return;
+        devContainer.innerHTML = "";
 
-    const sections = parsePlanForDev(content.plan || "");
+        const sections = parsePlanForDev(content.plan || "");
 
-    sections.forEach(section => {
-        const block = document.createElement("div");
-        block.className = "dev-block";
-        block.style.marginBottom = "25px";
+        sections.forEach(section => {
+            const block = document.createElement("div");
+            block.className = "dev-block";
+            block.style.marginBottom = "25px";
+            
+            // On stocke les données pour l'IA
+            block.dataset.sectionData = JSON.stringify(section);
 
-        // 🔹 On stocke la structure DIRECTEMENT dans le bloc
-        block.dataset.sectionData = JSON.stringify(section);
+            block.innerHTML = `
+                <div class="block-header" style="margin-bottom:10px;">
+                    <strong style="color: #2c3e50;">${section.title}</strong>
+                    ${section.subparts.length ? `<div style="font-size:0.85em; color:#666; margin-top:4px;">${section.subparts.join(" | ")}</div>` : ""}
+                    <button class="generate-sub-btn" style="margin-top:8px; background:#2196F3; color:white; border:none; padding:6px 12px; cursor:pointer; border-radius:4px; display: ${isLocked['dev'] ? 'none' : 'block'}">
+                        Générer cette partie
+                    </button>
+                </div>
+                <textarea class="sub-editor" placeholder="Développez cette partie ici..." style="width:100%; min-height:120px; padding:10px; border:1px solid #ddd; border-radius:4px;" ${isLocked['dev'] ? 'readonly' : ''}>${content.dev[section.title] || ""}</textarea>
+            `;
 
-        block.innerHTML = `
-            <div class="block-header" style="margin-bottom:10px;">
-                <strong>${section.title}</strong>
-                ${
-                    section.subparts.length
-                        ? `<div style="font-size:0.9em; color:#555; margin-top:4px;">
-                            ${section.subparts.join("<br>")}
-                           </div>`
-                        : ""
+            devContainer.appendChild(block);
+
+            const textarea = block.querySelector(".sub-editor");
+            const button = block.querySelector(".generate-sub-btn");
+
+            // Enregistrement en temps réel
+            textarea.addEventListener("input", (e) => {
+                content.dev[section.title] = e.target.value;
+                if (typeof updatePreview === "function") updatePreview();
+                saveData();
+            });
+
+            button.addEventListener("click", () => {
+                if (typeof handleSubGeneration === "function") {
+                    handleSubGeneration(block, textarea, button);
                 }
-                <button class="generate-sub-btn"
-                        style="margin-top:8px; background:#2196F3; color:white; border:none; padding:8px; cursor:pointer; border-radius:4px;
-                        ${isLocked['dev'] ? 'display:none' : ''}">
-                    Générer cette partie
-                </button>
-            </div>
-
-            <textarea class="sub-editor"
-                placeholder="Développez cette partie ici..."
-                style="width:100%; min-height:140px; padding:10px;"
-                ${isLocked['dev'] ? 'readonly' : ''}>
-                ${content.dev[section.title] || ""}
-            </textarea>
-        `;
-
-        devContainer.appendChild(block);
-
-        const textarea = block.querySelector(".sub-editor");
-        const button = block.querySelector(".generate-sub-btn");
-
-        textarea.addEventListener("input", e => {
-            content.dev[section.title] = e.target.value;
-            updatePreview();
-            saveData();
-        });
-
-        button.addEventListener("click", () => {
-            handleSubGeneration(block, textarea, button);
             });
         });
     }
-            
-// ==========================================
+
+    // ==========================================
 // PORTION 4 : APERÇU ET GESTION DES PAGES
 // ==========================================
 
     // --- MISE À JOUR DE LA PREVIEW ---
     function updatePreview() {
         if (!pagesContainer) return;
-        pagesContainer.innerHTML = ""; // On vide tout pour reconstruire proprement
+        
+        // On utilise un fragment pour améliorer les performances de rendu
+        const fragment = document.createDocumentFragment();
+        pagesContainer.innerHTML = ""; 
+        
         let pageNum = 1;
-        let currentPage = createNewPage(pageNum);
+        let currentPage = createNewPage(pageNum, fragment);
 
         // 1. Rendu du SOMMAIRE (Plan)
         if (content.plan) {
-            renderSection("SOMMAIRE", content.plan, currentPage, () => { 
+            currentPage = renderSection("SOMMAIRE", content.plan, currentPage, () => { 
                 pageNum++; 
-                currentPage = createNewPage(pageNum);
-                return currentPage;
+                return createNewPage(pageNum, fragment);
             });
         }
 
         // 2. Rendu de l'INTRODUCTION
         if (content.intro || currentStep === "intro") {
-            // On force souvent un saut de page pour l'intro pour faire "propre"
-            pageNum++; currentPage = createNewPage(pageNum);
-            renderSection("INTRODUCTION", content.intro, currentPage, () => { 
-                pageNum++; currentPage = createNewPage(pageNum);
-                return currentPage;
+            // Saut de page pour l'intro si la page actuelle n'est pas vide
+            if (currentPage.innerHTML !== "") {
+                pageNum++; 
+                currentPage = createNewPage(pageNum, fragment);
+            }
+            currentPage = renderSection("INTRODUCTION", content.intro, currentPage, () => { 
+                pageNum++; return createNewPage(pageNum, fragment);
             });
         }
 
         // 3. Rendu du DÉVELOPPEMENT
-        if (Object.keys(content.dev).length > 0 || currentStep === "dev") {
-            pageNum++; currentPage = createNewPage(pageNum);
+        const hasDev = Object.keys(content.dev).length > 0 || currentStep === "dev";
+        if (hasDev) {
+            pageNum++; 
+            currentPage = createNewPage(pageNum, fragment);
+            
             const devTitle = document.createElement("div");
             devTitle.className = "title-style";
             devTitle.style.textAlign = "center";
             devTitle.style.textDecoration = "underline";
+            devTitle.style.fontWeight = "bold";
             devTitle.textContent = "DÉVELOPPEMENT";
             currentPage.appendChild(devTitle);
 
             for (let sectionTitle in content.dev) {
-                renderSection(sectionTitle, content.dev[sectionTitle], currentPage, () => { 
-                    pageNum++; currentPage = createNewPage(pageNum);
-                    return currentPage;
+                currentPage = renderSection(sectionTitle, content.dev[sectionTitle], currentPage, () => { 
+                    pageNum++; return createNewPage(pageNum, fragment);
                 });
             }
         }
 
         // 4. Rendu de la CONCLUSION
         if (content.conclu || currentStep === "conclu") {
-            pageNum++; currentPage = createNewPage(pageNum);
-            renderSection("CONCLUSION", content.conclu, currentPage, () => { 
-                pageNum++; currentPage = createNewPage(pageNum);
-                return currentPage;
+            pageNum++; 
+            currentPage = createNewPage(pageNum, fragment);
+            currentPage = renderSection("CONCLUSION", content.conclu, currentPage, () => { 
+                pageNum++; return createNewPage(pageNum, fragment);
             });
         }
+
+        pagesContainer.appendChild(fragment);
     }
 
     // --- FONCTION DE RENDU D'UN TEXTE SUR LES PAGES ---
     function renderSection(title, text, pageElement, onBreak) {
-        if (!text && !title) return;
+        if (!text && !title) return pageElement;
 
         if (title) {
             const t = document.createElement("div");
@@ -307,64 +342,70 @@ document.addEventListener("DOMContentLoaded", function () {
             pageElement.appendChild(t);
         }
 
-        if (!text) return;
+        if (!text) return pageElement;
 
         const lines = text.split("\n");
-        lines.forEach(line => {
+        for (let line of lines) {
             const cleanLine = line.trim();
             const div = document.createElement("div");
             
-            // Stylisation intelligente selon le contenu
+            // Stylisation selon la hiérarchie du plan
             if (/^[IVX]+\./.test(cleanLine)) {
-                div.className = "title-style"; // Titre principal
+                div.className = "title-style"; 
             } else if (/^[A-Z]\./.test(cleanLine)) {
-                div.className = "subtitle-style"; // Sous-titre
+                div.className = "subtitle-style";
                 div.style.paddingLeft = "15px";
             } else {
-                div.className = "text-style"; // Texte normal
+                div.className = "text-style";
                 div.style.textAlign = "justify";
             }
 
             div.textContent = cleanLine === "" ? "\u00A0" : cleanLine;
             pageElement.appendChild(div);
 
-            // GESTION DU SAUT DE PAGE : si la page est trop pleine (850px)
-            if (pageElement.scrollHeight > 850) { 
+            // GESTION DU SAUT DE PAGE (Détection sur la feuille parente)
+            const sheet = pageElement.closest('.preview-sheet');
+            if (sheet && sheet.scrollHeight > 880) { 
                 pageElement.removeChild(div); 
-                pageElement = onBreak(); // Appelle la création d'une nouvelle page
+                pageElement = onBreak(); 
                 pageElement.appendChild(div); 
             }
-        });
+        }
+        return pageElement;
     }
 
     // --- CRÉATION PHYSIQUE D'UNE PAGE ---
-    function createNewPage(num) {
+    function createNewPage(num, container) {
         const page = document.createElement("div");
         page.className = "preview-sheet";
-        const currentTheme = themeInput.value.trim() || "MON EXPOSÉ";
+        const currentTheme = themeInput ? themeInput.value.trim() || "MON EXPOSÉ" : "MON EXPOSÉ";
         
         page.innerHTML = `
-            <div class="page-header" style="font-size:10px; color:#999; border-bottom:1px solid #eee; margin-bottom:10px;">${currentTheme.toUpperCase()}</div>
+            <div class="page-header" style="font-size:10px; color:#999; border-bottom:1px solid #eee; margin-bottom:10px; text-transform: uppercase;">${currentTheme}</div>
             <div class="page-content"></div>
             <div class="page-footer" style="position:absolute; bottom:20px; right:40px; font-size:10px; color:#999;">Page ${num}</div>
         `;
-        pagesContainer.appendChild(page);
+        container.appendChild(page);
         return page.querySelector(".page-content");
     }
 
-    // --- ÉCOUTEURS D'ENTRÉE POUR SAUVEGARDE ---
-    editor.addEventListener("input", () => { 
-        content[currentStep] = editor.value; 
-        updatePreview(); 
-        saveData(); // Sauvegarde à chaque lettre tapée
-    });
+    // --- ÉCOUTEURS D'ENTRÉE POUR MISE À JOUR ---
+    if (editor) {
+        editor.addEventListener("input", () => { 
+            content[currentStep] = editor.value; 
+            updatePreview(); 
+            saveData(); 
+        });
+    }
 
-    themeInput.addEventListener("input", () => {
-        updatePreview();
-        saveData();
-    });
+    if (themeInput) {
+        themeInput.addEventListener("input", () => {
+            updatePreview();
+            saveData();
+        });
+    }
 
- // ==========================================
+    // ==========================================
 // PORTION 5 : INTELLIGENCE ARTIFICIELLE
 // ==========================================
 
@@ -377,76 +418,36 @@ document.addEventListener("DOMContentLoaded", function () {
                 return;
             }
 
-            // Préparation du message pour l'IA (Prompt)
             let prompt = "";
             if (currentStep === "plan") {
                 prompt = `Agis comme un expert en rédaction scolaire. Génère UNIQUEMENT un plan détaillé pour l'exposé : "${theme}".
-
                     CONSIGNES STRICTES :
-                    1. Ne rédige aucun contenu pour l’Introduction ni la Conclusion (écris uniquement les mots).
-                    2. Utilise exclusivement la hiérarchie : Introduction, I, II, III… et A, B, C, D si nécessaire.
-                    3. Ne descends jamais en dessous du niveau A, B, C, D (pas de 1, 2, 3).
-                    4. Le texte doit être brut, sans phrases inutiles ni décoration.
-                    5. Le plan doit être suffisamment détaillé pour un exposé complet.
-
-                    IMPORTANT :
-                    Le modèle ci-dessous est un EXEMPLE DE FORMAT, il ne limite ni le nombre de parties ni de sous-parties.
-
-                    EXEMPLE DE FORMAT :
+                    1. Ne rédige aucun contenu pour l’Introduction ni la Conclusion.
+                    2. Utilise exclusivement la hiérarchie : Introduction, I, II, III… et A, B, C, D.
+                    3. Le texte doit être brut, sans phrases inutiles.
+                    4. IMPORTANT : Respecte ce format :
                     Introduction
-                    I. [Titre de partie]
-                    A. [Sous-partie]
-                    B. [Sous-partie]
-                    C. [Sous-partie]
-                    II. [Titre de partie]
+                    I. [Titre]
                     A. [Sous-partie]
                     B. [Sous-partie]
                     Conclusion`;
                    
             } else if (currentStep === "intro") {
-                prompt = `Agis comme un professeur et rédige une introduction scolaire claire et pédagogique pour un exposé sur le thème : "${theme}".
-
-                    CONSIGNES STRICTES :
-                    1. N'utilise aucune formule orale (pas de "Mesdames et Messieurs").
-                    2. Adopte un ton neutre, informatif et scolaire.
-                    3. Le texte doit être compréhensible par un élève.
-                    4. L'introduction doit capter l'attention avec une accroche, définir le sujet de manière claire (sans formuler explicitement une question) et annoncer les grandes étapes du plan.
-                    5. Utilise des phrases claires et structurées, sans style littéraire excessif.
-                    6. Organise le texte en plusieurs paragraphes logiques.
-
-                    AUTRES RÈGLES :
-                    - Texte continu (pas de listes).
-                    - Longueur moyenne (ni trop courte, ni trop longue).
-                    - Vocabulaire précis mais accessible.`;
+                prompt = `Rédige une introduction scolaire claire pour un exposé sur : "${theme}".
+                    CONSIGNES : Ton neutre, accroche, définition du sujet et annonce du plan. Plusieurs paragraphes. Pas de listes.`;
                 
             } else if (currentStep === "conclu") {
-                prompt = `Agis comme un professeur et rédige une conclusion scolaire claire et structurée pour un exposé sur le thème : "${theme}".
-
-                    CONSIGNES STRICTES :
-                    1. Parle uniquement du sujet, jamais de l'exposé ou du travail réalisé.
-                    2. N'utilise pas de formulations métadiscursives (ex : "notre exposé", "nous avons vu", "cette présentation").
-                    3. Adopte un ton neutre, informatif et scolaire.
-                    4. Récapitule brièvement les points essentiels abordés dans l'exposé.
-                    5. Propose une réponse claire à la problématique.
-                    6. Termine par une ouverture simple vers l'action ou la réflexion collective.
-                    7. N'utilise pas de questions rhétoriques complexes.
-                    8. N'utilise pas de formules orales ou littéraires excessives.
-
-                    FORMAT ATTENDU :
-                    - Texte continu (pas de listes).
-                    - 2 à 3 paragraphes bien distincts.
-                    - Longueur moyenne (ni trop courte, ni trop longue).
-                    - Vocabulaire précis mais compréhensible par un élève.`;
-                }
+                prompt = `Rédige une conclusion scolaire pour un exposé sur : "${theme}".
+                    CONSIGNES : Récapitule les points clés, propose une réponse à la problématique et une ouverture simple. Pas de "nous avons vu".`;
+            }
             
-            // Interface : on indique que l'IA travaille
-            const originalText = editor.value;
+            // État de chargement
+            const originalValue = editor.value;
             editor.value = "⏳ Génération en cours par l'IA... Veuillez patienter.";
             generateBtn.disabled = true;
 
             const result = await callAiAPI(prompt);
             
-            // Mise à jour du contenu
             editor.value = result;
             content[currentStep] = result;
             generateBtn.disabled = false;
@@ -457,42 +458,34 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     // --- 2. GÉNÉRATION SPÉCIFIQUE POUR LES BLOCS DE DÉVELOPPEMENT ---
-    async function handleSubGeneration(sectionTitle, textarea, button) {
+    async function handleSubGeneration(block, textarea, button) {
         const theme = themeInput.value.trim();
+        const sectionData = JSON.parse(block.dataset.sectionData); // Correction : On récupère les données ici
+
         if (!theme) {
             alert("Veuillez entrer un thème avant de générer.");
             return;
         }
 
-        // Feedback visuel sur le bouton concerné
         const originalBtnText = button.textContent;
         button.textContent = "⏳...";
         button.disabled = true;
+        const originalAreaValue = textarea.value;
         textarea.value = "L'IA développe cette partie...";
        
-        const prompt = `Agis comme un professeur et développe uniquement la partie suivante d’un exposé scolaire.
-
-            THÈME :
-            "${theme}"
-
-            PLAN À RESPECTER STRICTEMENT :
-             ${sectionData.title}
-             ${sectionData.subparts.join("\n")}
+        const prompt = `Agis comme un professeur. Développe uniquement la partie suivante d'un exposé sur "${theme}" :
+            TITRE : ${sectionData.title}
+            SOUS-PARTIES : ${sectionData.subparts.join(", ")}
             
-            CONSIGNES STRICTES :
-            1. Commence par un petit paragraphe d'introduction (très courte), 
-            2. Ensuite Développe toutes les sous-parties indiquées (très bien détaillé)
-            3. Puis termine par un petit paragraphe de conclusion  (très courte).
-            4. Respecte l’ordre du plan.
-            5. N’écris pas les titres (I.,II., etc.) dans le texte.
-            6. Adopte un ton neutre, informatif et scolaire.
-            7. N'utilise pas de formules orales ou littéraires excessives.
-            8. Le texte doit être compréhensible par un élève.`;
+            CONSIGNES :
+            1. Développe chaque sous-partie de manière détaillée.
+            2. N’écris pas les titres (I., II., A., B.) dans le corps du texte.
+            3. Ton neutre et scolaire.`;
        
         const result = await callAiAPI(prompt);
         
         textarea.value = result;
-        content.dev[sectionTitle] = result; // On enregistre dans l'objet dev
+        content.dev[sectionData.title] = result; // On enregistre avec le titre exact comme clé
         
         button.textContent = originalBtnText;
         button.disabled = false;
@@ -501,12 +494,11 @@ document.addEventListener("DOMContentLoaded", function () {
         saveData();
     }
 
-    // --- 3. LA FONCTION COMMUNE D'APPEL À L'API (Lien avec generate.js) ---
+    // --- 3. FONCTION D'APPEL API ---
     async function callAiAPI(prompt) {
         try {
-            // !! MODIFICATION CLÉ : Utilisation de l'URL Vercel absolue !!
-            // ASSURE-TOI QUE L'URL CI-DESSOUS EST LA BONNE POUR TON PROJET VERCEl
-            const API_URL = "https://buromaster.vercel.app/api/generate"; 
+            // URL de ton endpoint Vercel
+            const API_URL = "https://buromaster.vercel.app"; 
 
             const response = await fetch(API_URL, {
                 method: "POST",
@@ -515,20 +507,19 @@ document.addEventListener("DOMContentLoaded", function () {
             });
 
             if (!response.ok) {
-                // On inclut le statut et l'URL dans l'erreur pour un meilleur débogage
-                const errorDetails = await response.json();
-                throw new Error(`Le serveur a renvoyé une erreur ${response.status}: ${errorDetails.error}`);
+                const errorData = await response.json();
+                throw new Error(errorData.error || "Erreur serveur");
             }
             
             const data = await response.json();
             return data.text || "L'IA n'a pas renvoyé de texte.";
         } catch (err) {
             console.error("Erreur API:", err);
-            return "Erreur IA : " + err.message;
+            return "Désolé, une erreur est survenue lors de la génération : " + err.message;
         }
     }
 
-     // ==========================================
+    // ==========================================
 // PORTION 6 : EXPORT PDF ET CHARGEMENT FINAL
 // ==========================================
 
@@ -541,28 +532,28 @@ document.addEventListener("DOMContentLoaded", function () {
                 return;
             }
 
-            // Préparation visuelle : On retire temporairement les effets de zoom
-            // pour que le PDF soit généré à taille réelle (A4)
+            // Préparation visuelle : On gère le zoom pour html2pdf
             const sheets = document.querySelectorAll(".preview-sheet");
             sheets.forEach(sheet => {
                 sheet.dataset.oldTransform = sheet.style.transform;
-                sheet.style.transform = "none";
+                sheet.style.transform = "none"; // On remet à 100% pour la capture
                 sheet.style.margin = "0";
             });
 
+            const themeFileName = themeInput ? themeInput.value.replace(/[^a-z0-9]/gi, '_') : "Expose";
+            
             const options = {
                 margin: 0,
-                filename: `Expose_${themeInput.value || "Mon_Projet"}.pdf`,
+                filename: `Expose_${themeFileName}.pdf`,
                 image: { type: "jpeg", quality: 0.98 },
-                html2canvas: { scale: 2, useCORS: true, letterRendering: true },
+                html2canvas: { scale: 2, useCORS: true, letterRendering: true, scrollY: 0 },
                 jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
                 pagebreak: { mode: ["css", "after"], after: ".preview-sheet" }
             };
 
-            // Utilisation de la librairie html2pdf
-            // Assurez-vous qu'elle est chargée dans votre HTML
+            // Appel de la librairie html2pdf
             html2pdf().set(options).from(element).save().then(() => {
-                // Restauration de l'affichage à l'écran après l'export
+                // Restauration de l'affichage initial
                 sheets.forEach(sheet => {
                     sheet.style.transform = sheet.dataset.oldTransform || "scale(1)";
                     sheet.style.margin = "20px auto";
@@ -574,20 +565,21 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
-    // --- 2. INITIALISATION AU DÉMARRAGE DU NAVIGATEUR ---
-    // Cette étape est CRUCIALE : c'est elle qui réveille tout le script
+    // --- 2. INITIALISATION FINALE ---
     
-    // On tente de charger une sauvegarde existante
-    loadData();
+    // On charge les données et on récupère la dernière étape active
+    const lastStep = loadData(); 
 
-    // Si aucune sauvegarde n'existe, on initialise l'affichage par défaut
-    if (reachedStepIndex === 0 && !themeInput.value) {
-        goToStep("plan"); 
-    } else {
-        // Sinon, on rafraîchit simplement l'interface avec les données chargées
-        updateHeaderUI();
+    // On rafraîchit l'aperçu immédiatement si des données existent
+    if (content.plan || content.intro) {
         updatePreview();
     }
 
-    console.log("Système BuroMaster 2026 prêt et chargé.");
-}); // Fermeture finale du document.addEventListener("DOMContentLoaded", ...)
+    // On lance la navigation vers l'étape de reprise
+    // Cela déclenchera aussi updateHeaderUI() et toggleInputs()
+    goToStep(lastStep);
+
+    console.log("Système BuroMaster 2026 opérationnel.");
+
+}); // FERMETURE FINALE DU DOMContentLoaded
+                      
