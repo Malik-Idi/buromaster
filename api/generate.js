@@ -2,7 +2,7 @@ export default async function handler(req, res) {
 
     // Autoriser les requêtes provenant du site GitHub
     res.setHeader('Access-Control-Allow-Credentials', true);
-    res.setHeader('Access-Control-Allow-Origin', 'https://maik-idi.github.io'); // Ou le domaine GitHub spécifique
+    res.setHeader('Access-Control-Allow-Origin', '*'); // Ou le domaine GitHub spécifique
     res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT');
     res.setHeader('Access-Control-Allow-Headers', 'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version');
 
@@ -22,7 +22,7 @@ export default async function handler(req, res) {
             return res.status(400).json({ error: "Prompt manquant" });
         }
 
-        const GEMINI_MODEL = "gemini-1.5-pro";
+        const GEMINI_MODEL = "gemini-1.5-flash-latest";
 
         const response = await fetch(
             `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${process.env.GEMINI_API_KEY}`,
