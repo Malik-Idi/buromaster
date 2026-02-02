@@ -181,52 +181,62 @@ document.addEventListener("DOMContentLoaded", function () {
 
     // --- GÉNÉRATION DES BLOCS DE DÉVELOPPEMENT ---
     function setupDevBlocks() {
-        if (!devContainer) return;
-        devContainer.innerHTML = "";
-        
-        // On découpe le plan pour trouver les titres (ex: I. L'histoire)
-        const lines = (content.plan || "").split("\n");
-        lines.forEach(line => {
-            const cleanLine = line.trim();
-            // Regex : cherche un chiffre romain suivi d'un point au début de la ligne
-            if (/^[IVX]+\./.test(cleanLine) && 
-                !cleanLine.toLowerCase().includes("intro") && 
-                !cleanLine.toLowerCase().includes("conclu")) {
-                
-                const block = document.createElement("div");
-                block.className = "dev-block";
-                block.style.marginBottom = "20px";
-                block.innerHTML = `
-                    <div class="block-header" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-                        <strong>${cleanLine}</strong>
-                        <button class="generate-sub-btn" data-section="${cleanLine}" 
-                                style="background:#2196F3; color:white; border:none; padding:8px; cursor:pointer; border-radius:4px; ${isLocked['dev'] ? 'display:none' : ''}">
-                            Générer cette partie
-                        </button>
-                    </div>
-                    <textarea class="sub-editor" placeholder="Développez cette partie ici..." style="width:100%; min-height:120px; padding:10px; border-radius:5px; border:1px solid #ccc;" ${isLocked['dev'] ? 'readonly' : ''}>${content.dev[cleanLine] || ""}</textarea>
-                `;
-                devContainer.appendChild(block);
+    if (!devContainer) return;
+    devContainer.innerHTML = "";
 
-                const subEd = block.querySelector(".sub-editor");
-                const subGenBtn = block.querySelector(".generate-sub-btn");
+    const sections = parsePlanForDev(content.plan || "");
 
-                // Sauvegarde immédiate quand on écrit dans un bloc
-                subEd.addEventListener("input", (e) => {
-                    content.dev[cleanLine] = e.target.value;
-                    updatePreview();
-                    saveData();
-                });
+    sections.forEach(section => {
+        const block = document.createElement("div");
+        block.className = "dev-block";
+        block.style.marginBottom = "25px";
 
-                // Événement pour l'IA (la fonction sera définie en Portion 5)
-                subGenBtn.addEventListener("click", () => {
-                    handleSubGeneration(cleanLine, subEd, subGenBtn);
-                });
-            }
+        // 🔹 On stocke la structure DIRECTEMENT dans le bloc
+        block.dataset.sectionData = JSON.stringify(section);
+
+        block.innerHTML = `
+            <div class="block-header" style="margin-bottom:10px;">
+                <strong>${section.title}</strong>
+                ${
+                    section.subparts.length
+                        ? `<div style="font-size:0.9em; color:#555; margin-top:4px;">
+                            ${section.subparts.join("<br>")}
+                           </div>`
+                        : ""
+                }
+                <button class="generate-sub-btn"
+                        style="margin-top:8px; background:#2196F3; color:white; border:none; padding:8px; cursor:pointer; border-radius:4px;
+                        ${isLocked['dev'] ? 'display:none' : ''}">
+                    Générer cette partie
+                </button>
+            </div>
+
+            <textarea class="sub-editor"
+                placeholder="Développez cette partie ici..."
+                style="width:100%; min-height:140px; padding:10px;"
+                ${isLocked['dev'] ? 'readonly' : ''}>
+                ${content.dev[section.title] || ""}
+            </textarea>
+        `;
+
+        devContainer.appendChild(block);
+
+        const textarea = block.querySelector(".sub-editor");
+        const button = block.querySelector(".generate-sub-btn");
+
+        textarea.addEventListener("input", e => {
+            content.dev[section.title] = e.target.value;
+            updatePreview();
+            saveData();
+        });
+
+        button.addEventListener("click", () => {
+            handleSubGeneration(block, textarea, button);
+            });
         });
     }
-
-     // ==========================================
+            
+// ==========================================
 // PORTION 4 : APERÇU ET GESTION DES PAGES
 // ==========================================
 
@@ -459,21 +469,16 @@ document.addEventListener("DOMContentLoaded", function () {
         button.textContent = "⏳...";
         button.disabled = true;
         textarea.value = "L'IA développe cette partie...";
-
-        // 🔹 NOUVEAU : on récupère la partie + ses sous-parties
-        const structuredSection = extractSectionWithSubparts(
-        content.plan,
-        sectionTitle
-        );
-
+       
         const prompt = `Agis comme un professeur et développe uniquement la partie suivante d’un exposé scolaire.
 
             THÈME :
             "${theme}"
 
             PLAN À RESPECTER STRICTEMENT :
-            ${structuredSection}
-
+             ${sectionData.title}
+             ${sectionData.subparts.join("\n")}
+            
             CONSIGNES STRICTES :
             1. Commence par un petit paragraphe d'introduction (très courte), 
             2. Ensuite Développe toutes les sous-parties indiquées (très bien détaillé)
