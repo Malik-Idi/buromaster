@@ -413,12 +413,14 @@ document.addEventListener("DOMContentLoaded", function () {
                 prompt = `Agis comme un professeur et rédige une conclusion scolaire claire et structurée pour un exposé sur le thème : "${theme}".
 
                     CONSIGNES STRICTES :
-                    1. Adopte un ton neutre, informatif et scolaire.
-                    2. Récapitule brièvement les points essentiels abordés dans l'exposé.
-                    3. Répond clairement à la problématique annoncée dans l'introduction.
-                    4. Termine par une ouverture simple ou une invitation aux questions des camarades.
-                    5. N'utilise pas de questions rhétoriques complexes.
-                    6. N'utilise pas de formules orales ou littéraires excessives.
+                    1. Parle uniquement du sujet, jamais de l'exposé ou du travail réalisé.
+                    2. N'utilise pas de formulations métadiscursives (ex : "notre exposé", "nous avons vu", "cette présentation").
+                    3. Adopte un ton neutre, informatif et scolaire.
+                    4. Récapitule brièvement les points essentiels abordés dans l'exposé.
+                    5. Propose une réponse claire à la problématique.
+                    6. Termine par une ouverture simple vers l'action ou la réflexion collective.
+                    7. N'utilise pas de questions rhétoriques complexes.
+                    8. N'utilise pas de formules orales ou littéraires excessives.
 
                     FORMAT ATTENDU :
                     - Texte continu (pas de listes).
