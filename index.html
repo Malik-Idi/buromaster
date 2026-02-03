@@ -4,12 +4,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>BuroMaster 2026 – Assistant d'Exposé</title>
+    <!-- On garde ton fichier CSS -->
     <link rel="stylesheet" href="style.css">
+    <!-- Importation des icônes pour un look pro (FontAwesome) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com">
 </head>
 <body>
 
 <header>
-    <h1>BuroMaster</h1>
+    <h1><i class="fas fa-graduation-cap"></i> BuroMaster</h1>
     <nav class="steps">
         <span class="step-link active" id="link-plan">Plan</span>
         <span class="step-link" id="link-intro">Intro</span>
@@ -18,74 +21,104 @@
     </nav>
 </header>
 
-<!-- Section thème, classe et options sur une seule ligne -->
-<section class="theme" style="display: flex; justify-content: space-between; align-items: center; padding: 15px 30px; background: white; border-bottom: 1px solid #ddd; flex-wrap: wrap;">
-    <!-- Gauche : Classe -->
-    <div style="display: flex; align-items: center; gap: 10px;">
+<!-- Barre de configuration principale -->
+<section class="config-bar">
+    <div class="config-group">
         <label for="studentClass">Classe :</label>
-        <input type="text" id="studentClass" placeholder="Ex : 3ème A" style="max-width: 150px;">
+        <input type="text" id="studentClass" placeholder="Ex: 3ème A">
     </div>
     
-    <!-- Centre : Thème (CORRIGÉ) -->
-    <div style="display: flex; align-items: center; gap: 10px;">
-        <label for="theme">Thème:</label>
-        <input type="text" id="theme" placeholder="Ex : La déforestation au Bénin">
+    <div class="config-group main-theme">
+        <label for="theme">Thème :</label>
+        <input type="text" id="theme" placeholder="Ex: La déforestation au Bénin">
     </div>
 
-    <!-- Droite : Bouton Options avancées -->
-    <div>
-        <button id="advancedOptionsBtn" style="background: #f4f4f4; border: 1px solid #ccc; padding: 10px 15px; cursor: pointer; border-radius: 5px;">Options avancées</button>
+    <div class="config-group">
+        <button id="advancedOptionsBtn" class="secondary-btn">
+            <i class="fas fa-cog"></i> Options avancées
+        </button>
     </div>
 </section>
 
+<!-- Panneau des options avancées (Masqué par défaut) -->
+<div id="advancedPanel" class="advanced-panel" style="display: none;">
+    <div class="option-item">
+        <label>Police :</label>
+        <select id="fontSelect">
+            <option value="'Times New Roman', serif">Times New Roman</option>
+            <option value="'Arial', sans-serif">Arial</option>
+            <option value="'Calibri', sans-serif">Calibri</option>
+        </select>
+    </div>
+    <div class="option-item">
+        <label>Taille :</label>
+        <input type="number" id="fontSizeInput" value="12" min="10" max="18"> px
+    </div>
+    <div class="option-item">
+        <label>Détails IA :</label>
+        <select id="aiDetailLevel">
+            <option value="concis">Concis (Rapide)</option>
+            <option value="standard" selected>Standard</option>
+            <option value="detaille">Très détaillé (Approfondi)</option>
+        </select>
+    </div>
+</div>
+
 <main class="container">
+    <!-- Zone de travail (Gauche) -->
     <section class="work-area">
         <div class="work-header">
-            <h2 id="step-title" style="margin: 0;">Édition du Plan</h2>
+            <h2 id="step-title">Édition du Plan</h2>
+            <label class="auto-format-label">
+                <input type="checkbox" id="autoFormatCheckbox" checked> Mise en forme auto
+            </label>
         </div>
         
-        <button type="button" id="generateBtn" class="primary-btn">Générer un modèle</button>
+        <!-- Barre Undo/Redo -->
+        <div class="history-controls">
+            <button id="undoBtn" title="Annuler (Ctrl+Z)"><i class="fas fa-undo"></i></button>
+            <button id="redoBtn" title="Rétablir (Ctrl+Y)"><i class="fas fa-redo"></i></button>
+        </div>
+
+        <button type="button" id="generateBtn" class="primary-btn">
+            <i class="fas fa-magic"></i> Générer avec l'IA
+        </button>
         
-        <!-- Éditeur classique -->
         <textarea id="editor" class="editor" placeholder="Commencez à rédiger..."></textarea>
-        
-        <!-- Zone Développement par blocs -->
         <div id="dev-blocks-container" style="display: none;"></div>
         
         <div class="actions-bar">
             <button type="button" id="validateBtn" class="validate-btn">Valider cette étape</button>
-            <button type="button" id="nextStepBtn" class="next-btn" style="display: none;">Passer à l'étape suivante</button>
-            <button type="button" id="downloadPdf" class="pdf-btn">Télécharger le PDF complet</button>
+            <button type="button" id="nextStepBtn" class="next-btn" style="display: none;">Étape suivante</button>
+            <button type="button" id="downloadPdf" class="pdf-btn">
+                <i class="fas fa-file-pdf"></i> Télécharger le PDF (Haute Qualité)
+            </button>
         </div>
     </section>
 
+    <!-- Zone Aperçu (Droite) -->
     <section class="preview-area">
-        <div class="preview-header" style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 10px; border-bottom: 1px solid #ccc;">
+        <div class="preview-header">
             <h2>Aperçu A4</h2>
-            <div style="display: flex; align-items: center; gap: 10px;">
-                <!-- Contrôles de Zoom -->
-                <div class="preview-controls">
-                    <button id="zoomOutBtn">-</button>
-                    <span id="zoomLevel">60%</span>
-                    <button id="zoomInBtn">+</button>
-                </div>
-                <!-- Case à cocher Mise en forme automatique -->
-                <label for="autoFormatCheckbox" class="auto-format-label" style="margin: 0;">
-                    <input type="checkbox" id="autoFormatCheckbox" checked> Mise en forme auto
-                </label>
+            <div class="preview-controls">
+                <button id="zoomOutBtn"><i class="fas fa-minus"></i></button>
+                <span id="zoomLevel">60%</span>
+                <button id="zoomInBtn"><i class="fas fa-plus"></i></button>
             </div>
         </div>
-        <div class="preview-scroll" id="preview-pages"></div>
+        <div class="preview-scroll" id="preview-pages">
+            <!-- Les pages générées par JS s'afficheront ici -->
+        </div>
     </section>
 </main>
 
-<!-- Bibliothèque PDF -->
+<!-- BIBLIOTHÈQUES (CORRIGÉES) -->
+<!-- jspdf et html2canvas sont nécessaires pour html2pdf -->
 <script src="https://cdnjs.cloudflare.com"></script>
-
-<!-- Bibliothèque Word -->
+<!-- Pour l'export Word -->
 <script src="https://cdn.jsdelivr.net"></script>
 
-<!-- Votre script personnel doit TOUJOURS être après les bibliothèques -->
+<!-- Ton script personnel -->
 <script src="script.js"></script>
 
 </body>
