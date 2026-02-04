@@ -83,7 +83,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     // --- 4. SAUVEGARDE LOCALE (LOCALSTORAGE) ---
-    function saveData() {
+        function saveData() {
         const snapshot = {
             content,
             isLocked,
@@ -96,36 +96,41 @@ document.addEventListener("DOMContentLoaded", function () {
                 fontSize: fontSizeInput.value,
                 aiLevel: aiDetailLevel.value
             },
-            currentStep
+            currentStep,
+            lastUpdate: Date.now() // On enregistre l'heure précise de la sauvegarde
         };
         localStorage.setItem("buroMaster_v2_save", JSON.stringify(snapshot));
     }
-    // ... La suite (Chargement et Navigation) arrivera en Portion 2
+    
     // --- 5. FONCTION DE CHARGEMENT ---
-    function loadData() {
+        function loadData() {
         try {
             const saved = localStorage.getItem("buroMaster_v2_save");
             if (saved) {
                 const data = JSON.parse(saved);
                 
-                // Restauration des données
+                // --- LOGIQUE DES 12 HEURES ---
+                const douzeHeuresEnMs = 12 * 60 * 60 * 1000;
+                const tempsEcoule = Date.now() - (data.lastUpdate || 0);
+
+                if (tempsEcoule > douzeHeuresEnMs) {
+                    console.log("Délai de 12h dépassé, nettoyage des données...");
+                    localStorage.removeItem("buroMaster_v2_save");
+                    return "plan"; // On repart de zéro
+                }
+                // -----------------------------
+
                 content = data.content || content;
                 isLocked = data.isLocked || isLocked;
                 reachedStepIndex = data.reachedStepIndex || 0;
-                
-                // Restauration des champs texte
                 if (themeInput) themeInput.value = data.theme || "";
                 if (studentClassInput) studentClassInput.value = data.studentClass || "";
-                
-                // Restauration des réglages avancés
                 if (data.settings) {
                     fontSelect.value = data.settings.font || "'Times New Roman', serif";
                     fontSizeInput.value = data.settings.fontSize || "12";
                     aiDetailLevel.value = data.settings.aiLevel || "standard";
                 }
-
                 autoFormatCheckbox.checked = (data.autoFormat !== undefined) ? data.autoFormat : true;
-                
                 return data.currentStep || "plan";
             }
         } catch (e) {
@@ -739,6 +744,22 @@ document.addEventListener("DOMContentLoaded", function () {
             }
         });
     });
+    
+    // --- 21. Boutont de réinitialisation ---
+    const resetBtn = document.getElementById("resetAllBtn");
+    if (resetBtn) {
+        resetBtn.addEventListener("click", () => {
+            const confirmation = confirm("⚠️ Êtes-vous sûr de vouloir tout effacer ? Cette action est irréversible et supprimera tout votre travail actuel.");
+            
+            if (confirmation) {
+                // 1. Vide le LocalStorage
+                localStorage.removeItem("buroMaster_v2_save");
+                
+                // 2. Recharge la page pour tout remettre à zéro proprement
+                window.location.reload();
+            }
+        });
+    }
 
     console.log("🚀 BuroMaster 2026 : Système prêt.");
 }); // Fin du DOMContentLoaded
