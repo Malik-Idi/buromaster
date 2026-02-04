@@ -545,7 +545,7 @@ document.addEventListener("DOMContentLoaded", function () {
     // --- 16. APPEL API (SÉCURISÉ) ---
     async function callAiAPI(prompt) {
         try {
-            const API_URL = "https://buromaster.vercel.app"; // Chemin vers ton backend
+            const API_URL = `${window.location.origin}/api/generate`; // Chemin vers ton backend
 
             const response = await fetch(API_URL, {
                 method: "POST",
