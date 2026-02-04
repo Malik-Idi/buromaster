@@ -465,14 +465,11 @@ document.addEventListener("DOMContentLoaded", function () {
             div.textContent = line.trim() === "" ? "\u00A0" : line;
             pageElement.appendChild(div);
 
-            /**
-             * VÉRIFICATION DU DÉBORDEMENT
-             * Si le contenu de la page dépasse la limite de pixels définie,
-             * on déplace la dernière ligne sur une nouvelle page via onBreak().
-             */
-            if (pageElement.offsetHeight > getAvailablePageHeight()) {
-                pageElement.removeChild(div); 
-                pageElement = onBreak(); // Cette fonction crée une nouvelle page via updatePreview
+            // --- CORRECTION : Détection immédiate du débordement ---
+            if (pageElement.offsetHeight > 880) { // On utilise une marge de sécurité à 880px
+                pageElement.removeChild(div);
+                // On appelle onBreak() qui va créer une nouvelle page et retourner son nouveau container
+                pageElement = onBreak(); 
                 pageElement.appendChild(div);
             }
         }
