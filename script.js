@@ -550,14 +550,19 @@ document.addEventListener("DOMContentLoaded", function () {
             editor.value = "⏳ L'IA de BuroMaster rédige pour vous... Veuillez patienter.";
             generateBtn.disabled = true;
 
-            const result = await callAiAPI(prompt);
+                       const result = await callAiAPI(prompt);
             
-            editor.value = result;
-            content[currentStep] = result;
+            if (result) {
+                editor.value = result;
+                content[currentStep] = result;
+                updatePreview();
+                saveData();
+            } else {
+                // En cas d'erreur, on remet l'ancienne valeur et on notifie
+                editor.value = originalValue;
+                showNotification("❌ Une erreur est survenue. Vérifiez votre connexion ou votre serveur.");
+            }
             generateBtn.disabled = false;
-            
-            updatePreview();
-            saveData();
         });
     }
 
@@ -600,23 +605,23 @@ document.addEventListener("DOMContentLoaded", function () {
     // --- 16. APPEL API (SÉCURISÉ) ---
     async function callAiAPI(prompt) {
         try {
-            const API_URL = `${window.location.origin}/api/generate`; // Chemin vers ton backend
-
+            const API_URL = `${window.location.origin}/api/generate`;
             const response = await fetch(API_URL, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ prompt })
             });
 
-            if (!response.ok) throw new Error("Erreur serveur (Vercel)");
+            if (!response.ok) throw new Error("Erreur serveur");
             
             const data = await response.json();
-            return data.text || "Erreur : L'IA n'a pas renvoyé de texte.";
+            return data.text || null;
         } catch (err) {
             console.error("Erreur API:", err);
-            return "Une erreur est survenue. Vérifiez votre connexion ou votre serveur Vercel.";
+            return null; // On renvoie null pour indiquer une erreur
         }
     }
+
     // --- 17. GESTION DES OPTIONS AVANCÉES ---
     advancedOptionsBtn.addEventListener("click", () => {
         // Alterne l'affichage du panneau (Show/Hide)
@@ -759,6 +764,20 @@ document.addEventListener("DOMContentLoaded", function () {
                 window.location.reload();
             }
         });
+    }
+
+     function showNotification(message) {
+        const toast = document.createElement("div");
+        toast.className = "toast-notification";
+        toast.textContent = message;
+        document.body.appendChild(toast);
+
+        // Supprime la notification après 4 secondes
+        setTimeout(() => {
+            toast.style.opacity = "0";
+            toast.style.transition = "opacity 0.5s ease";
+            setTimeout(() => toast.remove(), 500);
+        }, 4000);
     }
 
     console.log("🚀 BuroMaster 2026 : Système prêt.");
