@@ -284,17 +284,20 @@ document.addEventListener("DOMContentLoaded", function () {
         sections.forEach((section, index) => {
             const block = document.createElement("div");
             block.className = "dev-block";
-            block.dataset.sectionTitle = section.title; // Clé unique pour l'enregistrement
+            block.dataset.sectionTitle = section.title;
 
+            // On ajoute l'icône robot (fas fa-robot) dans le bouton
             block.innerHTML = `
                 <div class="block-header">
-                    <strong>${section.title}</strong>
+                    <strong style="color: var(--primary-color); font-size: 1.1em;">${section.title}</strong>
                     <button class="generate-sub-btn" ${isLocked['dev'] ? 'style="display:none"' : ''}>
                         <i class="fas fa-robot"></i> Développer avec l'IA
                     </button>
                 </div>
-                <div style="font-size:0.8em; color:#666; margin-bottom:10px;">${section.subparts.join(" | ")}</div>
-                <textarea class="sub-editor" placeholder="Rédigez ou générez cette partie..." ${isLocked['dev'] ? 'readonly' : ''}>${content.dev[section.title] || ""}</textarea>
+                <div style="font-size:0.85em; color:#777; margin-bottom:12px; font-style: italic;">
+                    Sujets abordés : ${section.subparts.join(" • ")}
+                </div>
+                <textarea class="sub-editor" placeholder="Développez cette partie ou laissez l'IA le faire..." ${isLocked['dev'] ? 'readonly' : ''}>${content.dev[section.title] || ""}</textarea>
             `;
 
             container.appendChild(block);
