@@ -85,6 +85,7 @@ header { background: var(--primary-color); color: white; padding: 15px; text-ali
 /* Styles de texte dans l'aperçu */
 .page-content { color: #1a1a1a; word-wrap: break-word; }
 .title-style { color: #000; text-transform: uppercase; margin-bottom: 10px; }
+.intro-conclu-style { font-weight: bold; font-size: 1.1em; margin-bottom: 8px; }
 .text-style { margin-bottom: 8px; }
 
 /* ==========================================
@@ -95,6 +96,18 @@ header { background: var(--primary-color); color: white; padding: 15px; text-ali
 
 .actions-bar { display: flex; flex-direction: column; gap: 10px; }
 .validate-btn { background: var(--primary-color); color: white; border: none; padding: 12px; border-radius: 8px; font-weight: bold; cursor: pointer; }
+.next-btn {
+    background: #4caf50;
+    color: white;
+    border: none;
+    padding: 12px;
+    border-radius: 8px;
+    font-weight: bold;
+    cursor: pointer;
+}
+.next-btn:hover { background: #43a047; }
+.next-btn.is-word-btn { background: #607d8b; }
+.next-btn.is-word-btn:hover { background: #546e7a; }
 .pdf-btn { background: #FF5722; color: white; border: none; padding: 12px; border-radius: 8px; font-weight: bold; margin-top: 10px; cursor: pointer; }
 
 /* ==========================================
