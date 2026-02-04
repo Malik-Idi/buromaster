@@ -408,15 +408,15 @@ document.addEventListener("DOMContentLoaded", function () {
         updateZoomUI(); // Applique le zoom aux nouvelles pages créées
     }
 
-    // --- 13. LOGIQUE DE SAUT DE PAGE ---
-    function getAvailablePageHeight(sheet) {
-        const header = sheet.querySelector(".page-header");
-        const footer = sheet.querySelector(".page-footer");
-        const styles = window.getComputedStyle(sheet);
-        const paddingTop = parseFloat(styles.paddingTop) || 0;
-        const paddingBottom = parseFloat(styles.paddingBottom) || 0;
-        const reserved = (header?.offsetHeight || 0) + (footer?.offsetHeight || 0) + paddingTop + paddingBottom;
-        return sheet.clientHeight - reserved;
+        // --- 13. LOGIQUE DE SAUT DE PAGE (VERSION FINALE CORRIGÉE) ---
+    function getAvailablePageHeight() {
+        /**
+         * Une feuille A4 fait 1122px (à 96dpi).
+         * On retire le padding (20mm + 20mm = env. 150px)
+         * On retire la place pour le header et le footer.
+         * 900px est la limite de sécurité pour déclencher le saut de page.
+         */
+        return 900; 
     }
 
     function renderSection(title, text, pageElement, onBreak) {
@@ -424,10 +424,13 @@ document.addEventListener("DOMContentLoaded", function () {
         const selectedFont = fontSelect.value;
         const selectedSize = fontSizeInput.value + "px";
 
+        // Ajout du titre de section (ex: SOMMAIRE, INTRODUCTION...)
         if (title) {
             const t = document.createElement("div");
             t.className = "title-style";
             t.style.fontFamily = selectedFont;
+            t.style.fontSize = (parseInt(fontSizeInput.value) + 2) + "px"; // Titre légèrement plus grand
+            t.style.fontWeight = "bold";
             t.textContent = title.toUpperCase();
             pageElement.appendChild(t);
         }
@@ -438,25 +441,38 @@ document.addEventListener("DOMContentLoaded", function () {
             div.style.fontFamily = selectedFont;
             div.style.fontSize = selectedSize;
             
-            // Application de la mise en forme auto demandée
+            // Application de la mise en forme automatique selon tes Regex
             if (isAutoFormat) {
-                if (/^(introduction|conclusion)\b/i.test(line)) div.className = "intro-conclu-style";
-                else if (/^([IVX]+|[0-9]+)\s*[\.\-\)]/.test(line)) div.className = "title-style";
-                else if (/^([A-Z]|[a-z])\s*[\.\-\)]/.test(line)) div.className = "subtitle-style";
-                else if (/^([0-9]+(?:\.[0-9]+)+)\s*/.test(line)) div.className = "subtitle-style";
-                else div.className = "text-style";
+                if (/^(introduction|conclusion)\b/i.test(line)) {
+                    div.className = "intro-conclu-style";
+                } else if (/^([IVX]+|[0-9]+)\s*[\.\-\)]/.test(line)) {
+                    div.className = "title-style";
+                    div.style.fontWeight = "bold";
+                } else if (/^([A-Z]|[a-z])\s*[\.\-\)]/.test(line)) {
+                    div.className = "subtitle-style";
+                    div.style.fontWeight = "bold";
+                } else if (/^([0-9]+(?:\.[0-9]+)+)\s*/.test(line)) {
+                    div.className = "subtitle-style";
+                    div.style.fontWeight = "bold";
+                } else {
+                    div.className = "text-style";
+                }
             } else {
-                div.className = "text-style"; // Texte simple si décoché
+                div.className = "text-style";
             }
 
+            // Gestion des lignes vides pour garder l'espacement
             div.textContent = line.trim() === "" ? "\u00A0" : line;
             pageElement.appendChild(div);
 
-            // Vérification du dépassement (A4 ~ 1120px de hauteur)
-            const sheet = pageElement.closest(".preview-sheet");
-            if (sheet && pageElement.scrollHeight > getAvailablePageHeight(sheet)) {
-                pageElement.removeChild(div);
-                pageElement = onBreak(); // Crée une nouvelle page
+            /**
+             * VÉRIFICATION DU DÉBORDEMENT
+             * Si le contenu de la page dépasse la limite de pixels définie,
+             * on déplace la dernière ligne sur une nouvelle page via onBreak().
+             */
+            if (pageElement.offsetHeight > getAvailablePageHeight()) {
+                pageElement.removeChild(div); 
+                pageElement = onBreak(); // Cette fonction crée une nouvelle page via updatePreview
                 pageElement.appendChild(div);
             }
         }
@@ -470,12 +486,20 @@ document.addEventListener("DOMContentLoaded", function () {
         const currentTheme = themeInput.value || "MON EXPOSÉ";
         const studentClass = studentClassInput.value ? ` | ${studentClassInput.value}` : "";
 
+        /**
+         * Structure HTML interne :
+         * Le CSS (Flexbox) s'occupera d'espacer le header, le contenu et le footer.
+         * Le footer est fixé en bas grâce à position: absolute dans le CSS.
+         */
         page.innerHTML = `
             <div class="page-header">${currentTheme}${studentClass}</div>
             <div class="page-content"></div>
             <div class="page-footer">Page ${num}</div>
         `;
+        
         container.appendChild(page);
+        
+        // On retourne la zone "page-content" pour que renderSection puisse y écrire
         return page.querySelector(".page-content");
     }
 
