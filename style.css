@@ -61,7 +61,7 @@ header { background: var(--primary-color); color: white; padding: 15px; text-ali
 }
 .editor:focus { border-color: var(--primary-color); outline: none; }
 
-  /* ==========================================
+ /* ==========================================
    5. APERÇU A4 ET ZOOM (VERSION CORRIGÉE)
    ========================================== */
 .preview-area { flex: 1; min-width: 400px; background: var(--dark-gray); padding: 20px; border-radius: 12px; position: relative; }
@@ -85,16 +85,19 @@ header { background: var(--primary-color); color: white; padding: 15px; text-ali
     background: white; 
     width: 210mm; 
     height: 297mm; /* Fixe pour le calcul du saut de page */
-    padding: 20mm; 
+    /* Ancien padding: 20mm; */
     position: relative; 
     box-shadow: 0 10px 30px rgba(0,0,0,0.5); 
-    transform-origin: top center; /* Important pour le zoom */
-    display: flex;
-    flex-direction: column;
+    /* transform-origin: top center; RETIRÉ car géré par .page-wrapper maintenant */
     box-sizing: border-box;
     overflow: hidden; /* Empêche le texte de déborder */
     padding-top: 25mm;    /* Espace pour le header */
     padding-bottom: 20mm; /* Espace pour le footer */
+
+    /* === CORRECTION POUR AFFICHER LA PAGE EN ENTIER === */
+    display: flex;
+    flex-direction: column; /* Force l'alignement vertical */
+    /* ================================================= */
 }
 
 /* Style du Header (Thème et Classe) */
@@ -125,8 +128,11 @@ header { background: var(--primary-color); color: white; padding: 15px; text-ali
 /* Zone de contenu pour le moteur de saut de page */
 .page-content {
     width: 100%;
-    height: 100%;
+    /* height: 100%; RETIRÉ pour utiliser flex-grow à la place */
     overflow: hidden; /* Empêche les scrollbars parasites sur la page */
+
+    /* === CORRECTION POUR QUE LE CONTENU PRENNE TOUTE LA PLACE === */
+    flex-grow: 1;    
    }
 
 /* ==========================================
