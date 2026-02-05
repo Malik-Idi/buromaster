@@ -365,160 +365,117 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     });
 
-    // --- 12. MOTEUR DE RENDU DES PAGES (PAGINATION) ---
-    function updatePreview() {
-        if (!pagesContainer) return;
+    // --- 12 & 13. MOTEUR DE RENDU AVEC SAUT DE PAGE AUTOMATIQUE ---
 
-        pagesContainer.innerHTML = ""; 
-        
-        let pageNum = 1;
-        // Création de la première page
-        let currentPageContent = createNewPage(pageNum, pagesContainer);
+function updatePreview() {
+    if (!pagesContainer) return;
+    pagesContainer.innerHTML = ""; 
+    
+    let pageNum = 1;
+    // On crée la première page et on récupère sa zone de contenu
+    let currentPageContent = createNewPage(pageNum, pagesContainer);
 
-        // 1. Rendu du Sommaire (Plan)
-        if (content.plan) {
-            currentPageContent = renderSection("SOMMAIRE", content.plan, currentPageContent, () => { 
-                pageNum++; return createNewPage(pageNum, pagesContainer);
-            });
-        }
-
-        // 2. Rendu de l'Introduction
-        if (content.intro) {
-            pageNum++; 
-            currentPageContent = createNewPage(pageNum, pagesContainer);
-            currentPageContent = renderSection("INTRODUCTION", content.intro, currentPageContent, () => { 
-                pageNum++; return createNewPage(pageNum, pagesContainer);
-            });
-        }
-
-        // 3. Rendu du Développement (Bloc par bloc)
-        const devSections = parsePlanForDev(content.plan || "");
-        const hasDev = Object.keys(content.dev).length > 0;
-        if (hasDev) {
-            pageNum++; 
-            currentPageContent = createNewPage(pageNum, pagesContainer);
-            
-            // Titre principal du développement
-            const devTitle = document.createElement("div");
-            devTitle.className = "title-style";
-            devTitle.style.textAlign = "center";
-            devTitle.textContent = "DÉVELOPPEMENT";
-            currentPageContent.appendChild(devTitle);
-
-            const orderedDevTitles = devSections.length
-                ? devSections.map((section) => section.title)
-                : Object.keys(content.dev);
-
-            orderedDevTitles.forEach((sectionTitle) => {
-                if (!content.dev[sectionTitle]) return;
-                currentPageContent = renderSection(sectionTitle, content.dev[sectionTitle], currentPageContent, () => {
-                    pageNum++; return createNewPage(pageNum, fragment);
-                });
-            });
-        }
-
-        // 4. Rendu de la Conclusion
-        if (content.conclu) {
-            pageNum++; 
-            currentPageContent = createNewPage(pageNum, pagesContainer);
-            currentPageContent = renderSection("CONCLUSION", content.conclu, currentPageContent, () => { 
-                pageNum++; return createNewPage(pageNum, pagesContainer);
-            });
-        }
-        updateZoomUI(); // Applique le zoom aux nouvelles pages créées
+    // 1. Rendu du Sommaire
+    if (content.plan) {
+        currentPageContent = renderSection("SOMMAIRE", content.plan, currentPageContent, () => { 
+            pageNum++; return createNewPage(pageNum, pagesContainer);
+        });
     }
 
-        // --- 13. LOGIQUE DE SAUT DE PAGE (VERSION FINALE CORRIGÉE) ---
-    function getAvailablePageHeight() {
-        /**
-         * Une feuille A4 fait 1122px (à 96dpi).
-         * On retire le padding (20mm + 20mm = env. 150px)
-         * On retire la place pour le header et le footer.
-         * 900px est la limite de sécurité pour déclencher le saut de page.
-         */
-        return 900; 
+    // 2. Rendu de l'Introduction
+    if (content.intro) {
+        // Optionnel : On peut forcer une nouvelle page pour l'intro si on veut
+        // pageNum++; currentPageContent = createNewPage(pageNum, pagesContainer);
+        currentPageContent = renderSection("INTRODUCTION", content.intro, currentPageContent, () => { 
+            pageNum++; return createNewPage(pageNum, pagesContainer);
+        });
     }
 
-    function renderSection(title, text, pageElement, onBreak) {
-        const isAutoFormat = autoFormatCheckbox.checked;
-        const selectedFont = fontSelect.value;
-        const selectedSize = fontSizeInput.value + "px";
+    // 3. Rendu du Développement
+    const devSections = parsePlanForDev(content.plan || "");
+    const hasDev = Object.keys(content.dev).length > 0;
+    if (hasDev) {
+        currentPageContent = renderSection("DÉVELOPPEMENT", "", currentPageContent, () => {
+            pageNum++; return createNewPage(pageNum, pagesContainer);
+        });
 
-        // Ajout du titre de section (ex: SOMMAIRE, INTRODUCTION...)
-        if (title) {
-            const t = document.createElement("div");
-            t.className = "title-style";
-            t.style.fontFamily = selectedFont;
-            t.style.fontSize = (parseInt(fontSizeInput.value) + 2) + "px"; // Titre légèrement plus grand
-            t.style.fontWeight = "bold";
-            t.textContent = title.toUpperCase();
-            pageElement.appendChild(t);
+        const orderedTitles = devSections.length ? devSections.map(s => s.title) : Object.keys(content.dev);
+        
+        orderedTitles.forEach((sectionTitle) => {
+            if (!content.dev[sectionTitle]) return;
+            currentPageContent = renderSection(sectionTitle, content.dev[sectionTitle], currentPageContent, () => {
+                pageNum++; return createNewPage(pageNum, pagesContainer); // CORRIGÉ : fragment remplacé par pagesContainer
+            });
+        });
+    }
+
+    // 4. Rendu de la Conclusion
+    if (content.conclu) {
+        currentPageContent = renderSection("CONCLUSION", content.conclu, currentPageContent, () => { 
+            pageNum++; return createNewPage(pageNum, pagesContainer);
+        });
+    }
+    
+    updateZoomUI();
+}
+
+function renderSection(title, text, pageElement, onBreak) {
+    const selectedFont = fontSelect.value;
+    const selectedSize = fontSizeInput.value + "px";
+    const limitHeight = 850; // Limite de sécurité en pixels pour une zone A4 (environ 250mm)
+
+    // Ajout du titre
+    if (title) {
+        const t = document.createElement("div");
+        t.className = "title-style";
+        t.style.fontFamily = selectedFont;
+        t.style.fontSize = (parseInt(fontSizeInput.value) + 2) + "px";
+        t.style.fontWeight = "bold";
+        t.style.marginTop = "15px";
+        t.textContent = title.toUpperCase();
+        pageElement.appendChild(t);
+    }
+
+    const lines = text.split("\n");
+    for (let line of lines) {
+        const div = document.createElement("div");
+        div.style.fontFamily = selectedFont;
+        div.style.fontSize = selectedSize;
+        div.className = "text-style"; // La mise en forme auto peut être ajoutée ici
+        
+        // Gestion ligne vide
+        div.textContent = line.trim() === "" ? "\u00A0" : line;
+        
+        pageElement.appendChild(div);
+
+        // --- DÉTECTION DU DÉBORDEMENT ---
+        // On vérifie si la page content dépasse la limite
+        if (pageElement.scrollHeight > limitHeight) {
+            pageElement.removeChild(div); // On enlève la ligne qui dépasse
+            pageElement = onBreak();      // On crée une nouvelle page
+            pageElement.appendChild(div); // On remet la ligne sur la nouvelle page
         }
-
-        const lines = text.split("\n");
-        for (let line of lines) {
-            const div = document.createElement("div");
-            div.style.fontFamily = selectedFont;
-            div.style.fontSize = selectedSize;
-            
-            // Application de la mise en forme automatique selon tes Regex
-            if (isAutoFormat) {
-                if (/^(introduction|conclusion)\b/i.test(line)) {
-                    div.className = "intro-conclu-style";
-                } else if (/^([IVX]+|[0-9]+)\s*[\.\-\)]/.test(line)) {
-                    div.className = "title-style";
-                    div.style.fontWeight = "bold";
-                } else if (/^([A-Z]|[a-z])\s*[\.\-\)]/.test(line)) {
-                    div.className = "subtitle-style";
-                    div.style.fontWeight = "bold";
-                } else if (/^([0-9]+(?:\.[0-9]+)+)\s*/.test(line)) {
-                    div.className = "subtitle-style";
-                    div.style.fontWeight = "bold";
-                } else {
-                    div.className = "text-style";
-                }
-            } else {
-                div.className = "text-style";
-            }
-
-            // Gestion des lignes vides pour garder l'espacement
-            div.textContent = line.trim() === "" ? "\u00A0" : line;
-            pageElement.appendChild(div);
-
-            // --- CORRECTION : Détection immédiate du débordement ---
-            if (pageElement.offsetHeight > 880) { // On utilise une marge de sécurité à 880px
-                pageElement.removeChild(div);
-                // On appelle onBreak() qui va créer une nouvelle page et retourner son nouveau container
-                pageElement = onBreak(); 
-                pageElement.appendChild(div);
-            }
-        }
-        return pageElement;
     }
+    return pageElement;
+}
 
-    function createNewPage(num, container) {
-        const page = document.createElement("div");
-        page.className = "preview-sheet";
-        
-        const currentTheme = themeInput.value || "MON EXPOSÉ";
-        const studentClass = studentClassInput.value ? ` | ${studentClassInput.value}` : "";
+function createNewPage(num, container) {
+    const page = document.createElement("div");
+    page.className = "preview-sheet";
+    
+    const currentTheme = themeInput.value || "MON EXPOSÉ";
+    const studentClass = studentClassInput.value ? ` | ${studentClassInput.value}` : "";
 
-        /**
-         * Structure HTML interne :
-         * Le CSS (Flexbox) s'occupera d'espacer le header, le contenu et le footer.
-         * Le footer est fixé en bas grâce à position: absolute dans le CSS.
-         */
-        page.innerHTML = `
-            <div class="page-header">${currentTheme}${studentClass}</div>
-            <div class="page-content"></div>
-            <div class="page-footer">Page ${num}</div>
-        `;
-        
-        container.appendChild(page);
-        
-        // On retourne la zone "page-content" pour que renderSection puisse y écrire
-        return page.querySelector(".page-content");
-    }
+    page.innerHTML = `
+        <div class="page-header">${currentTheme}${studentClass}</div>
+        <div class="page-content"></div>
+        <div class="page-footer">Page ${num}</div>
+    `;
+    
+    container.appendChild(page);
+    return page.querySelector(".page-content");
+}
+
     // --- 14. LOGIQUE DE GÉNÉRATION IA ---
     if (generateBtn) {
         generateBtn.addEventListener("click", async () => {
