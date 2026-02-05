@@ -147,8 +147,21 @@ document.addEventListener("DOMContentLoaded", function () {
         updateHistoryButtons();
     }
 
+    function schedulePreviewRefresh(delay = 300) {
+        clearTimeout(editorPreviewTimer);
+        editorPreviewTimer = setTimeout(() => {
+            if (currentStep !== "dev") {
+                content[currentStep] = editor.value;
+            }
+            updatePreview();
+            saveData();
+        }, delay);
+    }
+
     // --- 7. NAVIGATION ENTRE LES ÉTAPES ---
     function goToStep(step) {
+        clearTimeout(editorPreviewTimer);
+
         // Sauvegarde automatique de l'étape actuelle avant de changer
         if (currentStep !== "dev") {
             content[currentStep] = editor.value;
@@ -611,22 +624,12 @@ document.addEventListener("DOMContentLoaded", function () {
     // Mise à jour live de l'aperçu pendant la saisie (avec délai anti-bugs)
     editor.addEventListener("input", () => {
         if (currentStep === "dev") return;
-        content[currentStep] = editor.value;
-
-        clearTimeout(editorPreviewTimer);
-        editorPreviewTimer = setTimeout(() => {
-            updatePreview();
-            saveData();
-        }, 300);
+        schedulePreviewRefresh(300);
     });
 
     [themeInput, studentClassInput].forEach((el) => {
         el.addEventListener("input", () => {
-            clearTimeout(editorPreviewTimer);
-            editorPreviewTimer = setTimeout(() => {
-                updatePreview();
-                saveData();
-            }, 300);
+            schedulePreviewRefresh(300);
         });
     });
 
