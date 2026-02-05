@@ -61,57 +61,36 @@ header { background: var(--primary-color); color: white; padding: 15px; text-ali
 }
 .editor:focus { border-color: var(--primary-color); outline: none; }
 
-/* ==========================================
-   5. APERÇU A4 ET ZOOM (POINT CRITIQUE)
+  /* ==========================================
+   5. APERÇU A4 ET ZOOM (VERSION CORRIGÉE)
    ========================================== */
 .preview-area { flex: 1; min-width: 400px; background: var(--dark-gray); padding: 20px; border-radius: 12px; position: relative; }
-.preview-header { 
-    display: flex; justify-content: space-between; align-items: center; color: white; 
-    margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,0.2); 
-}
 
 .preview-scroll { 
-    width: 100%; height: 75vh; overflow-y: auto; overflow-x: hidden; 
-    display: flex; flex-direction: column; align-items: center; gap: 30px; padding: 40px 10px;
+    width: 100%; height: 75vh; overflow-y: auto; 
+    display: flex; flex-direction: column; align-items: center; gap: 20px; padding: 40px 10px;
 }
 
-/* On enlève le scale fixe d'ici pour que le JS puisse le gérer proprement */
+/* Nouveau : Conteneur qui encaisse la réduction de taille du zoom */
+.page-wrapper {
+    display: block;
+    transition: all 0.2s ease-out;
+    margin-bottom: 20px;
+}
+
 .preview-sheet { 
-    background: white; width: 210mm; min-height: 297mm; padding: 20mm; position: relative; 
-    box-shadow: 0 10px 30px rgba(0,0,0,0.5); transform-origin: top center; 
-    transition: transform 0.2s ease-out; /* Pour un zoom fluide */
+    background: white; 
+    width: 210mm; 
+    height: 297mm; /* Fixe pour le calcul du saut de page */
+    padding: 20mm; 
+    position: relative; 
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5); 
+    transform-origin: top center; /* Important pour le zoom */
     display: flex;
     flex-direction: column;
+    box-sizing: border-box;
+    overflow: hidden; /* Empêche le texte de déborder */
 }
-
-.page-header {
-    text-align: center;
-    font-weight: 700;
-    font-size: 0.95rem;
-    color: #0b8f40;
-    border: 1px solid #7ee2b0;
-    padding: 4px 8px;
-    margin-bottom: 12px;
-}
-
-.page-content {
-    flex: 1;
-    overflow: hidden;
-}
-
-.page-footer {
-    text-align: center;
-    margin-top: 12px;
-    color: #666;
-    font-size: 0.85rem;
-}
-
-/* Styles de texte dans l'aperçu */
-.page-content { color: #1a1a1a; word-wrap: break-word; }
-.title-style { color: #000; text-transform: uppercase; margin-bottom: 10px; }
-.subtitle-style { font-weight: 600; margin-bottom: 8px; }
-.intro-conclu-style { font-weight: bold; font-size: 1.1em; margin-bottom: 8px; }
-.text-style { margin-bottom: 8px; }
 
 /* ==========================================
    6. BOUTONS D'ACTION
@@ -136,10 +115,94 @@ header { background: var(--primary-color); color: white; padding: 15px; text-ali
 .pdf-btn { background: #FF5722; color: white; border: none; padding: 12px; border-radius: 8px; font-weight: bold; margin-top: 10px; cursor: pointer; }
 
 /* ==========================================
+   6.5 ZONE DÉVELOPPEMENT (BLOCS ET IA)
+   ========================================== */
+#dev-blocks-container {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    margin-top: 20px;
+}
+
+.dev-block {
+    background: #ffffff;
+    border: 1px solid #e0e0e0;
+    border-radius: 10px;
+    padding: 15px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+.block-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+    gap: 10px;
+}
+
+.sub-editor {
+    width: 100%;
+    height: 300px; /* Grande taille pour le confort */
+    padding: 12px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 1rem;
+    line-height: 1.6;
+    resize: vertical;
+    background: #fdfdfd;
+    outline: none;
+    transition: border-color 0.3s;
+}
+
+.sub-editor:focus {
+    border-color: #6200ea;
+    background: #fff;
+}
+
+.generate-sub-btn {
+    background: #6200ea; /* Violet IA */
+    color: white;
+    border: none;
+    padding: 8px 15px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.85em;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.3s ease;
+}
+
+.generate-sub-btn:hover {
+    background: #4500b5;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(98, 0, 234, 0.3);
+}
+
+/* ==========================================
    7. RESPONSIVE
    ========================================== */
 @media (max-width: 900px) {
     .container { flex-direction: column; }
     .work-area, .preview-area { max-width: 100%; min-width: 100%; }
     .preview-sheet { width: 95%; height: auto; padding: 10mm; } /* S'adapte au mobile */
+}
+/* Style des notifications (Toast) */
+.toast-notification {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: #ff4444;
+    color: white;
+    padding: 12px 24px;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    z-index: 10000;
+    animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+    from { transform: translateX(100%); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
 }
