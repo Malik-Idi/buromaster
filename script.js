@@ -335,35 +335,19 @@ document.addEventListener("DOMContentLoaded", function () {
             aiBtn.addEventListener("click", () => handleSubGeneration(block, textarea, aiBtn));
         });
     }
-
-        // --- 11. GESTION DU ZOOM ---
+// --- 11. GESTION DU ZOOM (CORRIGÉE) ---
     function updateZoomUI() {
         const sheets = document.querySelectorAll(".preview-sheet");
         sheets.forEach(sheet => {
             // Applique le facteur d'échelle
             sheet.style.transform = `scale(${currentZoom})`;
             
-            // Correction dynamique de la marge pour éviter les trous blancs
-            // Plus on dézoome, plus on réduit l'espace fantôme
-            const marginValue = -297 * (1 - currentZoom); 
-            sheet.style.marginBottom = `${marginValue}mm`;
+            // On supprime la marge négative qui cause la superposition
+            // Le CSS (gap: 20px) gérera l'espacement entre les pages.
+            sheet.style.marginBottom = `20px`; 
         });
         zoomLevelSpan.textContent = `${Math.round(currentZoom * 100)}%`;
     }
-
-    zoomInBtn.addEventListener("click", () => {
-        if (currentZoom < 1.5) { // Max 150%
-            currentZoom += 0.1;
-            updateZoomUI();
-        }
-    });
-
-    zoomOutBtn.addEventListener("click", () => {
-        if (currentZoom > 0.4) { // Min 40%
-            currentZoom -= 0.1;
-            updateZoomUI();
-        }
-    });
 
     // --- 12 & 13. MOTEUR DE RENDU (VERSION FUSIONNÉE ET SÉCURISÉE) ---
 
