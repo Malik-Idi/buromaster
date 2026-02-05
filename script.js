@@ -38,6 +38,7 @@ document.addEventListener("DOMContentLoaded", function () {
     let isLocked = { plan: false, intro: false, dev: false, conclu: false };
     let reachedStepIndex = 0;
     let currentZoom = 0.6; // 60% par défaut
+    let editorPreviewTimer = null;
 
     // --- 3. GESTION DE L'HISTORIQUE (UNDO/REDO) ---
     // On stocke les versions précédentes de l'objet "content"
@@ -151,8 +152,21 @@ document.addEventListener("DOMContentLoaded", function () {
         updateHistoryButtons();
     }
 
+    function schedulePreviewRefresh(delay = 300) {
+        clearTimeout(editorPreviewTimer);
+        editorPreviewTimer = setTimeout(() => {
+            if (currentStep !== "dev") {
+                content[currentStep] = editor.value;
+            }
+            updatePreview();
+            saveData();
+        }, delay);
+    }
+
     // --- 7. NAVIGATION ENTRE LES ÉTAPES ---
     function goToStep(step) {
+        clearTimeout(editorPreviewTimer);
+
         // Sauvegarde automatique de l'étape actuelle avant de changer
         if (currentStep !== "dev") {
             content[currentStep] = editor.value;
@@ -197,6 +211,7 @@ document.addEventListener("DOMContentLoaded", function () {
         }
 
         updateHeaderUI(); // Mise à jour des couleurs des onglets en haut
+        updatePreview();
         saveData(); 
     }
 
@@ -249,8 +264,8 @@ document.addEventListener("DOMContentLoaded", function () {
 
         lines.forEach(line => {
             const cleanLine = line.trim();
-            // On ignore les lignes vides et les titres Intro/Conclu qui ont leurs propres étapes
-            if (!cleanLine || /intro/i.test(cleanLine) || /conclu/i.test(cleanLine)) return; 
+            // On ignore les lignes vides et uniquement les lignes exactes Introduction/Conclusion
+            if (!cleanLine || /^(introduction|conclusion)$/i.test(cleanLine)) return; 
 
             if (numericSubpartRegex.test(cleanLine) && currentSection) {
                 currentSection.subparts.push(cleanLine);
@@ -636,6 +651,18 @@ document.addEventListener("DOMContentLoaded", function () {
         el.addEventListener("change", () => {
             updatePreview();
             saveData();
+        });
+    });
+
+    // Mise à jour live de l'aperçu pendant la saisie (avec délai anti-bugs)
+    editor.addEventListener("input", () => {
+        if (currentStep === "dev") return;
+        schedulePreviewRefresh(300);
+    });
+
+    [themeInput, studentClassInput].forEach((el) => {
+        el.addEventListener("input", () => {
+            schedulePreviewRefresh(300);
         });
     });
 
