@@ -368,27 +368,26 @@ document.addEventListener("DOMContentLoaded", function () {
     // --- 12. MOTEUR DE RENDU DES PAGES (PAGINATION) ---
     function updatePreview() {
         if (!pagesContainer) return;
-        
-        const fragment = document.createDocumentFragment();
+
         pagesContainer.innerHTML = ""; 
         
         let pageNum = 1;
         // Création de la première page
-        let currentPageContent = createNewPage(pageNum, fragment);
+        let currentPageContent = createNewPage(pageNum, pagesContainer);
 
         // 1. Rendu du Sommaire (Plan)
         if (content.plan) {
             currentPageContent = renderSection("SOMMAIRE", content.plan, currentPageContent, () => { 
-                pageNum++; return createNewPage(pageNum, fragment);
+                pageNum++; return createNewPage(pageNum, pagesContainer);
             });
         }
 
         // 2. Rendu de l'Introduction
         if (content.intro) {
             pageNum++; 
-            currentPageContent = createNewPage(pageNum, fragment);
+            currentPageContent = createNewPage(pageNum, pagesContainer);
             currentPageContent = renderSection("INTRODUCTION", content.intro, currentPageContent, () => { 
-                pageNum++; return createNewPage(pageNum, fragment);
+                pageNum++; return createNewPage(pageNum, pagesContainer);
             });
         }
 
@@ -397,7 +396,7 @@ document.addEventListener("DOMContentLoaded", function () {
         const hasDev = Object.keys(content.dev).length > 0;
         if (hasDev) {
             pageNum++; 
-            currentPageContent = createNewPage(pageNum, fragment);
+            currentPageContent = createNewPage(pageNum, pagesContainer);
             
             // Titre principal du développement
             const devTitle = document.createElement("div");
@@ -421,13 +420,11 @@ document.addEventListener("DOMContentLoaded", function () {
         // 4. Rendu de la Conclusion
         if (content.conclu) {
             pageNum++; 
-            currentPageContent = createNewPage(pageNum, fragment);
+            currentPageContent = createNewPage(pageNum, pagesContainer);
             currentPageContent = renderSection("CONCLUSION", content.conclu, currentPageContent, () => { 
-                pageNum++; return createNewPage(pageNum, fragment);
+                pageNum++; return createNewPage(pageNum, pagesContainer);
             });
         }
-
-        pagesContainer.appendChild(fragment);
         updateZoomUI(); // Applique le zoom aux nouvelles pages créées
     }
 
