@@ -365,36 +365,34 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     });
 
-    // --- 12 & 13. MOTEUR DE RENDU AVEC SAUT DE PAGE AUTOMATIQUE ---
+    // --- 12 & 13. MOTEUR DE RENDU (VERSION FUSIONNÉE ET SÉCURISÉE) ---
 
 function updatePreview() {
     if (!pagesContainer) return;
     pagesContainer.innerHTML = ""; 
     
     let pageNum = 1;
-    // On crée la première page et on récupère sa zone de contenu
     let currentPageContent = createNewPage(pageNum, pagesContainer);
 
-    // 1. Rendu du Sommaire
+    // 1. Sommaire
     if (content.plan) {
         currentPageContent = renderSection("SOMMAIRE", content.plan, currentPageContent, () => { 
             pageNum++; return createNewPage(pageNum, pagesContainer);
         });
     }
 
-    // 2. Rendu de l'Introduction
+    // 2. Introduction
     if (content.intro) {
-        // Optionnel : On peut forcer une nouvelle page pour l'intro si on veut
-        // pageNum++; currentPageContent = createNewPage(pageNum, pagesContainer);
+        // Optionnel : on peut forcer une nouvelle page ici si tu veux que l'intro commence seule
         currentPageContent = renderSection("INTRODUCTION", content.intro, currentPageContent, () => { 
             pageNum++; return createNewPage(pageNum, pagesContainer);
         });
     }
 
-    // 3. Rendu du Développement
+    // 3. Développement
     const devSections = parsePlanForDev(content.plan || "");
-    const hasDev = Object.keys(content.dev).length > 0;
-    if (hasDev) {
+    if (Object.keys(content.dev).length > 0) {
+        // Titre principal
         currentPageContent = renderSection("DÉVELOPPEMENT", "", currentPageContent, () => {
             pageNum++; return createNewPage(pageNum, pagesContainer);
         });
@@ -404,27 +402,26 @@ function updatePreview() {
         orderedTitles.forEach((sectionTitle) => {
             if (!content.dev[sectionTitle]) return;
             currentPageContent = renderSection(sectionTitle, content.dev[sectionTitle], currentPageContent, () => {
-                pageNum++; return createNewPage(pageNum, pagesContainer); // CORRIGÉ : fragment remplacé par pagesContainer
+                pageNum++; return createNewPage(pageNum, pagesContainer); 
             });
         });
     }
 
-    // 4. Rendu de la Conclusion
+    // 4. Conclusion
     if (content.conclu) {
         currentPageContent = renderSection("CONCLUSION", content.conclu, currentPageContent, () => { 
             pageNum++; return createNewPage(pageNum, pagesContainer);
         });
     }
-    
     updateZoomUI();
 }
 
 function renderSection(title, text, pageElement, onBreak) {
+    const isAutoFormat = autoFormatCheckbox.checked;
     const selectedFont = fontSelect.value;
     const selectedSize = fontSizeInput.value + "px";
-    const limitHeight = 850; // Limite de sécurité en pixels pour une zone A4 (environ 250mm)
+    const limitHeight = 840; // Sécurité pour laisser de la place au footer
 
-    // Ajout du titre
     if (title) {
         const t = document.createElement("div");
         t.className = "title-style";
@@ -432,6 +429,7 @@ function renderSection(title, text, pageElement, onBreak) {
         t.style.fontSize = (parseInt(fontSizeInput.value) + 2) + "px";
         t.style.fontWeight = "bold";
         t.style.marginTop = "15px";
+        t.style.color = "var(--primary-color)";
         t.textContent = title.toUpperCase();
         pageElement.appendChild(t);
     }
@@ -441,19 +439,32 @@ function renderSection(title, text, pageElement, onBreak) {
         const div = document.createElement("div");
         div.style.fontFamily = selectedFont;
         div.style.fontSize = selectedSize;
-        div.className = "text-style"; // La mise en forme auto peut être ajoutée ici
         
-        // Gestion ligne vide
+        // --- ON GARDE TA LOGIQUE DE FORMATAGE AUTOMATIQUE ---
+        if (isAutoFormat) {
+            if (/^(introduction|conclusion)\b/i.test(line)) {
+                div.className = "intro-conclu-style";
+            } else if (/^([IVX]+|[0-9]+)\s*[\.\-\)]/.test(line)) {
+                div.style.fontWeight = "bold";
+                div.style.marginTop = "8px";
+            } else if (/^([A-Z]|[a-z])\s*[\.\-\)]/.test(line)) {
+                div.style.fontWeight = "600";
+                div.style.marginLeft = "10px";
+            } else {
+                div.className = "text-style";
+            }
+        } else {
+            div.className = "text-style";
+        }
+
         div.textContent = line.trim() === "" ? "\u00A0" : line;
-        
         pageElement.appendChild(div);
 
-        // --- DÉTECTION DU DÉBORDEMENT ---
-        // On vérifie si la page content dépasse la limite
+        // --- DÉTECTION DE DÉBORDEMENT CORRIGÉE ---
         if (pageElement.scrollHeight > limitHeight) {
-            pageElement.removeChild(div); // On enlève la ligne qui dépasse
-            pageElement = onBreak();      // On crée une nouvelle page
-            pageElement.appendChild(div); // On remet la ligne sur la nouvelle page
+            pageElement.removeChild(div);
+            pageElement = onBreak(); 
+            pageElement.appendChild(div);
         }
     }
     return pageElement;
@@ -475,7 +486,7 @@ function createNewPage(num, container) {
     container.appendChild(page);
     return page.querySelector(".page-content");
 }
-
+    
     // --- 14. LOGIQUE DE GÉNÉRATION IA ---
     if (generateBtn) {
         generateBtn.addEventListener("click", async () => {
