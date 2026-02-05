@@ -84,7 +84,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     // --- 4. SAUVEGARDE LOCALE (LOCALSTORAGE) ---
-    function saveData() {
+        function saveData() {
         const snapshot = {
             content,
             isLocked,
@@ -97,36 +97,41 @@ document.addEventListener("DOMContentLoaded", function () {
                 fontSize: fontSizeInput.value,
                 aiLevel: aiDetailLevel.value
             },
-            currentStep
+            currentStep,
+            lastUpdate: Date.now() // On enregistre l'heure précise de la sauvegarde
         };
         localStorage.setItem("buroMaster_v2_save", JSON.stringify(snapshot));
     }
-    // ... La suite (Chargement et Navigation) arrivera en Portion 2
+    
     // --- 5. FONCTION DE CHARGEMENT ---
-    function loadData() {
+        function loadData() {
         try {
             const saved = localStorage.getItem("buroMaster_v2_save");
             if (saved) {
                 const data = JSON.parse(saved);
                 
-                // Restauration des données
+                // --- LOGIQUE DES 12 HEURES ---
+                const douzeHeuresEnMs = 12 * 60 * 60 * 1000;
+                const tempsEcoule = Date.now() - (data.lastUpdate || 0);
+
+                if (tempsEcoule > douzeHeuresEnMs) {
+                    console.log("Délai de 12h dépassé, nettoyage des données...");
+                    localStorage.removeItem("buroMaster_v2_save");
+                    return "plan"; // On repart de zéro
+                }
+                // -----------------------------
+
                 content = data.content || content;
                 isLocked = data.isLocked || isLocked;
                 reachedStepIndex = data.reachedStepIndex || 0;
-                
-                // Restauration des champs texte
                 if (themeInput) themeInput.value = data.theme || "";
                 if (studentClassInput) studentClassInput.value = data.studentClass || "";
-                
-                // Restauration des réglages avancés
                 if (data.settings) {
                     fontSelect.value = data.settings.font || "'Times New Roman', serif";
                     fontSizeInput.value = data.settings.fontSize || "12";
                     aiDetailLevel.value = data.settings.aiLevel || "standard";
                 }
-
                 autoFormatCheckbox.checked = (data.autoFormat !== undefined) ? data.autoFormat : true;
-                
                 return data.currentStep || "plan";
             }
         } catch (e) {
@@ -294,17 +299,20 @@ document.addEventListener("DOMContentLoaded", function () {
         sections.forEach((section, index) => {
             const block = document.createElement("div");
             block.className = "dev-block";
-            block.dataset.sectionTitle = section.title; // Clé unique pour l'enregistrement
+            block.dataset.sectionTitle = section.title;
 
+            // On ajoute l'icône robot (fas fa-robot) dans le bouton
             block.innerHTML = `
                 <div class="block-header">
-                    <strong>${section.title}</strong>
+                    <strong style="color: var(--primary-color); font-size: 1.1em;">${section.title}</strong>
                     <button class="generate-sub-btn" ${isLocked['dev'] ? 'style="display:none"' : ''}>
                         <i class="fas fa-robot"></i> Développer avec l'IA
                     </button>
                 </div>
-                <div style="font-size:0.8em; color:#666; margin-bottom:10px;">${section.subparts.join(" | ")}</div>
-                <textarea class="sub-editor" placeholder="Rédigez ou générez cette partie..." ${isLocked['dev'] ? 'readonly' : ''}>${content.dev[section.title] || ""}</textarea>
+                <div style="font-size:0.85em; color:#777; margin-bottom:12px; font-style: italic;">
+                    Sujets abordés : ${section.subparts.join(" • ")}
+                </div>
+                <textarea class="sub-editor" placeholder="Développez cette partie ou laissez l'IA le faire..." ${isLocked['dev'] ? 'readonly' : ''}>${content.dev[section.title] || ""}</textarea>
             `;
 
             container.appendChild(block);
@@ -423,15 +431,15 @@ document.addEventListener("DOMContentLoaded", function () {
         updateZoomUI(); // Applique le zoom aux nouvelles pages créées
     }
 
-    // --- 13. LOGIQUE DE SAUT DE PAGE ---
-    function getAvailablePageHeight(sheet) {
-        const header = sheet.querySelector(".page-header");
-        const footer = sheet.querySelector(".page-footer");
-        const styles = window.getComputedStyle(sheet);
-        const paddingTop = parseFloat(styles.paddingTop) || 0;
-        const paddingBottom = parseFloat(styles.paddingBottom) || 0;
-        const reserved = (header?.offsetHeight || 0) + (footer?.offsetHeight || 0) + paddingTop + paddingBottom;
-        return sheet.clientHeight - reserved;
+        // --- 13. LOGIQUE DE SAUT DE PAGE (VERSION FINALE CORRIGÉE) ---
+    function getAvailablePageHeight() {
+        /**
+         * Une feuille A4 fait 1122px (à 96dpi).
+         * On retire le padding (20mm + 20mm = env. 150px)
+         * On retire la place pour le header et le footer.
+         * 900px est la limite de sécurité pour déclencher le saut de page.
+         */
+        return 900; 
     }
 
     function renderSection(title, text, pageElement, onBreak) {
@@ -439,10 +447,13 @@ document.addEventListener("DOMContentLoaded", function () {
         const selectedFont = fontSelect.value;
         const selectedSize = fontSizeInput.value + "px";
 
+        // Ajout du titre de section (ex: SOMMAIRE, INTRODUCTION...)
         if (title) {
             const t = document.createElement("div");
             t.className = "title-style";
             t.style.fontFamily = selectedFont;
+            t.style.fontSize = (parseInt(fontSizeInput.value) + 2) + "px"; // Titre légèrement plus grand
+            t.style.fontWeight = "bold";
             t.textContent = title.toUpperCase();
             pageElement.appendChild(t);
         }
@@ -453,25 +464,35 @@ document.addEventListener("DOMContentLoaded", function () {
             div.style.fontFamily = selectedFont;
             div.style.fontSize = selectedSize;
             
-            // Application de la mise en forme auto demandée
+            // Application de la mise en forme automatique selon tes Regex
             if (isAutoFormat) {
-                if (/^(introduction|conclusion)\b/i.test(line)) div.className = "intro-conclu-style";
-                else if (/^([IVX]+|[0-9]+)\s*[\.\-\)]/.test(line)) div.className = "title-style";
-                else if (/^([A-Z]|[a-z])\s*[\.\-\)]/.test(line)) div.className = "subtitle-style";
-                else if (/^([0-9]+(?:\.[0-9]+)+)\s*/.test(line)) div.className = "subtitle-style";
-                else div.className = "text-style";
+                if (/^(introduction|conclusion)\b/i.test(line)) {
+                    div.className = "intro-conclu-style";
+                } else if (/^([IVX]+|[0-9]+)\s*[\.\-\)]/.test(line)) {
+                    div.className = "title-style";
+                    div.style.fontWeight = "bold";
+                } else if (/^([A-Z]|[a-z])\s*[\.\-\)]/.test(line)) {
+                    div.className = "subtitle-style";
+                    div.style.fontWeight = "bold";
+                } else if (/^([0-9]+(?:\.[0-9]+)+)\s*/.test(line)) {
+                    div.className = "subtitle-style";
+                    div.style.fontWeight = "bold";
+                } else {
+                    div.className = "text-style";
+                }
             } else {
-                div.className = "text-style"; // Texte simple si décoché
+                div.className = "text-style";
             }
 
+            // Gestion des lignes vides pour garder l'espacement
             div.textContent = line.trim() === "" ? "\u00A0" : line;
             pageElement.appendChild(div);
 
-            // Vérification du dépassement (A4 ~ 1120px de hauteur)
-            const sheet = pageElement.closest(".preview-sheet");
-            if (sheet && pageElement.scrollHeight > getAvailablePageHeight(sheet)) {
+            // --- CORRECTION : Détection immédiate du débordement ---
+            if (pageElement.offsetHeight > 880) { // On utilise une marge de sécurité à 880px
                 pageElement.removeChild(div);
-                pageElement = onBreak(); // Crée une nouvelle page
+                // On appelle onBreak() qui va créer une nouvelle page et retourner son nouveau container
+                pageElement = onBreak(); 
                 pageElement.appendChild(div);
             }
         }
@@ -485,15 +506,22 @@ document.addEventListener("DOMContentLoaded", function () {
         const currentTheme = themeInput.value || "MON EXPOSÉ";
         const studentClass = studentClassInput.value ? ` | ${studentClassInput.value}` : "";
 
+        /**
+         * Structure HTML interne :
+         * Le CSS (Flexbox) s'occupera d'espacer le header, le contenu et le footer.
+         * Le footer est fixé en bas grâce à position: absolute dans le CSS.
+         */
         page.innerHTML = `
             <div class="page-header">${currentTheme}${studentClass}</div>
             <div class="page-content"></div>
             <div class="page-footer">Page ${num}</div>
         `;
+        
         container.appendChild(page);
+        
+        // On retourne la zone "page-content" pour que renderSection puisse y écrire
         return page.querySelector(".page-content");
     }
-
     // --- 14. LOGIQUE DE GÉNÉRATION IA ---
     if (generateBtn) {
         generateBtn.addEventListener("click", async () => {
@@ -539,14 +567,19 @@ document.addEventListener("DOMContentLoaded", function () {
             editor.value = "⏳ L'IA de BuroMaster rédige pour vous... Veuillez patienter.";
             generateBtn.disabled = true;
 
-            const result = await callAiAPI(prompt);
+                       const result = await callAiAPI(prompt);
             
-            editor.value = result;
-            content[currentStep] = result;
+            if (result) {
+                editor.value = result;
+                content[currentStep] = result;
+                updatePreview();
+                saveData();
+            } else {
+                // En cas d'erreur, on remet l'ancienne valeur et on notifie
+                editor.value = originalValue;
+                showNotification("❌ Une erreur est survenue. Vérifiez votre connexion ou votre serveur.");
+            }
             generateBtn.disabled = false;
-            
-            updatePreview();
-            saveData();
         });
     }
 
@@ -589,23 +622,23 @@ document.addEventListener("DOMContentLoaded", function () {
     // --- 16. APPEL API (SÉCURISÉ) ---
     async function callAiAPI(prompt) {
         try {
-            const API_URL = `${window.location.origin}/api/generate`; // Chemin vers ton backend
-
+            const API_URL = `${window.location.origin}/api/generate`;
             const response = await fetch(API_URL, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ prompt })
             });
 
-            if (!response.ok) throw new Error("Erreur serveur (Vercel)");
+            if (!response.ok) throw new Error("Erreur serveur");
             
             const data = await response.json();
-            return data.text || "Erreur : L'IA n'a pas renvoyé de texte.";
+            return data.text || null;
         } catch (err) {
             console.error("Erreur API:", err);
-            return "Une erreur est survenue. Vérifiez votre connexion ou votre serveur Vercel.";
+            return null; // On renvoie null pour indiquer une erreur
         }
     }
+
     // --- 17. GESTION DES OPTIONS AVANCÉES ---
     advancedOptionsBtn.addEventListener("click", () => {
         // Alterne l'affichage du panneau (Show/Hide)
@@ -745,6 +778,36 @@ document.addEventListener("DOMContentLoaded", function () {
             }
         });
     });
+    
+    // --- 21. Boutont de réinitialisation ---
+    const resetBtn = document.getElementById("resetAllBtn");
+    if (resetBtn) {
+        resetBtn.addEventListener("click", () => {
+            const confirmation = confirm("⚠️ Êtes-vous sûr de vouloir tout effacer ? Cette action est irréversible et supprimera tout votre travail actuel.");
+            
+            if (confirmation) {
+                // 1. Vide le LocalStorage
+                localStorage.removeItem("buroMaster_v2_save");
+                
+                // 2. Recharge la page pour tout remettre à zéro proprement
+                window.location.reload();
+            }
+        });
+    }
+
+     function showNotification(message) {
+        const toast = document.createElement("div");
+        toast.className = "toast-notification";
+        toast.textContent = message;
+        document.body.appendChild(toast);
+
+        // Supprime la notification après 4 secondes
+        setTimeout(() => {
+            toast.style.opacity = "0";
+            toast.style.transition = "opacity 0.5s ease";
+            setTimeout(() => toast.remove(), 500);
+        }, 4000);
+    }
 
     console.log("🚀 BuroMaster 2026 : Système prêt.");
 }); // Fin du DOMContentLoaded
