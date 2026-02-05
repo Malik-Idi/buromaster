@@ -90,7 +90,41 @@ header { background: var(--primary-color); color: white; padding: 15px; text-ali
     flex-direction: column;
     box-sizing: border-box;
     overflow: hidden; /* Empêche le texte de déborder */
+    padding-top: 25mm;    /* Espace pour le header */
+    padding-bottom: 20mm; /* Espace pour le footer */
 }
+
+/* Style du Header (Thème et Classe) */
+.page-header {
+    position: absolute;
+    top: 10mm;
+    left: 20mm;
+    right: 20mm;
+    border-bottom: 1px solid #eee;
+    font-size: 0.9em;
+    color: #888;
+    text-transform: uppercase;
+}
+
+/* Style du Footer (Numérotation) - Point n°1 corrigé */
+.page-footer {
+    position: absolute;
+    bottom: 10mm;
+    left: 20mm;
+    right: 20mm;
+    border-top: 1px solid #eee;
+    padding-top: 5px;
+    text-align: center;
+    font-size: 0.8em;
+    color: #999;
+}
+
+/* Zone de contenu pour le moteur de saut de page */
+.page-content {
+    width: 100%;
+    height: 100%;
+    overflow: hidden; /* Empêche les scrollbars parasites sur la page */
+   }
 
 /* ==========================================
    6. BOUTONS D'ACTION
