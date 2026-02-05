@@ -10,6 +10,12 @@ document.addEventListener("DOMContentLoaded", function () {
     const generateBtn = document.getElementById("generateBtn");
     const downloadBtn = document.getElementById("downloadPdf");
     const autoFormatCheckbox = document.getElementById("autoFormatCheckbox");
+    const stepLinks = {
+        plan: document.getElementById("link-plan"),
+        intro: document.getElementById("link-intro"),
+        dev: document.getElementById("link-dev"),
+        conclu: document.getElementById("link-conclu")
+    };
     
     // Nouveaux contrôles (Options et Zoom)
     const advancedOptionsBtn = document.getElementById("advancedOptionsBtn");
@@ -32,6 +38,7 @@ document.addEventListener("DOMContentLoaded", function () {
     let isLocked = { plan: false, intro: false, dev: false, conclu: false };
     let reachedStepIndex = 0;
     let currentZoom = 0.6; // 60% par défaut
+    let editorPreviewTimer = null;
 
     // --- 3. GESTION DE L'HISTORIQUE (UNDO/REDO) ---
     // On stocke les versions précédentes de l'objet "content"
@@ -140,8 +147,21 @@ document.addEventListener("DOMContentLoaded", function () {
         updateHistoryButtons();
     }
 
+    function schedulePreviewRefresh(delay = 300) {
+        clearTimeout(editorPreviewTimer);
+        editorPreviewTimer = setTimeout(() => {
+            if (currentStep !== "dev") {
+                content[currentStep] = editor.value;
+            }
+            updatePreview();
+            saveData();
+        }, delay);
+    }
+
     // --- 7. NAVIGATION ENTRE LES ÉTAPES ---
     function goToStep(step) {
+        clearTimeout(editorPreviewTimer);
+
         // Sauvegarde automatique de l'étape actuelle avant de changer
         if (currentStep !== "dev") {
             content[currentStep] = editor.value;
@@ -186,6 +206,7 @@ document.addEventListener("DOMContentLoaded", function () {
         }
 
         updateHeaderUI(); // Mise à jour des couleurs des onglets en haut
+        updatePreview();
         saveData(); 
     }
 
@@ -231,19 +252,24 @@ document.addEventListener("DOMContentLoaded", function () {
         let currentSection = null;
 
         // Expression régulière plus flexible : I. ou I - ou 1.
-        const sectionRegex = /^([IVX]+|[0-9]+)[\.\-\)]/; 
-        const subpartRegex = /^([A-Z]|[a-z])[\.\-\)]/;
+        const sectionRegex = /^([IVX]+|[0-9]+)\s*[\.\-\)]\s+/;
+        const subpartRegex = /^([A-Z]|[a-z])\s*[\.\-\)]\s+/;
+        const numericSubpartRegex = /^([0-9]+(?:\.[0-9]+)+)\s*/;
+        const bulletRegex = /^[-•]\s+/;
 
         lines.forEach(line => {
             const cleanLine = line.trim();
-            // On ignore les lignes vides et les titres Intro/Conclu qui ont leurs propres étapes
-            if (!cleanLine || /intro/i.test(cleanLine) || /conclu/i.test(cleanLine)) return; 
+            // On ignore les lignes vides et uniquement les lignes exactes Introduction/Conclusion
+            if (!cleanLine || /^(introduction|conclusion)$/i.test(cleanLine)) return; 
 
-            if (sectionRegex.test(cleanLine)) {
+            if (numericSubpartRegex.test(cleanLine) && currentSection) {
+                currentSection.subparts.push(cleanLine);
+            } else if (bulletRegex.test(cleanLine) && currentSection) {
+                currentSection.subparts.push(cleanLine);
+            } else if (sectionRegex.test(cleanLine)) {
                 currentSection = { title: cleanLine, subparts: [] };
                 sections.push(currentSection);
-            } 
-            else if (subpartRegex.test(cleanLine) && currentSection) {
+            } else if (subpartRegex.test(cleanLine) && currentSection) {
                 currentSection.subparts.push(cleanLine);
             }
         });
@@ -259,13 +285,30 @@ document.addEventListener("DOMContentLoaded", function () {
         container.innerHTML = "";
 
         const sections = parsePlanForDev(content.plan || "");
+        const MAX_DEV_SECTIONS = 30;
 
         if (sections.length === 0) {
             container.innerHTML = "<p style='color:red; padding:20px;'>Aucune section (I, II, III...) détectée dans votre plan. Revenez à l'étape Plan.</p>";
             return;
         }
 
-        sections.forEach((section, index) => {
+        // Nettoie les anciennes clés qui ne correspondent plus au plan actuel
+        const validTitles = new Set(sections.map((section) => section.title));
+        Object.keys(content.dev).forEach((key) => {
+            if (!validTitles.has(key)) delete content.dev[key];
+        });
+
+        // Protection UX : évite de créer des centaines de blocs qui figent l'interface
+        let displayedSections = sections;
+        if (sections.length > MAX_DEV_SECTIONS) {
+            displayedSections = sections.slice(0, MAX_DEV_SECTIONS);
+            const warning = document.createElement("p");
+            warning.style.cssText = "color:#b45309; background:#fffbeb; border:1px solid #fde68a; border-radius:8px; padding:10px; margin:0 0 10px 0;";
+            warning.textContent = `Plan très long détecté (${sections.length} sections). Affichage limité aux ${MAX_DEV_SECTIONS} premières sections pour garder l'application fluide.`;
+            container.appendChild(warning);
+        }
+
+        displayedSections.forEach((section) => {
             const block = document.createElement("div");
             block.className = "dev-block";
             block.dataset.sectionTitle = section.title; // Clé unique pour l'enregistrement
@@ -334,64 +377,85 @@ document.addEventListener("DOMContentLoaded", function () {
     // --- 12. MOTEUR DE RENDU DES PAGES (PAGINATION) ---
     function updatePreview() {
         if (!pagesContainer) return;
-        
-        const fragment = document.createDocumentFragment();
-        pagesContainer.innerHTML = ""; 
-        
-        let pageNum = 1;
-        // Création de la première page
-        let currentPageContent = createNewPage(pageNum, fragment);
+        pagesContainer.innerHTML = "";
+
+        let pageNum = 0;
+        let currentPageContent = null;
+
+        const newPage = () => {
+            pageNum++;
+            currentPageContent = createNewPage(pageNum, pagesContainer);
+            return currentPageContent;
+        };
+
+        const forceSectionNewPage = () => {
+            if (!currentPageContent || currentPageContent.children.length > 0) {
+                newPage();
+            }
+            return currentPageContent;
+        };
+
+        const onBreak = () => newPage();
 
         // 1. Rendu du Sommaire (Plan)
         if (content.plan) {
-            currentPageContent = renderSection("SOMMAIRE", content.plan, currentPageContent, () => { 
-                pageNum++; return createNewPage(pageNum, fragment);
-            });
+            forceSectionNewPage();
+            currentPageContent = renderSection("SOMMAIRE", content.plan, currentPageContent, onBreak);
         }
 
         // 2. Rendu de l'Introduction
         if (content.intro) {
-            pageNum++; 
-            currentPageContent = createNewPage(pageNum, fragment);
-            currentPageContent = renderSection("INTRODUCTION", content.intro, currentPageContent, () => { 
-                pageNum++; return createNewPage(pageNum, fragment);
-            });
+            forceSectionNewPage();
+            currentPageContent = renderSection("INTRODUCTION", content.intro, currentPageContent, onBreak);
         }
 
         // 3. Rendu du Développement (Bloc par bloc)
+        const devSections = parsePlanForDev(content.plan || "");
         const hasDev = Object.keys(content.dev).length > 0;
         if (hasDev) {
-            pageNum++; 
-            currentPageContent = createNewPage(pageNum, fragment);
-            
-            // Titre principal du développement
+            forceSectionNewPage();
+
             const devTitle = document.createElement("div");
             devTitle.className = "title-style";
             devTitle.style.textAlign = "center";
             devTitle.textContent = "DÉVELOPPEMENT";
             currentPageContent.appendChild(devTitle);
 
-            for (let sectionTitle in content.dev) {
-                currentPageContent = renderSection(sectionTitle, content.dev[sectionTitle], currentPageContent, () => { 
-                    pageNum++; return createNewPage(pageNum, fragment);
-                });
-            }
+            const orderedDevTitles = devSections.length
+                ? devSections.map((section) => section.title)
+                : Object.keys(content.dev);
+
+            orderedDevTitles.forEach((sectionTitle) => {
+                if (!content.dev[sectionTitle]) return;
+                currentPageContent = renderSection(sectionTitle, content.dev[sectionTitle], currentPageContent, onBreak);
+            });
         }
 
         // 4. Rendu de la Conclusion
         if (content.conclu) {
-            pageNum++; 
-            currentPageContent = createNewPage(pageNum, fragment);
-            currentPageContent = renderSection("CONCLUSION", content.conclu, currentPageContent, () => { 
-                pageNum++; return createNewPage(pageNum, fragment);
-            });
+            forceSectionNewPage();
+            currentPageContent = renderSection("CONCLUSION", content.conclu, currentPageContent, onBreak);
         }
 
-        pagesContainer.appendChild(fragment);
+        // Toujours afficher une page vide si aucun contenu
+        if (pageNum === 0) {
+            newPage();
+        }
+
         updateZoomUI(); // Applique le zoom aux nouvelles pages créées
     }
 
     // --- 13. LOGIQUE DE SAUT DE PAGE ---
+    function getAvailablePageHeight(sheet) {
+        const header = sheet.querySelector(".page-header");
+        const footer = sheet.querySelector(".page-footer");
+        const styles = window.getComputedStyle(sheet);
+        const paddingTop = parseFloat(styles.paddingTop) || 0;
+        const paddingBottom = parseFloat(styles.paddingBottom) || 0;
+        const reserved = (header?.offsetHeight || 0) + (footer?.offsetHeight || 0) + paddingTop + paddingBottom;
+        return sheet.clientHeight - reserved;
+    }
+
     function renderSection(title, text, pageElement, onBreak) {
         const isAutoFormat = autoFormatCheckbox.checked;
         const selectedFont = fontSelect.value;
@@ -403,6 +467,13 @@ document.addEventListener("DOMContentLoaded", function () {
             t.style.fontFamily = selectedFont;
             t.textContent = title.toUpperCase();
             pageElement.appendChild(t);
+
+            const sheet = pageElement.closest(".preview-sheet");
+            if (sheet && pageElement.scrollHeight > getAvailablePageHeight(sheet)) {
+                pageElement.removeChild(t);
+                pageElement = onBreak();
+                pageElement.appendChild(t);
+            }
         }
 
         const lines = text.split("\n");
@@ -413,8 +484,10 @@ document.addEventListener("DOMContentLoaded", function () {
             
             // Application de la mise en forme auto demandée
             if (isAutoFormat) {
-                if (/^([IVX]+|[0-9]+)[\.\-\)]/.test(line)) div.className = "title-style";
-                else if (/^([A-Z]|[a-z])[\.\-\)]/.test(line)) div.className = "subtitle-style";
+                if (/^(introduction|conclusion)\b/i.test(line)) div.className = "intro-conclu-style";
+                else if (/^([IVX]+|[0-9]+)\s*[\.\-\)]/.test(line)) div.className = "title-style";
+                else if (/^([A-Z]|[a-z])\s*[\.\-\)]/.test(line)) div.className = "subtitle-style";
+                else if (/^([0-9]+(?:\.[0-9]+)+)\s*/.test(line)) div.className = "subtitle-style";
                 else div.className = "text-style";
             } else {
                 div.className = "text-style"; // Texte simple si décoché
@@ -424,8 +497,8 @@ document.addEventListener("DOMContentLoaded", function () {
             pageElement.appendChild(div);
 
             // Vérification du dépassement (A4 ~ 1120px de hauteur)
-            const sheet = pageElement.parentElement; 
-            if (sheet.scrollHeight > 1050) { // On laisse une marge de sécurité
+            const sheet = pageElement.closest(".preview-sheet");
+            if (sheet && pageElement.scrollHeight > getAvailablePageHeight(sheet)) {
                 pageElement.removeChild(div);
                 pageElement = onBreak(); // Crée une nouvelle page
                 pageElement.appendChild(div);
@@ -545,7 +618,7 @@ document.addEventListener("DOMContentLoaded", function () {
     // --- 16. APPEL API (SÉCURISÉ) ---
     async function callAiAPI(prompt) {
         try {
-            const API_URL = "https://buromaster.vercel.app"; // Chemin vers ton backend
+            const API_URL = `${window.location.origin}/api/generate`; // Chemin vers ton backend
 
             const response = await fetch(API_URL, {
                 method: "POST",
@@ -574,6 +647,18 @@ document.addEventListener("DOMContentLoaded", function () {
         el.addEventListener("change", () => {
             updatePreview();
             saveData();
+        });
+    });
+
+    // Mise à jour live de l'aperçu pendant la saisie (avec délai anti-bugs)
+    editor.addEventListener("input", () => {
+        if (currentStep === "dev") return;
+        schedulePreviewRefresh(300);
+    });
+
+    [themeInput, studentClassInput].forEach((el) => {
+        el.addEventListener("input", () => {
+            schedulePreviewRefresh(300);
         });
     });
 
@@ -629,8 +714,30 @@ document.addEventListener("DOMContentLoaded", function () {
 
     function exportToWord() {
         const element = document.getElementById("preview-pages");
+        if (!element || !element.innerHTML.trim()) {
+            alert("L'exposé est vide.");
+            return;
+        }
+
+        if (typeof htmlDocx === "undefined") {
+            alert("Erreur Word : bibliothèque html-docx non chargée.");
+            return;
+        }
+
         const contentHtml = element.innerHTML;
-        const fullHtml = `<!DOCTYPE html><html><head><meta charset="utf-8"></head><body>${contentHtml}</body></html>`;
+        const styles = `
+            <style>
+                body { font-family: "Times New Roman", serif; }
+                .preview-sheet { width: 210mm; min-height: 297mm; padding: 20mm; }
+                .page-header { text-align: center; font-weight: bold; margin-bottom: 10px; }
+                .page-footer { text-align: center; margin-top: 10px; }
+                .title-style { font-weight: bold; text-transform: uppercase; margin-bottom: 10px; }
+                .subtitle-style { font-weight: bold; margin-bottom: 8px; }
+                .intro-conclu-style { font-weight: bold; font-size: 1.1em; margin-bottom: 8px; }
+                .text-style { margin-bottom: 8px; }
+            </style>
+        `;
+        const fullHtml = `<!DOCTYPE html><html><head><meta charset="utf-8">${styles}</head><body>${contentHtml}</body></html>`;
 
         try {
             const converted = htmlDocx.asBlob(fullHtml);
@@ -657,6 +764,16 @@ document.addEventListener("DOMContentLoaded", function () {
     const lastStep = loadData(); 
     refreshUIFromData();
     goToStep(lastStep);
+
+    Object.entries(stepLinks).forEach(([step, link]) => {
+        if (!link) return;
+        link.addEventListener("click", () => {
+            const targetIndex = stepsOrder.indexOf(step);
+            if (targetIndex <= reachedStepIndex) {
+                goToStep(step);
+            }
+        });
+    });
 
     console.log("🚀 BuroMaster 2026 : Système prêt.");
 }); // Fin du DOMContentLoaded
