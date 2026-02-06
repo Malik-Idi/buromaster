@@ -166,10 +166,11 @@ document.addEventListener("DOMContentLoaded", function () {
         }, delay);
     }
 
-       // --- 7. NAVIGATION ENTRE LES ÉTAPES ---
+       // --- 7. NAVIGATION ENTRE LES ÉTAPES (VERSION FINALE) ---
     function goToStep(step) {
         clearTimeout(editorPreviewTimer);
 
+        // Sauvegarde de sécurité du texte actuel
         if (currentStep !== "dev") {
             content[currentStep] = editor.value;
         }
@@ -181,29 +182,41 @@ document.addEventListener("DOMContentLoaded", function () {
         
         const locked = isLocked[step];
 
-        // --- NOUVEAU : Bloquer l'écriture si validé ---
+        // Bloquer l'écriture si l'étape est validée
         if (step !== "dev") {
             editor.readOnly = locked;
             editor.style.backgroundColor = locked ? "#f5f5f5" : "#fff";
             editor.style.cursor = locked ? "not-allowed" : "auto";
         }
 
+        // Configuration du bouton Valider
         validateBtn.textContent = locked ? "Modifier cette étape" : "Valider cette étape";
         validateBtn.style.background = locked ? "#ff9800" : "#0aa64b";
 
+        // --- LOGIQUE DU BOUTON SUIVANT / WORD ---
         if (step === "conclu" && locked) {
+            // Cas final : Conclusion validée -> Proposer le Word
             nextStepBtn.textContent = "Exporter en Word (.doc)";
             nextStepBtn.style.display = "block";
             nextStepBtn.classList.add("is-word-btn");
         } else {
+            // Cas standard : Afficher "Suivant" seulement si l'étape est verrouillée et qu'il y a une suite
             nextStepBtn.classList.remove("is-word-btn");
-            const isNotLast = stepsOrder.indexOf(step) < stepsOrder.length - 1;
-            nextStepBtn.style.display = (locked && isNotLast) ? "block" : "none";
-            nextStepBtn.textContent = "Étape Suivante";
+            const currentIndex = stepsOrder.indexOf(step);
+            const hasNext = currentIndex < stepsOrder.length - 1;
+            
+            if (locked && hasNext) {
+                nextStepBtn.style.display = "block";
+                nextStepBtn.textContent = "Étape Suivante";
+            } else {
+                nextStepBtn.style.display = "none";
+            }
         }
 
+        // Gestion du bouton IA
         generateBtn.style.display = (!locked && step !== "dev") ? "block" : "none";
 
+        // Bascule entre l'éditeur texte et les blocs de développement
         if (step === "dev") {
             editor.style.display = "none";
             document.getElementById("dev-blocks-container").style.display = "block";
@@ -224,15 +237,17 @@ document.addEventListener("DOMContentLoaded", function () {
             const stepName = stepsOrder[index];
             link.classList.remove("active", "unlocked");
             
-            // --- NOUVEAU : Afficher le cadenas 🔒 ---
             const labels = { plan: "Plan", intro: "Intro", dev: "Développement", conclu: "Conclusion" };
             let text = labels[stepName];
+            
+            // Affichage du cadenas si verrouillé
             if (isLocked[stepName]) {
                 link.innerHTML = `<i class="fas fa-lock"></i> ${text}`;
             } else {
                 link.innerHTML = text;
             }
 
+            // État actif ou débloqué
             if (stepName === currentStep) {
                 link.classList.add("active");
             } else if (index <= reachedStepIndex) {
@@ -771,10 +786,34 @@ function createNewPage(num, container) {
         });
     });
 
-    // --- 19. EXPORT WORD (SÉCURISÉ) ---
+    // --- 19. EXPORT WORD ET NAVIGATION (SÉCURISÉ) ---
+    
+    // 1. Gestion du clic sur le bouton "Suivant" ou "Word"
+    if (nextStepBtn) {
+        nextStepBtn.onclick = () => {
+            // Si le bouton est en mode "Export Word"
+            if (nextStepBtn.classList.contains("is-word-btn")) {
+                exportToWord();
+            } else {
+                // Sinon, on passe à l'étape suivante
+                const currentIndex = stepsOrder.indexOf(currentStep);
+                if (currentIndex < stepsOrder.length - 1) {
+                    const nextStep = stepsOrder[currentIndex + 1];
+                    goToStep(nextStep);
+                    // Remonte en haut de la page pour le confort
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                }
+            }
+        };
+    }
+
+    // 2. Fonction technique d'exportation
     function exportToWord() {
         const sheets = document.querySelectorAll(".preview-sheet");
-        if (sheets.length === 0) return;
+        if (sheets.length === 0) {
+            showNotification("L'exposé est vide !");
+            return;
+        }
 
         // On prépare un HTML propre pour Word
         let contentHtml = "";
@@ -784,25 +823,31 @@ function createNewPage(num, container) {
 
         const styles = `<style>
             body { font-family: "Times New Roman", serif; padding: 20px; }
-            .page-header { color: #0aa64b; font-size: 10pt; border-bottom: 1px solid #ccc; }
-            .title-style { font-size: 16pt; font-weight: bold; color: black; margin-top: 20px; }
-            .text-style { font-size: 12pt; margin-bottom: 10px; text-align: justify; }
+            .page-header { color: #0aa64b; font-size: 10pt; border-bottom: 1px solid #ccc; margin-bottom: 15px; }
+            .title-style { font-size: 16pt; font-weight: bold; color: black; margin-top: 20px; text-transform: uppercase; }
+            .text-style { font-size: 12pt; margin-bottom: 10px; text-align: justify; line-height: 1.4; }
+            .page-footer { text-align: center; font-size: 9pt; color: #666; margin-top: 20px; }
         </style>`;
 
         const fullHtml = `<!DOCTYPE html><html><head><meta charset="utf-8">${styles}</head><body>${contentHtml}</body></html>`;
 
         try {
-            // Utilisation de la lib chargée dans le HTML
+            if (typeof htmlDocx === "undefined") {
+                showNotification("❌ Erreur : Bibliothèque Word non chargée.");
+                return;
+            }
             const converted = htmlDocx.asBlob(fullHtml);
             const link = document.createElement("a");
             link.href = URL.createObjectURL(converted);
-            link.download = "BuroMaster_Expose.docx";
+            link.download = `BuroMaster_Expose_${themeInput.value || "complet"}.docx`;
             link.click();
+            showNotification("✅ Document Word généré !");
         } catch (e) {
             console.error(e);
-            alert("Erreur lors de l'export Word.");
+            showNotification("❌ Erreur lors de l'export Word.");
         }
     }
+
     // --- 20. INITIALISATION FINALE ---
     // On active les raccourcis clavier
     window.addEventListener("keydown", (e) => {
