@@ -180,6 +180,13 @@ document.addEventListener("DOMContentLoaded", function () {
         
         const locked = isLocked[step];
 
+        // --- NOUVEAU : Bloquer l'écriture si validé ---
+        if (step !== "dev") {
+            editor.readOnly = locked;
+            editor.style.backgroundColor = locked ? "#f5f5f5" : "#fff";
+            editor.style.cursor = locked ? "not-allowed" : "auto";
+        }
+
         // Adaptation du bouton Valider/Modifier
         validateBtn.textContent = locked ? "Modifier cette étape" : "Valider cette étape";
         validateBtn.style.background = locked ? "#ff9800" : "#0aa64b";
@@ -219,6 +226,15 @@ document.addEventListener("DOMContentLoaded", function () {
         document.querySelectorAll(".step-link").forEach((link, index) => {
             const stepName = stepsOrder[index];
             link.classList.remove("active", "unlocked");
+
+            // --- NOUVEAU : Afficher le cadenas 🔒 ---
+            const labels = { plan: "Plan", intro: "Intro", dev: "Développement", conclu: "Conclusion" };
+            let text = labels[stepName];
+            if (isLocked[stepName]) {
+                link.innerHTML = `<i class="fas fa-lock"></i> ${text}`;
+            } else {
+                link.innerHTML = text;
+            }
             
             if (stepName === currentStep) {
                 link.classList.add("active");
@@ -239,12 +255,19 @@ document.addEventListener("DOMContentLoaded", function () {
             if (currentStep !== "dev") {
                 content[currentStep] = editor.value;
             }
-            isLocked[currentStep] = true;
-            // On débloque l'étape suivante dans le menu
-            reachedStepIndex = Math.max(reachedStepIndex, stepsOrder.indexOf(currentStep) + 1);
+            
         } else {
-            // Si on déverrouille pour modifier
+                // Bloquer les champs et cacher les boutons IA du Développement
+                document.querySelectorAll(".sub-editor").forEach(txt => txt.readOnly = true);
+                document.querySelectorAll(".generate-sub-btn").forEach(btn => btn.style.display = "none");
+            }
+            
+            isLocked[currentStep] = true;
+            reachedStepIndex = Math.max(reachedStepIndex, stepsOrder.indexOf(currentStep) + 1);
+            showNotification("Étape validée et verrouillée ! 🔒");
+        } else {
             isLocked[currentStep] = false;
+            showNotification("Étape déverrouillée pour modification.");
         }
         
         goToStep(currentStep);
@@ -285,7 +308,15 @@ document.addEventListener("DOMContentLoaded", function () {
     function setupDevBlocks() {
         const container = document.getElementById("dev-blocks-container");
         if (!container) return;
-        
+
+         // --- NOUVEAU : Si déjà validé, on n'écrase pas le contenu ! ---
+        if (isLocked['dev']) {
+            // On s'assure juste que tout est bloqué visuellement
+            container.querySelectorAll(".sub-editor").forEach(txt => txt.readOnly = true);
+            container.querySelectorAll(".generate-sub-btn").forEach(btn => btn.style.display = "none");
+            return; 
+        }
+   
         // On vide proprement sans perdre les écouteurs si besoin (ici on recrée tout)
         container.innerHTML = "";
 
