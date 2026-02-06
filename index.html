@@ -4,9 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>BuroMaster 2026 – Assistant d'Exposé</title>
-    <!-- On garde ton fichier CSS -->
     <link rel="stylesheet" href="style.css">
-    <!-- Importation des icônes pour un look pro (FontAwesome) -->
+    <!-- FontAwesome pour les icônes -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 </head>
 <body>
@@ -14,6 +13,7 @@
 <header>
     <h1><i class="fas fa-graduation-cap"></i> BuroMaster</h1>
     <nav class="steps">
+        <!-- Classes harmonisées avec le CSS : step-link et active/unlocked -->
         <span class="step-link active" id="link-plan">Plan</span>
         <span class="step-link" id="link-intro">Intro</span>
         <span class="step-link" id="link-dev">Développement</span>
@@ -30,40 +30,40 @@
     
     <div class="config-group main-theme">
         <label for="theme">Thème :</label>
-        <input type="text" id="theme" placeholder="Ex: La déforestation au Bénin">
+        <input type="text" id="themeInput" placeholder="Ex: La déforestation au Bénin">
     </div>
 
     <div class="config-group">
-        <button id="advancedOptionsBtn" class="secondary-btn">
-            <i class="fas fa-cog"></i> Options avancées
+        <!-- Utilisation de la classe primary-btn ou secondary-btn du CSS -->
+        <button id="advancedOptionsBtn" class="validate-btn" style="background: var(--dark-gray);">
+            <i class="fas fa-cog"></i> Options
         </button>
-        <!-- Nouveau bouton de réinitialisation -->
-        <button id="resetAllBtn" class="reset-btn" style="background: #ff4444; color: white; border: none; padding: 10px; border-radius: 6px; cursor: pointer; margin-left: 5px;">
-            <i class="fas fa-trash"></i> Réinitialiser
+        <button id="resetAllBtn" class="reset-btn" style="background: #ff4444; color: white; border: none; padding: 10px; border-radius: 6px; cursor: pointer;">
+            <i class="fas fa-trash"></i>
         </button>
     </div>
 </section>
 
-<!-- Panneau des options avancées (Masqué par défaut) -->
+<!-- Panneau des options avancées -->
 <div id="advancedPanel" class="advanced-panel" style="display: none;">
-    <div class="option-item">
+    <div class="config-group">
         <label>Police :</label>
         <select id="fontSelect">
+            <option value="'Segoe UI', sans-serif">Défaut</option>
             <option value="'Times New Roman', serif">Times New Roman</option>
             <option value="'Arial', sans-serif">Arial</option>
-            <option value="'Calibri', sans-serif">Calibri</option>
         </select>
     </div>
-    <div class="option-item">
+    <div class="config-group">
         <label>Taille :</label>
-        <input type="number" id="fontSizeInput" value="12" min="10" max="18"> px
+        <input type="number" id="fontSizeInput" value="12" min="10" max="18" style="width: 60px;"> px
     </div>
-    <div class="option-item">
-        <label>Détails IA :</label>
+    <div class="config-group">
+        <label>IA :</label>
         <select id="aiDetailLevel">
-            <option value="concis">Concis (Rapide)</option>
+            <option value="concis">Concis</option>
             <option value="standard" selected>Standard</option>
-            <option value="detaille">Très détaillé (Approfondi)</option>
+            <option value="detaille">Détaillé</option>
         </select>
     </div>
 </div>
@@ -71,31 +71,33 @@
 <main class="container">
     <!-- Zone de travail (Gauche) -->
     <section class="work-area">
-        <div class="work-header">
+        <div class="block-header">
             <h2 id="step-title">Édition du Plan</h2>
-            <label class="auto-format-label">
+            <label style="font-size: 0.8em; cursor: pointer;">
                 <input type="checkbox" id="autoFormatCheckbox" checked> Mise en forme auto
             </label>
         </div>
         
-        <!-- Barre Undo/Redo -->
         <div class="history-controls">
-            <button id="undoBtn" title="Annuler (Ctrl+Z)"><i class="fas fa-undo"></i></button>
-            <button id="redoBtn" title="Rétablir (Ctrl+Y)"><i class="fas fa-redo"></i></button>
+            <button id="undoBtn" title="Annuler"><i class="fas fa-undo"></i></button>
+            <button id="redoBtn" title="Rétablir"><i class="fas fa-redo"></i></button>
         </div>
 
         <button type="button" id="generateBtn" class="primary-btn">
             <i class="fas fa-magic"></i> Générer avec l'IA
         </button>
         
-        <textarea id="editor" class="editor" placeholder="Commencez à rédiger..."></textarea>
-        <div id="dev-blocks-container" style="display: none;"></div>
+        <!-- Conteneur pour l'éditeur principal ou les blocs IA -->
+        <div id="editor-container">
+            <textarea id="editor" class="editor" placeholder="Commencez à rédiger..."></textarea>
+            <div id="dev-blocks-container" style="display: none;"></div>
+        </div>
         
-        <div class="actions-bar">
+        <div class="actions-bar" style="margin-top: 20px;">
             <button type="button" id="validateBtn" class="validate-btn">Valider cette étape</button>
             <button type="button" id="nextStepBtn" class="next-btn" style="display: none;">Étape suivante</button>
             <button type="button" id="downloadPdf" class="pdf-btn">
-                <i class="fas fa-file-pdf"></i> Télécharger le PDF (Haute Qualité)
+                <i class="fas fa-file-pdf"></i> Télécharger le PDF
             </button>
         </div>
     </section>
@@ -103,26 +105,23 @@
     <!-- Zone Aperçu (Droite) -->
     <section class="preview-area">
         <div class="preview-header">
-            <h2>Aperçu A4</h2>
-            <div class="preview-controls">
+            <h3>Aperçu A4</h3>
+            <div class="history-controls" style="background: none;">
                 <button id="zoomOutBtn"><i class="fas fa-minus"></i></button>
-                <span id="zoomLevel">60%</span>
+                <span id="zoomLevel" style="min-width: 40px; text-align: center;">60%</span>
                 <button id="zoomInBtn"><i class="fas fa-plus"></i></button>
             </div>
         </div>
+        
+        <!-- Conteneur de défilement pour les pages A4 -->
         <div class="preview-scroll" id="preview-pages">
-            <!-- Les pages générées par JS s'afficheront ici -->
+            <!-- Injecté par JS : .page-wrapper > .preview-sheet > .page-content -->
         </div>
     </section>
 </main>
 
-<!-- BIBLIOTHÈQUES (CORRIGÉES) -->
-<!-- jspdf et html2canvas sont nécessaires pour html2pdf -->
+<!-- SCRIPTS -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-<!-- Pour l'export Word -->
-<script src="https://cdn.jsdelivr.net/npm/html-docx-js@0.5.2/dist/html-docx.js"></script>
-
-<!-- Ton script personnel -->
 <script src="script.js"></script>
 
 </body>
