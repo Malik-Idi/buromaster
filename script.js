@@ -335,50 +335,66 @@ document.addEventListener("DOMContentLoaded", function () {
             aiBtn.addEventListener("click", () => handleSubGeneration(block, textarea, aiBtn));
         });
     }
-// --- 11. GESTION DU ZOOM (CORRIGÉE) ---
-    function updateZoomUI() {
-        const sheets = document.querySelectorAll(".preview-sheet");
-        sheets.forEach(sheet => {
-            // Applique le facteur d'échelle
-            sheet.style.transform = `scale(${currentZoom})`;
-            
-            // On supprime la marge négative qui cause la superposition
-            // Le CSS (gap: 20px) gérera l'espacement entre les pages.
-            sheet.style.marginBottom = `20px`; 
-        });
-        zoomLevelSpan.textContent = `${Math.round(currentZoom * 100)}%`;
-    }
+// --- 11. GESTION DU ZOOM (VERSION CORRIGÉE) ---
+function updateZoomUI() {
+    const wrappers = document.querySelectorAll(".page-wrapper");
+    const sheets = document.querySelectorAll(".preview-sheet");
+    
+    const scale = currentZoom;
+    // Dimensions réelles A4 en pixels (environ 794x1123 pour 96dpi)
+    const baseWidth = 210; // mm
+    const baseHeight = 297; // mm
 
-    // --- 12 & 13. MOTEUR DE RENDU (VERSION FUSIONNÉE ET SÉCURISÉE) ---
+    wrappers.forEach(wrapper => {
+        // On ajuste la taille du conteneur pour qu'il corresponde à la feuille zoomée
+        wrapper.style.width = `${baseWidth * scale}mm`;
+        wrapper.style.height = `${baseHeight * scale}mm`;
+    });
+
+    sheets.forEach(sheet => {
+        sheet.style.transform = `scale(${scale})`;
+        sheet.style.transformOrigin = "top left"; // Très important pour l'alignement
+    });
+
+    zoomLevelSpan.textContent = `${Math.round(scale * 100)}%`;
+}
+
+   // --- 12 & 13. MOTEUR DE RENDU (CORRIGÉ) ---
 
 function updatePreview() {
     if (!pagesContainer) return;
     pagesContainer.innerHTML = ""; 
     
     let pageNum = 1;
-    let currentPageContent = createNewPage(pageNum, pagesContainer);
+    // On récupère l'objet page complet (le wrapper) pour gérer le zoom
+    let currentPageObj = createNewPage(pageNum, pagesContainer);
+    let currentPageContent = currentPageObj.content;
 
     // 1. Sommaire
     if (content.plan) {
         currentPageContent = renderSection("SOMMAIRE", content.plan, currentPageContent, () => { 
-            pageNum++; return createNewPage(pageNum, pagesContainer);
+            pageNum++; 
+            let newPage = createNewPage(pageNum, pagesContainer);
+            return newPage.content;
         });
     }
 
     // 2. Introduction
     if (content.intro) {
-        // Optionnel : on peut forcer une nouvelle page ici si tu veux que l'intro commence seule
         currentPageContent = renderSection("INTRODUCTION", content.intro, currentPageContent, () => { 
-            pageNum++; return createNewPage(pageNum, pagesContainer);
+            pageNum++; 
+            let newPage = createNewPage(pageNum, pagesContainer);
+            return newPage.content;
         });
     }
 
     // 3. Développement
     const devSections = parsePlanForDev(content.plan || "");
     if (Object.keys(content.dev).length > 0) {
-        // Titre principal
         currentPageContent = renderSection("DÉVELOPPEMENT", "", currentPageContent, () => {
-            pageNum++; return createNewPage(pageNum, pagesContainer);
+            pageNum++; 
+            let newPage = createNewPage(pageNum, pagesContainer);
+            return newPage.content;
         });
 
         const orderedTitles = devSections.length ? devSections.map(s => s.title) : Object.keys(content.dev);
@@ -386,7 +402,9 @@ function updatePreview() {
         orderedTitles.forEach((sectionTitle) => {
             if (!content.dev[sectionTitle]) return;
             currentPageContent = renderSection(sectionTitle, content.dev[sectionTitle], currentPageContent, () => {
-                pageNum++; return createNewPage(pageNum, pagesContainer); 
+                pageNum++; 
+                let newPage = createNewPage(pageNum, pagesContainer);
+                return newPage.content;
             });
         });
     }
@@ -394,37 +412,36 @@ function updatePreview() {
     // 4. Conclusion
     if (content.conclu) {
         currentPageContent = renderSection("CONCLUSION", content.conclu, currentPageContent, () => { 
-            pageNum++; return createNewPage(pageNum, pagesContainer);
+            pageNum++; 
+            let newPage = createNewPage(pageNum, pagesContainer);
+            return newPage.content;
         });
     }
-    updateZoomUI();
+    updateZoomUI(); // Applique le zoom sur les nouveaux wrappers
 }
 
 function renderSection(title, text, pageElement, onBreak) {
     const isAutoFormat = autoFormatCheckbox.checked;
     const selectedFont = fontSelect.value;
     const selectedSize = fontSizeInput.value + "px";
-    const limitHeight = 840; // Sécurité pour laisser de la place au footer
+    const limitHeight = 920; // Augmenté légèrement pour utiliser plus d'espace A4
 
     if (title) {
         const t = document.createElement("div");
         t.className = "title-style";
         t.style.fontFamily = selectedFont;
         t.style.fontSize = (parseInt(fontSizeInput.value) + 2) + "px";
-        t.style.fontWeight = "bold";
-        t.style.marginTop = "15px";
         t.style.color = "var(--primary-color)";
         t.textContent = title.toUpperCase();
         pageElement.appendChild(t);
     }
 
     const lines = text.split("\n");
-    for (let line of lines) {
+    lines.forEach((line, index) => {
         const div = document.createElement("div");
         div.style.fontFamily = selectedFont;
         div.style.fontSize = selectedSize;
         
-        // --- ON GARDE TA LOGIQUE DE FORMATAGE AUTOMATIQUE ---
         if (isAutoFormat) {
             if (/^(introduction|conclusion)\b/i.test(line)) {
                 div.className = "intro-conclu-style";
@@ -444,33 +461,39 @@ function renderSection(title, text, pageElement, onBreak) {
         div.textContent = line.trim() === "" ? "\u00A0" : line;
         pageElement.appendChild(div);
 
-        // --- DÉTECTION DE DÉBORDEMENT CORRIGÉE ---
-        if (pageElement.scrollHeight > limitHeight) {
+        // --- DÉTECTION DE DÉBORDEMENT AMÉLIORÉE ---
+        // On ne saute de page que si ce n'est pas la dernière ligne vide du texte
+        if (pageElement.scrollHeight > limitHeight && index < lines.length - 1) {
             pageElement.removeChild(div);
             pageElement = onBreak(); 
             pageElement.appendChild(div);
         }
-    }
+    });
     return pageElement;
 }
 
 function createNewPage(num, container) {
-    const page = document.createElement("div");
-    page.className = "preview-sheet";
+    const wrapper = document.createElement("div");
+    wrapper.className = "page-wrapper"; // Nécessaire pour ton CSS et le Zoom
     
     const currentTheme = themeInput.value || "MON EXPOSÉ";
     const studentClass = studentClassInput.value ? ` | ${studentClassInput.value}` : "";
 
-    page.innerHTML = `
-        <div class="page-header">${currentTheme}${studentClass}</div>
-        <div class="page-content"></div>
-        <div class="page-footer">Page ${num}</div>
+    wrapper.innerHTML = `
+        <div class="preview-sheet">
+            <div class="page-header">${currentTheme}${studentClass}</div>
+            <div class="page-content"></div>
+            <div class="page-footer">Page ${num}</div>
+        </div>
     `;
     
-    container.appendChild(page);
-    return page.querySelector(".page-content");
+    container.appendChild(wrapper);
+    return {
+        wrapper: wrapper,
+        content: wrapper.querySelector(".page-content")
+    };
 }
-    
+  
     // --- 14. LOGIQUE DE GÉNÉRATION IA ---
     if (generateBtn) {
         generateBtn.addEventListener("click", async () => {
