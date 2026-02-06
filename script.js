@@ -163,18 +163,16 @@ document.addEventListener("DOMContentLoaded", function () {
         }, delay);
     }
 
-    // --- 7. NAVIGATION ENTRE LES ÉTAPES ---
+       // --- 7. NAVIGATION ENTRE LES ÉTAPES ---
     function goToStep(step) {
         clearTimeout(editorPreviewTimer);
 
-        // Sauvegarde automatique de l'étape actuelle avant de changer
         if (currentStep !== "dev") {
             content[currentStep] = editor.value;
         }
 
-        currentStep = step; // Mise à jour de l'étape active
+        currentStep = step;
 
-        // Mise à jour visuelle du titre (ex: Édition du Plan)
         const stepNames = { plan: "Plan", intro: "Introduction", dev: "Développement", conclu: "Conclusion" };
         stepTitle.textContent = "Édition : " + (stepNames[step] || step);
         
@@ -187,11 +185,9 @@ document.addEventListener("DOMContentLoaded", function () {
             editor.style.cursor = locked ? "not-allowed" : "auto";
         }
 
-        // Adaptation du bouton Valider/Modifier
         validateBtn.textContent = locked ? "Modifier cette étape" : "Valider cette étape";
         validateBtn.style.background = locked ? "#ff9800" : "#0aa64b";
 
-        // Logique du bouton "Suivant" et "Word"
         if (step === "conclu" && locked) {
             nextStepBtn.textContent = "Exporter en Word (.doc)";
             nextStepBtn.style.display = "block";
@@ -203,10 +199,8 @@ document.addEventListener("DOMContentLoaded", function () {
             nextStepBtn.textContent = "Étape Suivante";
         }
 
-        // Affichage ou non de l'IA (On ne génère pas si c'est verrouillé)
         generateBtn.style.display = (!locked && step !== "dev") ? "block" : "none";
 
-        // Bascule Editeur Classique vs Blocs de Développement
         if (step === "dev") {
             editor.style.display = "none";
             document.getElementById("dev-blocks-container").style.display = "block";
@@ -217,7 +211,7 @@ document.addEventListener("DOMContentLoaded", function () {
             document.getElementById("dev-blocks-container").style.display = "none";
         }
 
-        updateHeaderUI(); // Mise à jour des couleurs des onglets en haut
+        updateHeaderUI(); 
         updatePreview();
         saveData(); 
     }
@@ -226,7 +220,7 @@ document.addEventListener("DOMContentLoaded", function () {
         document.querySelectorAll(".step-link").forEach((link, index) => {
             const stepName = stepsOrder[index];
             link.classList.remove("active", "unlocked");
-
+            
             // --- NOUVEAU : Afficher le cadenas 🔒 ---
             const labels = { plan: "Plan", intro: "Intro", dev: "Développement", conclu: "Conclusion" };
             let text = labels[stepName];
@@ -235,7 +229,7 @@ document.addEventListener("DOMContentLoaded", function () {
             } else {
                 link.innerHTML = text;
             }
-            
+
             if (stepName === currentStep) {
                 link.classList.add("active");
             } else if (index <= reachedStepIndex) {
@@ -244,19 +238,16 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
-      // --- 8. GESTION DU BOUTON VALIDER ---
+         // --- 8. GESTION DU BOUTON VALIDER ---
     validateBtn.addEventListener("click", () => {
         const isCurrentlyLocked = isLocked[currentStep];
         
         if (!isCurrentlyLocked) {
-            // Avant de verrouiller, on enregistre une photo pour le Undo
             saveToHistory();
             
             if (currentStep !== "dev") {
                 content[currentStep] = editor.value;
-            }
-            
-        } else {
+            } else {
                 // Bloquer les champs et cacher les boutons IA du Développement
                 document.querySelectorAll(".sub-editor").forEach(txt => txt.readOnly = true);
                 document.querySelectorAll(".generate-sub-btn").forEach(btn => btn.style.display = "none");
@@ -304,19 +295,18 @@ document.addEventListener("DOMContentLoaded", function () {
         return sections;
     }
 
-    // --- 10. GÉNÉRATION DYNAMIQUE DES BLOCS ---
+ // --- 10. GÉNÉRATION DYNAMIQUE DES BLOCS ---
     function setupDevBlocks() {
         const container = document.getElementById("dev-blocks-container");
         if (!container) return;
-
-         // --- NOUVEAU : Si déjà validé, on n'écrase pas le contenu ! ---
+        
+        // --- NOUVEAU : Si déjà validé, on n'écrase pas le contenu ! ---
         if (isLocked['dev']) {
             // On s'assure juste que tout est bloqué visuellement
             container.querySelectorAll(".sub-editor").forEach(txt => txt.readOnly = true);
             container.querySelectorAll(".generate-sub-btn").forEach(btn => btn.style.display = "none");
             return; 
         }
-   
         // On vide proprement sans perdre les écouteurs si besoin (ici on recrée tout)
         container.innerHTML = "";
 
