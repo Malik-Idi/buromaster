@@ -13,7 +13,6 @@
 <header>
     <h1><i class="fas fa-graduation-cap"></i> BuroMaster</h1>
     <nav class="steps">
-        <!-- Classes harmonisées avec le CSS : step-link et active/unlocked -->
         <span class="step-link active" id="link-plan">Plan</span>
         <span class="step-link" id="link-intro">Intro</span>
         <span class="step-link" id="link-dev">Développement</span>
@@ -30,40 +29,39 @@
     
     <div class="config-group main-theme">
         <label for="theme">Thème :</label>
-        <input type="text" id="themeInput" placeholder="Ex: La déforestation au Bénin">
+        <input type="text" id="theme" placeholder="Ex: La déforestation au Bénin">
     </div>
 
     <div class="config-group">
-        <!-- Utilisation de la classe primary-btn ou secondary-btn du CSS -->
-        <button id="advancedOptionsBtn" class="validate-btn" style="background: var(--dark-gray);">
+        <button id="advancedOptionsBtn" class="secondary-btn" style="background: var(--dark-gray); color: white; border: none; padding: 10px; border-radius: 6px; cursor: pointer;">
             <i class="fas fa-cog"></i> Options
         </button>
-        <button id="resetAllBtn" class="reset-btn" style="background: #ff4444; color: white; border: none; padding: 10px; border-radius: 6px; cursor: pointer;">
+        <button id="resetAllBtn" class="reset-btn" style="background: #ff4444; color: white; border: none; padding: 10px; border-radius: 6px; cursor: pointer; margin-left: 5px;">
             <i class="fas fa-trash"></i>
         </button>
     </div>
 </section>
 
-<!-- Panneau des options avancées -->
+<!-- Panneau des options avancées (Masqué par défaut) -->
 <div id="advancedPanel" class="advanced-panel" style="display: none;">
-    <div class="config-group">
+    <div class="option-item">
         <label>Police :</label>
         <select id="fontSelect">
-            <option value="'Segoe UI', sans-serif">Défaut</option>
             <option value="'Times New Roman', serif">Times New Roman</option>
             <option value="'Arial', sans-serif">Arial</option>
+            <option value="'Calibri', sans-serif">Calibri</option>
         </select>
     </div>
-    <div class="config-group">
+    <div class="option-item">
         <label>Taille :</label>
-        <input type="number" id="fontSizeInput" value="12" min="10" max="18" style="width: 60px;"> px
+        <input type="number" id="fontSizeInput" value="12" min="10" max="18"> px
     </div>
-    <div class="config-group">
-        <label>IA :</label>
+    <div class="option-item">
+        <label>Détails IA :</label>
         <select id="aiDetailLevel">
-            <option value="concis">Concis</option>
+            <option value="concis">Concis (Rapide)</option>
             <option value="standard" selected>Standard</option>
-            <option value="detaille">Détaillé</option>
+            <option value="detaille">Très détaillé (Approfondi)</option>
         </select>
     </div>
 </div>
@@ -71,33 +69,30 @@
 <main class="container">
     <!-- Zone de travail (Gauche) -->
     <section class="work-area">
-        <div class="block-header">
-            <h2 id="step-title">Édition du Plan</h2>
-            <label style="font-size: 0.8em; cursor: pointer;">
+        <div class="block-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+            <h2 id="step-title" style="margin: 0;">Édition du Plan</h2>
+            <label class="auto-format-label" style="font-size: 0.85em;">
                 <input type="checkbox" id="autoFormatCheckbox" checked> Mise en forme auto
             </label>
         </div>
         
         <div class="history-controls">
-            <button id="undoBtn" title="Annuler"><i class="fas fa-undo"></i></button>
-            <button id="redoBtn" title="Rétablir"><i class="fas fa-redo"></i></button>
+            <button id="undoBtn" title="Annuler (Ctrl+Z)"><i class="fas fa-undo"></i></button>
+            <button id="redoBtn" title="Rétablir (Ctrl+Y)"><i class="fas fa-redo"></i></button>
         </div>
 
         <button type="button" id="generateBtn" class="primary-btn">
             <i class="fas fa-magic"></i> Générer avec l'IA
         </button>
         
-        <!-- Conteneur pour l'éditeur principal ou les blocs IA -->
-        <div id="editor-container">
-            <textarea id="editor" class="editor" placeholder="Commencez à rédiger..."></textarea>
-            <div id="dev-blocks-container" style="display: none;"></div>
-        </div>
+        <textarea id="editor" class="editor" placeholder="Commencez à rédiger..."></textarea>
+        <div id="dev-blocks-container" style="display: none;"></div>
         
         <div class="actions-bar" style="margin-top: 20px;">
             <button type="button" id="validateBtn" class="validate-btn">Valider cette étape</button>
             <button type="button" id="nextStepBtn" class="next-btn" style="display: none;">Étape suivante</button>
             <button type="button" id="downloadPdf" class="pdf-btn">
-                <i class="fas fa-file-pdf"></i> Télécharger le PDF
+                <i class="fas fa-file-pdf"></i> Télécharger le PDF (Haute Qualité)
             </button>
         </div>
     </section>
@@ -105,23 +100,26 @@
     <!-- Zone Aperçu (Droite) -->
     <section class="preview-area">
         <div class="preview-header">
-            <h3>Aperçu A4</h3>
-            <div class="history-controls" style="background: none;">
+            <h2>Aperçu A4</h2>
+            <div class="preview-controls">
                 <button id="zoomOutBtn"><i class="fas fa-minus"></i></button>
-                <span id="zoomLevel" style="min-width: 40px; text-align: center;">60%</span>
+                <span id="zoomLevel">60%</span>
                 <button id="zoomInBtn"><i class="fas fa-plus"></i></button>
             </div>
         </div>
-        
-        <!-- Conteneur de défilement pour les pages A4 -->
         <div class="preview-scroll" id="preview-pages">
-            <!-- Injecté par JS : .page-wrapper > .preview-sheet > .page-content -->
+            <!-- Injecté par JS -->
         </div>
     </section>
 </main>
 
-<!-- SCRIPTS -->
+<!-- BIBLIOTHÈQUES -->
+<!-- html2pdf pour l'export PDF -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<!-- html-docx-js via unpkg (plus stable pour l'export Word) -->
+<script src="https://unpkg.com/html-docx-js/dist/html-docx.js"></script>
+
+<!-- Ton script personnel -->
 <script src="script.js"></script>
 
 </body>
