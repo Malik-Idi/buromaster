@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>BuroMaster 2026 – Assistant d'Exposé</title>
     <link rel="stylesheet" href="style.css">
-    <!-- FontAwesome pour les icônes -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 </head>
 <body>
@@ -20,18 +19,15 @@
     </nav>
 </header>
 
-<!-- Barre de configuration principale -->
 <section class="config-bar">
     <div class="config-group">
         <label for="studentClass">Classe :</label>
         <input type="text" id="studentClass" placeholder="Ex: 3ème A">
     </div>
-    
     <div class="config-group main-theme">
         <label for="theme">Thème :</label>
         <input type="text" id="theme" placeholder="Ex: La déforestation au Bénin">
     </div>
-
     <div class="config-group">
         <button id="advancedOptionsBtn" class="secondary-btn" style="background: var(--dark-gray); color: white; border: none; padding: 10px; border-radius: 6px; cursor: pointer;">
             <i class="fas fa-cog"></i> Options
@@ -42,7 +38,6 @@
     </div>
 </section>
 
-<!-- Panneau des options avancées (Masqué par défaut) -->
 <div id="advancedPanel" class="advanced-panel" style="display: none;">
     <div class="option-item">
         <label>Police :</label>
@@ -59,15 +54,14 @@
     <div class="option-item">
         <label>Détails IA :</label>
         <select id="aiDetailLevel">
-            <option value="concis">Concis (Rapide)</option>
+            <option value="concis">Concis</option>
             <option value="standard" selected>Standard</option>
-            <option value="detaille">Très détaillé (Approfondi)</option>
+            <option value="detaille">Détaillé</option>
         </select>
     </div>
 </div>
 
 <main class="container">
-    <!-- Zone de travail (Gauche) -->
     <section class="work-area">
         <div class="block-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
             <h2 id="step-title" style="margin: 0;">Édition du Plan</h2>
@@ -75,29 +69,24 @@
                 <input type="checkbox" id="autoFormatCheckbox" checked> Mise en forme auto
             </label>
         </div>
-        
         <div class="history-controls">
-            <button id="undoBtn" title="Annuler (Ctrl+Z)"><i class="fas fa-undo"></i></button>
-            <button id="redoBtn" title="Rétablir (Ctrl+Y)"><i class="fas fa-redo"></i></button>
+            <button id="undoBtn" title="Annuler"><i class="fas fa-undo"></i></button>
+            <button id="redoBtn" title="Rétablir"><i class="fas fa-redo"></i></button>
         </div>
-
         <button type="button" id="generateBtn" class="primary-btn">
             <i class="fas fa-magic"></i> Générer avec l'IA
         </button>
-        
         <textarea id="editor" class="editor" placeholder="Commencez à rédiger..."></textarea>
         <div id="dev-blocks-container" style="display: none;"></div>
-        
         <div class="actions-bar" style="margin-top: 20px;">
             <button type="button" id="validateBtn" class="validate-btn">Valider cette étape</button>
             <button type="button" id="nextStepBtn" class="next-btn" style="display: none;">Étape suivante</button>
             <button type="button" id="downloadPdf" class="pdf-btn">
-                <i class="fas fa-file-pdf"></i> Télécharger le PDF (Haute Qualité)
+                <i class="fas fa-file-pdf"></i> Télécharger le PDF
             </button>
         </div>
     </section>
 
-    <!-- Zone Aperçu (Droite) -->
     <section class="preview-area">
         <div class="preview-header">
             <h2>Aperçu A4</h2>
@@ -107,20 +96,31 @@
                 <button id="zoomInBtn"><i class="fas fa-plus"></i></button>
             </div>
         </div>
-        <div class="preview-scroll" id="preview-pages">
-            <!-- Injecté par JS -->
-        </div>
+        <div class="preview-scroll" id="preview-pages"></div>
     </section>
 </main>
 
-<!-- BIBLIOTHÈQUES -->
-<!-- html2pdf pour l'export PDF -->
+<!-- BOÎTE DE DIALOGUE PERSONNALISÉE (SYNC PLAN) -->
+<div id="syncModal" class="modal-overlay" style="display: none;">
+    <div class="modal-content">
+        <h3><i class="fas fa-sync-alt"></i> Synchronisation du Plan</h3>
+        <p>Le plan a été modifié. Choisissez une option pour mettre à jour votre développement :</p>
+        <div class="modal-options">
+            <button id="btnSyncTitles" class="modal-btn">
+                <strong><i class="fas fa-heading"></i> Option 1 : Titres uniquement</strong>
+                <span>Met à jour les titres mais conserve vos textes rédigés.</span>
+            </button>
+            <button id="btnSyncAll" class="modal-btn danger">
+                <strong><i class="fas fa-exclamation-triangle"></i> Option 2 : Tout réinitialiser</strong>
+                <span>Efface tout pour reconstruire selon le nouveau plan.</span>
+            </button>
+        </div>
+        <button id="btnCancelSync" class="modal-close-btn">Annuler</button>
+    </div>
+</div>
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-<!-- html-docx-js via unpkg (plus stable pour l'export Word) -->
 <script src="https://unpkg.com/html-docx-js/dist/html-docx.js"></script>
-
-<!-- Ton script personnel -->
 <script src="script.js"></script>
-
 </body>
 </html>
