@@ -303,7 +303,6 @@ document.addEventListener("DOMContentLoaded", function () {
         const container = document.getElementById("dev-blocks-container");
         if (!container) return;
         
-        // On ne vide pas immédiatement pour pouvoir insérer le bouton en haut
         container.innerHTML = "";
 
         // --- CRÉATION DU BOUTON DE MISE À JOUR ---
@@ -311,10 +310,9 @@ document.addEventListener("DOMContentLoaded", function () {
         syncBtn.id = "syncPlanBtn";
         syncBtn.className = "primary-btn";
         syncBtn.style.marginBottom = "20px";
-        syncBtn.style.background = "#607d8b"; // Couleur gris-bleu pour différencier
+        syncBtn.style.background = "#607d8b"; 
         syncBtn.innerHTML = `<i class="fas fa-sync"></i> Mise à jour du Plan`;
 
-        // Logique d'activation du bouton
         const planHasChanged = (content.plan.trim() !== lastSyncedPlan.trim());
         const canSync = planHasChanged && !isLocked['dev'] && lastSyncedPlan !== "";
         
@@ -324,38 +322,34 @@ document.addEventListener("DOMContentLoaded", function () {
 
         container.appendChild(syncBtn);
 
-        // Si c'est le premier passage, on enregistre le plan actuel
         if (lastSyncedPlan === "" && content.plan !== "") {
             lastSyncedPlan = content.plan;
         }
 
-        // --- GESTION DU CLIC SUR MISE À JOUR ---
         syncBtn.addEventListener("click", () => {
             const choice = confirm("Le plan a été modifié. Choisissez votre option :\n\n- OK : Mettre à jour seulement les titres (conserve vos textes).\n- ANNULER : Tout réinitialiser (efface vos textes).");
             
             if (choice) {
-                // Option 1 : Mettre à jour seulement les titres
                 updateTitlesOnly();
             } else {
-                // Option 2 : Tout réinitialiser
-                const confirmReset = confirm("Êtes-vous sûr de vouloir TOUT supprimer dans le développement pour recommencer selon le nouveau plan ?");
+                const confirmReset = confirm("Êtes-vous sûr de vouloir TOUT supprimer dans le développement ?");
                 if (confirmReset) {
-                    content.dev = {}; // On vide les textes
+                    content.dev = {}; 
                     lastSyncedPlan = content.plan;
-                    setupDevBlocks(); // On reconstruit tout
+                    setupDevBlocks(); 
                 }
             }
         });
 
         // --- AFFICHAGE DES BLOCS ---
         if (isLocked['dev']) {
-            renderDevBlocks(container, true); // Mode verrouillé
+            renderDevBlocks(container, true);
         } else {
-            renderDevBlocks(container, false); // Mode édition
+            renderDevBlocks(container, false);
         }
     }
 
-    // Fonction interne pour dessiner les blocs
+    // FONCTION CORRIGÉE : Correction du bouton Développer
     function renderDevBlocks(container, locked) {
         const sections = parsePlanForDev(content.plan || "");
         if (sections.length === 0) {
@@ -369,37 +363,46 @@ document.addEventListener("DOMContentLoaded", function () {
         sections.forEach(section => {
             const block = document.createElement("div");
             block.className = "dev-block";
+            // ÉTAPE CRUCIALE : On définit le dataset AVANT d'attacher l'événement
+            block.dataset.sectionTitle = section.title; 
+
             block.innerHTML = `
                 <div class="block-header">
-                    <strong class="section-title-label" style="color: var(--primary-color);">${section.title}</strong>
+                    <strong style="color: var(--primary-color);">${section.title}</strong>
                     <button class="generate-sub-btn" style="display: ${locked ? 'none' : 'flex'}">
                         <i class="fas fa-robot"></i> Développer
                     </button>
                 </div>
-                <textarea class="sub-editor" ${locked ? 'readonly' : ''}>${content.dev[section.title] || ""}</textarea>
+                <textarea class="sub-editor" placeholder="Développez cette partie..." ${locked ? 'readonly' : ''}>${content.dev[section.title] || ""}</textarea>
             `;
             container.appendChild(block);
 
             const textarea = block.querySelector(".sub-editor");
+            const aiBtn = block.querySelector(".generate-sub-btn");
+
             textarea.addEventListener("input", (e) => {
                 content.dev[section.title] = e.target.value;
                 schedulePreviewRefresh(500);
             });
 
-            const aiBtn = block.querySelector(".generate-sub-btn");
-            if (aiBtn) aiBtn.addEventListener("click", () => handleSubGeneration(block, textarea, aiBtn));
+            // L'écouteur appelle maintenant correctement handleSubGeneration
+            if (aiBtn) {
+                aiBtn.addEventListener("click", () => {
+                    handleSubGeneration(block, textarea, aiBtn);
+                });
+            }
         });
     }
 
     // --- OPTION 1 : MISE À JOUR DES TITRES UNIQUEMENT ---
     function updateTitlesOnly() {
         const newSections = parsePlanForDev(content.plan || "");
-        const oldContentDev = { ...content.dev }; // Copie de sauvegarde
+        const oldContentDev = { ...content.dev }; 
         const newContentDev = {};
 
         newSections.forEach((section, index) => {
-            // On essaie de récupérer l'ancien texte par index ou par titre s'il existait
             const oldTitles = Object.keys(oldContentDev);
+            // On essaie de récupérer par titre, sinon par position
             const oldText = oldContentDev[section.title] || oldContentDev[oldTitles[index]] || "";
             newContentDev[section.title] = oldText;
         });
