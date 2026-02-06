@@ -634,40 +634,52 @@ function createNewPage(num, container) {
         });
     }
 
-    // --- 15. DÉVELOPPEMENT DES SOUS-PARTIES ---
+    // --- 15. DÉVELOPPEMENT DES SOUS-PARTIES (CORRIGÉ) ---
     async function handleSubGeneration(block, textarea, button) {
         const theme = themeInput.value.trim();
         const studentClass = studentClassInput.value.trim() || "scolaire";
-        const sectionData = JSON.parse(JSON.stringify(block.dataset.sectionTitle)); 
+        // Récupération directe et propre du titre stocké dans le bloc
+        const sectionData = block.dataset.sectionTitle; 
         const detailLevel = aiDetailLevel.value;
 
         if (!theme) {
-            alert("Veuillez entrer un thème.");
+            showNotification("⚠️ Veuillez entrer un thème pour l'exposé.");
             return;
         }
 
-        saveToHistory(); // Sauvegarde pour Undo
-        const originalBtnText = button.innerHTML;
-        button.innerHTML = "<i class='fas fa-spinner fa-spin'></i>"; 
+        saveToHistory(); // Sauvegarde l'état actuel pour le Ctrl+Z
+
+        const originalBtnHTML = button.innerHTML;
+        const oldText = textarea.value; // On mémorise le texte actuel en cas d'erreur
+
+        // UI Feedback : Chargement
+        button.innerHTML = "<i class='fas fa-spinner fa-spin'></i> Développe..."; 
         button.disabled = true;
-        textarea.value = "L'IA analyse le plan et développe...";
+        textarea.value = "⏳ L'IA analyse le plan et développe cette partie... Veuillez patienter.";
        
         const prompt = `Développe la partie suivante d'un exposé sur "${theme}".
             Niveau de la classe : ${studentClass}.
             TITRE À DÉVELOPPER : ${sectionData}.
             Niveau de détail : ${detailLevel}.
-            CONSIGNES : Rédige des paragraphes fluides. Ne répète pas les titres.`;
+            CONSIGNES : Rédige des paragraphes fluides et structurés. Ne répète pas le titre.`;
        
         const result = await callAiAPI(prompt);
         
-        textarea.value = result;
-        content.dev[sectionData] = result;
+        if (result) {
+            // SI SUCCÈS
+            textarea.value = result;
+            content.dev[sectionData] = result;
+            updatePreview();
+            saveData();
+        } else {
+            // SI ÉCHEC
+            textarea.value = oldText; // On restaure l'ancien contenu
+            showNotification("❌ Échec de la génération. Vérifiez votre connexion.");
+        }
         
-        button.innerHTML = originalBtnText;
+        // On remet le bouton dans son état normal
+        button.innerHTML = originalBtnHTML;
         button.disabled = false;
-        
-        updatePreview();
-        saveData();
     }
 
     // --- 16. APPEL API (SÉCURISÉ) ---
