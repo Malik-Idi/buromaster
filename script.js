@@ -39,6 +39,9 @@ document.addEventListener("DOMContentLoaded", function () {
     let reachedStepIndex = 0;
     let currentZoom = 0.6; // 60% par défaut
     let editorPreviewTimer = null;
+    // À ajouter dans tes variables globales (Section 2)
+    let lastSyncedPlan = ""; 
+
 
     // --- 3. GESTION DE L'HISTORIQUE (UNDO/REDO) ---
     // On stocke les versions précédentes de l'objet "content"
@@ -295,67 +298,119 @@ document.addEventListener("DOMContentLoaded", function () {
         return sections;
     }
 
- // --- 10. GÉNÉRATION DYNAMIQUE DES BLOCS ---
+    // --- 10. GÉNÉRATION DYNAMIQUE DES BLOCS ---
     function setupDevBlocks() {
         const container = document.getElementById("dev-blocks-container");
         if (!container) return;
         
-        // --- NOUVEAU : Si déjà validé, on n'écrase pas le contenu ! ---
-        if (isLocked['dev']) {
-            // On s'assure juste que tout est bloqué visuellement
-            container.querySelectorAll(".sub-editor").forEach(txt => txt.readOnly = true);
-            container.querySelectorAll(".generate-sub-btn").forEach(btn => btn.style.display = "none");
-            return; 
-        }
-        // On vide proprement sans perdre les écouteurs si besoin (ici on recrée tout)
+        // On ne vide pas immédiatement pour pouvoir insérer le bouton en haut
         container.innerHTML = "";
 
-        const sections = parsePlanForDev(content.plan || "");
+        // --- CRÉATION DU BOUTON DE MISE À JOUR ---
+        const syncBtn = document.createElement("button");
+        syncBtn.id = "syncPlanBtn";
+        syncBtn.className = "primary-btn";
+        syncBtn.style.marginBottom = "20px";
+        syncBtn.style.background = "#607d8b"; // Couleur gris-bleu pour différencier
+        syncBtn.innerHTML = `<i class="fas fa-sync"></i> Mise à jour du Plan`;
 
+        // Logique d'activation du bouton
+        const planHasChanged = (content.plan.trim() !== lastSyncedPlan.trim());
+        const canSync = planHasChanged && !isLocked['dev'] && lastSyncedPlan !== "";
+        
+        syncBtn.disabled = !canSync;
+        syncBtn.style.opacity = canSync ? "1" : "0.5";
+        syncBtn.style.cursor = canSync ? "pointer" : "not-allowed";
+
+        container.appendChild(syncBtn);
+
+        // Si c'est le premier passage, on enregistre le plan actuel
+        if (lastSyncedPlan === "" && content.plan !== "") {
+            lastSyncedPlan = content.plan;
+        }
+
+        // --- GESTION DU CLIC SUR MISE À JOUR ---
+        syncBtn.addEventListener("click", () => {
+            const choice = confirm("Le plan a été modifié. Choisissez votre option :\n\n- OK : Mettre à jour seulement les titres (conserve vos textes).\n- ANNULER : Tout réinitialiser (efface vos textes).");
+            
+            if (choice) {
+                // Option 1 : Mettre à jour seulement les titres
+                updateTitlesOnly();
+            } else {
+                // Option 2 : Tout réinitialiser
+                const confirmReset = confirm("Êtes-vous sûr de vouloir TOUT supprimer dans le développement pour recommencer selon le nouveau plan ?");
+                if (confirmReset) {
+                    content.dev = {}; // On vide les textes
+                    lastSyncedPlan = content.plan;
+                    setupDevBlocks(); // On reconstruit tout
+                }
+            }
+        });
+
+        // --- AFFICHAGE DES BLOCS ---
+        if (isLocked['dev']) {
+            renderDevBlocks(container, true); // Mode verrouillé
+        } else {
+            renderDevBlocks(container, false); // Mode édition
+        }
+    }
+
+    // Fonction interne pour dessiner les blocs
+    function renderDevBlocks(container, locked) {
+        const sections = parsePlanForDev(content.plan || "");
         if (sections.length === 0) {
-            container.innerHTML = "<p style='color:red; padding:20px;'>Aucune section (I, II, III...) détectée dans votre plan. Revenez à l'étape Plan.</p>";
+            const msg = document.createElement("p");
+            msg.style.color = "red";
+            msg.textContent = "Aucun titre détecté dans le plan.";
+            container.appendChild(msg);
             return;
         }
 
-        sections.forEach((section, index) => {
+        sections.forEach(section => {
             const block = document.createElement("div");
             block.className = "dev-block";
-            block.dataset.sectionTitle = section.title;
-
-            // On ajoute l'icône robot (fas fa-robot) dans le bouton
             block.innerHTML = `
                 <div class="block-header">
-                    <strong style="color: var(--primary-color); font-size: 1.1em;">${section.title}</strong>
-                    <button class="generate-sub-btn" ${isLocked['dev'] ? 'style="display:none"' : ''}>
-                        <i class="fas fa-robot"></i> Développer avec l'IA
+                    <strong class="section-title-label" style="color: var(--primary-color);">${section.title}</strong>
+                    <button class="generate-sub-btn" style="display: ${locked ? 'none' : 'flex'}">
+                        <i class="fas fa-robot"></i> Développer
                     </button>
                 </div>
-                <div style="font-size:0.85em; color:#777; margin-bottom:12px; font-style: italic;">
-                    Sujets abordés : ${section.subparts.join(" • ")}
-                </div>
-                <textarea class="sub-editor" placeholder="Développez cette partie ou laissez l'IA le faire..." ${isLocked['dev'] ? 'readonly' : ''}>${content.dev[section.title] || ""}</textarea>
+                <textarea class="sub-editor" ${locked ? 'readonly' : ''}>${content.dev[section.title] || ""}</textarea>
             `;
-
             container.appendChild(block);
 
-            // Événements du bloc
             const textarea = block.querySelector(".sub-editor");
-            const aiBtn = block.querySelector(".generate-sub-btn");
-
-            // Sauvegarde en temps réel pendant la frappe
             textarea.addEventListener("input", (e) => {
                 content.dev[section.title] = e.target.value;
-                // On utilise un petit délai pour ne pas saturer l'aperçu (Debounce léger)
-                clearTimeout(textarea.timer);
-                textarea.timer = setTimeout(() => {
-                    updatePreview();
-                    saveData();
-                }, 500);
+                schedulePreviewRefresh(500);
             });
 
-            aiBtn.addEventListener("click", () => handleSubGeneration(block, textarea, aiBtn));
+            const aiBtn = block.querySelector(".generate-sub-btn");
+            if (aiBtn) aiBtn.addEventListener("click", () => handleSubGeneration(block, textarea, aiBtn));
         });
     }
+
+    // --- OPTION 1 : MISE À JOUR DES TITRES UNIQUEMENT ---
+    function updateTitlesOnly() {
+        const newSections = parsePlanForDev(content.plan || "");
+        const oldContentDev = { ...content.dev }; // Copie de sauvegarde
+        const newContentDev = {};
+
+        newSections.forEach((section, index) => {
+            // On essaie de récupérer l'ancien texte par index ou par titre s'il existait
+            const oldTitles = Object.keys(oldContentDev);
+            const oldText = oldContentDev[section.title] || oldContentDev[oldTitles[index]] || "";
+            newContentDev[section.title] = oldText;
+        });
+
+        content.dev = newContentDev;
+        lastSyncedPlan = content.plan;
+        setupDevBlocks();
+        updatePreview();
+        showNotification("Titres mis à jour ! Textes conservés.");
+    }
+
 // --- 11. GESTION DU ZOOM (VERSION CORRIGÉE) ---
 function updateZoomUI() {
     const wrappers = document.querySelectorAll(".page-wrapper");
