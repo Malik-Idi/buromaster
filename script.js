@@ -298,14 +298,14 @@ document.addEventListener("DOMContentLoaded", function () {
         return sections;
     }
 
-    // --- 10. GÉNÉRATION DYNAMIQUE DES BLOCS ---
+       // --- 10. GÉNÉRATION DYNAMIQUE DES BLOCS ---
     function setupDevBlocks() {
         const container = document.getElementById("dev-blocks-container");
         if (!container) return;
         
         container.innerHTML = "";
 
-        // --- CRÉATION DU BOUTON DE MISE À JOUR ---
+        // --- BOUTON DE MISE À JOUR ---
         const syncBtn = document.createElement("button");
         syncBtn.id = "syncPlanBtn";
         syncBtn.className = "primary-btn";
@@ -313,6 +313,7 @@ document.addEventListener("DOMContentLoaded", function () {
         syncBtn.style.background = "#607d8b"; 
         syncBtn.innerHTML = `<i class="fas fa-sync"></i> Mise à jour du Plan`;
 
+        // Activation intelligente
         const planHasChanged = (content.plan.trim() !== lastSyncedPlan.trim());
         const canSync = planHasChanged && !isLocked['dev'] && lastSyncedPlan !== "";
         
@@ -326,44 +327,47 @@ document.addEventListener("DOMContentLoaded", function () {
             lastSyncedPlan = content.plan;
         }
 
+        // Événement d'ouverture de la Modal
         syncBtn.addEventListener("click", () => {
-            const choice = confirm("Le plan a été modifié. Choisissez votre option :\n\n- OK : Mettre à jour seulement les titres (conserve vos textes).\n- ANNULER : Tout réinitialiser (efface vos textes).");
-            
-            if (choice) {
-                updateTitlesOnly();
-            } else {
-                const confirmReset = confirm("Êtes-vous sûr de vouloir TOUT supprimer dans le développement ?");
-                if (confirmReset) {
+            const modal = document.getElementById("syncModal");
+            modal.style.display = "flex";
+
+            document.getElementById("btnSyncTitles").onclick = () => {
+                if(confirm("Mettre à jour les titres en gardant vos textes ?")) {
+                    updateTitlesOnly();
+                    modal.style.display = "none";
+                }
+            };
+
+            document.getElementById("btnSyncAll").onclick = () => {
+                if(confirm("⚠️ Action irréversible : Effacer tout le développement ?")) {
                     content.dev = {}; 
                     lastSyncedPlan = content.plan;
-                    setupDevBlocks(); 
+                    modal.style.display = "none";
+                    setupDevBlocks();
+                    updatePreview();
                 }
-            }
+            };
+
+            document.getElementById("btnCancelSync").onclick = () => {
+                modal.style.display = "none";
+            };
         });
 
-        // --- AFFICHAGE DES BLOCS ---
-        if (isLocked['dev']) {
-            renderDevBlocks(container, true);
-        } else {
-            renderDevBlocks(container, false);
-        }
+        // Dessiner les blocs
+        renderDevBlocks(container, isLocked['dev']);
     }
 
-    // FONCTION CORRIGÉE : Correction du bouton Développer
     function renderDevBlocks(container, locked) {
         const sections = parsePlanForDev(content.plan || "");
         if (sections.length === 0) {
-            const msg = document.createElement("p");
-            msg.style.color = "red";
-            msg.textContent = "Aucun titre détecté dans le plan.";
-            container.appendChild(msg);
+            container.innerHTML += "<p style='color:red; padding:10px;'>Aucun titre détecté.</p>";
             return;
         }
 
         sections.forEach(section => {
             const block = document.createElement("div");
             block.className = "dev-block";
-            // ÉTAPE CRUCIALE : On définit le dataset AVANT d'attacher l'événement
             block.dataset.sectionTitle = section.title; 
 
             block.innerHTML = `
@@ -373,28 +377,24 @@ document.addEventListener("DOMContentLoaded", function () {
                         <i class="fas fa-robot"></i> Développer
                     </button>
                 </div>
-                <textarea class="sub-editor" placeholder="Développez cette partie..." ${locked ? 'readonly' : ''}>${content.dev[section.title] || ""}</textarea>
+                <textarea class="sub-editor" placeholder="Rédigez ici..." ${locked ? 'readonly' : ''}>${content.dev[section.title] || ""}</textarea>
             `;
             container.appendChild(block);
 
             const textarea = block.querySelector(".sub-editor");
             const aiBtn = block.querySelector(".generate-sub-btn");
 
-            textarea.addEventListener("input", (e) => {
-                content.dev[section.title] = e.target.value;
+            textarea.addEventListener("input", () => {
+                content.dev[section.title] = textarea.value;
                 schedulePreviewRefresh(500);
             });
 
-            // L'écouteur appelle maintenant correctement handleSubGeneration
             if (aiBtn) {
-                aiBtn.addEventListener("click", () => {
-                    handleSubGeneration(block, textarea, aiBtn);
-                });
+                aiBtn.addEventListener("click", () => handleSubGeneration(block, textarea, aiBtn));
             }
         });
     }
 
-    // --- OPTION 1 : MISE À JOUR DES TITRES UNIQUEMENT ---
     function updateTitlesOnly() {
         const newSections = parsePlanForDev(content.plan || "");
         const oldContentDev = { ...content.dev }; 
@@ -402,7 +402,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
         newSections.forEach((section, index) => {
             const oldTitles = Object.keys(oldContentDev);
-            // On essaie de récupérer par titre, sinon par position
             const oldText = oldContentDev[section.title] || oldContentDev[oldTitles[index]] || "";
             newContentDev[section.title] = oldText;
         });
@@ -411,7 +410,7 @@ document.addEventListener("DOMContentLoaded", function () {
         lastSyncedPlan = content.plan;
         setupDevBlocks();
         updatePreview();
-        showNotification("Titres mis à jour ! Textes conservés.");
+        showNotification("Titres mis à jour avec succès !");
     }
 
 // --- 11. GESTION DU ZOOM (VERSION CORRIGÉE) ---
