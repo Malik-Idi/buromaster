@@ -452,72 +452,81 @@ function updateZoomUI() {
     zoomLevelSpan.textContent = `${Math.round(scale * 100)}%`;
 }
 
-   // --- 12 & 13. MOTEUR DE RENDU (CORRIGÉ) ---
+  // --- 12 & 13. MOTEUR DE RENDU (SAUTS DE PAGE FORCÉS PAR SECTION) ---
 
 function updatePreview() {
     if (!pagesContainer) return;
     pagesContainer.innerHTML = ""; 
     
     let pageNum = 1;
-    // On récupère l'objet page complet (le wrapper) pour gérer le zoom
-    let currentPageObj = createNewPage(pageNum, pagesContainer);
-    let currentPageContent = currentPageObj.content;
 
-    // 1. Sommaire
+    // 1. Sommaire (Force sa propre page au début)
     if (content.plan) {
-        currentPageContent = renderSection("SOMMAIRE", content.plan, currentPageContent, () => { 
+        let currentPageObj = createNewPage(pageNum, pagesContainer);
+        renderSection("SOMMAIRE", content.plan, currentPageObj.content, () => { 
             pageNum++; 
-            let newPage = createNewPage(pageNum, pagesContainer);
-            return newPage.content;
+            currentPageObj = createNewPage(pageNum, pagesContainer);
+            return currentPageObj.content;
         });
+        pageNum++; // On prépare le numéro pour la page suivante
     }
 
-    // 2. Introduction
+    // 2. Introduction (Force une nouvelle page)
     if (content.intro) {
-        currentPageContent = renderSection("INTRODUCTION", content.intro, currentPageContent, () => { 
+        let currentPageObj = createNewPage(pageNum, pagesContainer);
+        renderSection("INTRODUCTION", content.intro, currentPageObj.content, () => { 
             pageNum++; 
-            let newPage = createNewPage(pageNum, pagesContainer);
-            return newPage.content;
+            currentPageObj = createNewPage(pageNum, pagesContainer);
+            return currentPageObj.content;
         });
+        pageNum++;
     }
 
-    // 3. Développement
+    // 3. Développement (Force une nouvelle page)
     const devSections = parsePlanForDev(content.plan || "");
     if (Object.keys(content.dev).length > 0) {
-        currentPageContent = renderSection("DÉVELOPPEMENT", "", currentPageContent, () => {
+        let currentPageObj = createNewPage(pageNum, pagesContainer);
+        
+        // Titre principal du développement
+        renderSection("DÉVELOPPEMENT", "", currentPageObj.content, () => {
             pageNum++; 
-            let newPage = createNewPage(pageNum, pagesContainer);
-            return newPage.content;
+            currentPageObj = createNewPage(pageNum, pagesContainer);
+            return currentPageObj.content;
         });
 
         const orderedTitles = devSections.length ? devSections.map(s => s.title) : Object.keys(content.dev);
         
         orderedTitles.forEach((sectionTitle) => {
             if (!content.dev[sectionTitle]) return;
-            currentPageContent = renderSection(sectionTitle, content.dev[sectionTitle], currentPageContent, () => {
+            // On continue sur la page actuelle, le saut ne se fait que si ça déborde
+            let nextContent = renderSection(sectionTitle, content.dev[sectionTitle], currentPageObj.content, () => {
                 pageNum++; 
-                let newPage = createNewPage(pageNum, pagesContainer);
-                return newPage.content;
+                currentPageObj = createNewPage(pageNum, pagesContainer);
+                return currentPageObj.content;
             });
+            currentPageObj.content = nextContent; // On met à jour la référence de la page en cours
+        });
+        pageNum++;
+    }
+
+    // 4. Conclusion (Force une nouvelle page)
+    if (content.conclu) {
+        let currentPageObj = createNewPage(pageNum, pagesContainer);
+        renderSection("CONCLUSION", content.conclu, currentPageObj.content, () => { 
+            pageNum++; 
+            currentPageObj = createNewPage(pageNum, pagesContainer);
+            return currentPageObj.content;
         });
     }
 
-    // 4. Conclusion
-    if (content.conclu) {
-        currentPageContent = renderSection("CONCLUSION", content.conclu, currentPageContent, () => { 
-            pageNum++; 
-            let newPage = createNewPage(pageNum, pagesContainer);
-            return newPage.content;
-        });
-    }
-    updateZoomUI(); // Applique le zoom sur les nouveaux wrappers
+    updateZoomUI();
 }
 
 function renderSection(title, text, pageElement, onBreak) {
     const isAutoFormat = autoFormatCheckbox.checked;
     const selectedFont = fontSelect.value;
     const selectedSize = fontSizeInput.value + "px";
-    const limitHeight = 920; // Augmenté légèrement pour utiliser plus d'espace A4
+    const limitHeight = 910; // Hauteur limite avant bascule
 
     if (title) {
         const t = document.createElement("div");
@@ -529,8 +538,11 @@ function renderSection(title, text, pageElement, onBreak) {
         pageElement.appendChild(t);
     }
 
+    if (!text) return pageElement;
+
     const lines = text.split("\n");
-    lines.forEach((line, index) => {
+    for (let i = 0; i < lines.length; i++) {
+        const line = lines[i];
         const div = document.createElement("div");
         div.style.fontFamily = selectedFont;
         div.style.fontSize = selectedSize;
@@ -554,20 +566,19 @@ function renderSection(title, text, pageElement, onBreak) {
         div.textContent = line.trim() === "" ? "\u00A0" : line;
         pageElement.appendChild(div);
 
-        // --- DÉTECTION DE DÉBORDEMENT AMÉLIORÉE ---
-        // On ne saute de page que si ce n'est pas la dernière ligne vide du texte
-        if (pageElement.scrollHeight > limitHeight && index < lines.length - 1) {
+        // --- DÉTECTION DE DÉBORDEMENT ---
+        if (pageElement.scrollHeight > limitHeight) {
             pageElement.removeChild(div);
             pageElement = onBreak(); 
             pageElement.appendChild(div);
         }
-    });
+    }
     return pageElement;
 }
 
 function createNewPage(num, container) {
     const wrapper = document.createElement("div");
-    wrapper.className = "page-wrapper"; // Nécessaire pour ton CSS et le Zoom
+    wrapper.className = "page-wrapper";
     
     const currentTheme = themeInput.value || "MON EXPOSÉ";
     const studentClass = studentClassInput.value ? ` | ${studentClassInput.value}` : "";
@@ -586,7 +597,7 @@ function createNewPage(num, container) {
         content: wrapper.querySelector(".page-content")
     };
 }
-  
+
     // --- 14. LOGIQUE DE GÉNÉRATION IA ---
     if (generateBtn) {
         generateBtn.addEventListener("click", async () => {
