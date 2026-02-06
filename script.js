@@ -638,94 +638,81 @@ function createNewPage(num, container) {
         });
     });
 
-    // --- 18. EXPORT PDF HAUTE QUALITÉ (HD) ---
+    // --- 18. EXPORT PDF HAUTE QUALITÉ (CORRIGÉ) ---
     downloadBtn.addEventListener("click", () => {
-        const element = document.getElementById("preview-pages");
-        if (!element || !element.innerHTML.trim()) {
+        // On sélectionne toutes les feuilles, pas le fond gris
+        const sheets = document.querySelectorAll(".preview-sheet");
+        if (sheets.length === 0) {
             alert("L'exposé est vide.");
             return;
         }
 
-        // ÉTAPE CRUCIALE : On force le zoom à 100% pour la capture HD
         const originalZoom = currentZoom;
         currentZoom = 1.0;
         updateZoomUI();
+
+        // On crée un conteneur temporaire propre pour l'export
+        const worker = document.createElement("div");
+        sheets.forEach(s => {
+            const clone = s.cloneNode(true);
+            clone.style.transform = "none"; // On retire le zoom sur le clone
+            clone.style.margin = "0";
+            worker.appendChild(clone);
+        });
 
         const themeFileName = themeInput.value.replace(/[^a-z0-9]/gi, '_') || "Expose";
         
         const options = {
             margin: 0,
             filename: `BuroMaster_${themeFileName}.pdf`,
-            image: { type: "jpeg", quality: 1.0 }, // Qualité maximale
+            image: { type: "jpeg", quality: 0.98 },
             html2canvas: { 
-                scale: 3, // Résolution Retina (très net)
-                useCORS: true, 
-                letterRendering: true 
+                scale: 2, // 2 est suffisant pour du HD sans faire ramer le navigateur
+                useCORS: true,
+                logging: false
             },
             jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
-            pagebreak: { mode: ["css", "after"], after: ".preview-sheet" }
+            pagebreak: { mode: 'avoid-all', before: '.preview-sheet' }
         };
 
-        // Lancement de la génération
-        html2pdf().set(options).from(element).save().then(() => {
-            // Après l'export, on remet le zoom de l'utilisateur
+        html2pdf().set(options).from(worker).save().then(() => {
             currentZoom = originalZoom;
             updateZoomUI();
         });
     });
 
-    // --- 19. EXPORT WORD ET NAVIGATION ---
-    if (nextStepBtn) {
-        nextStepBtn.addEventListener("click", () => {
-            if (nextStepBtn.classList.contains("is-word-btn")) {
-                exportToWord();
-            } else {
-                const index = stepsOrder.indexOf(currentStep);
-                if (index < stepsOrder.length - 1) {
-                    goToStep(stepsOrder[index + 1]);
-                }
-            }
-        });
-    }
-
+    // --- 19. EXPORT WORD (SÉCURISÉ) ---
     function exportToWord() {
-        const element = document.getElementById("preview-pages");
-        if (!element || !element.innerHTML.trim()) {
-            alert("L'exposé est vide.");
-            return;
-        }
+        const sheets = document.querySelectorAll(".preview-sheet");
+        if (sheets.length === 0) return;
 
-        if (typeof htmlDocx === "undefined") {
-            alert("Erreur Word : bibliothèque html-docx non chargée.");
-            return;
-        }
+        // On prépare un HTML propre pour Word
+        let contentHtml = "";
+        sheets.forEach(s => {
+            contentHtml += s.innerHTML + '<br style="page-break-after: always;">';
+        });
 
-        const contentHtml = element.innerHTML;
-        const styles = `
-            <style>
-                body { font-family: "Times New Roman", serif; }
-                .preview-sheet { width: 210mm; min-height: 297mm; padding: 20mm; }
-                .page-header { text-align: center; font-weight: bold; margin-bottom: 10px; }
-                .page-footer { text-align: center; margin-top: 10px; }
-                .title-style { font-weight: bold; text-transform: uppercase; margin-bottom: 10px; }
-                .subtitle-style { font-weight: bold; margin-bottom: 8px; }
-                .intro-conclu-style { font-weight: bold; font-size: 1.1em; margin-bottom: 8px; }
-                .text-style { margin-bottom: 8px; }
-            </style>
-        `;
+        const styles = `<style>
+            body { font-family: "Times New Roman", serif; padding: 20px; }
+            .page-header { color: #0aa64b; font-size: 10pt; border-bottom: 1px solid #ccc; }
+            .title-style { font-size: 16pt; font-weight: bold; color: black; margin-top: 20px; }
+            .text-style { font-size: 12pt; margin-bottom: 10px; text-align: justify; }
+        </style>`;
+
         const fullHtml = `<!DOCTYPE html><html><head><meta charset="utf-8">${styles}</head><body>${contentHtml}</body></html>`;
 
         try {
+            // Utilisation de la lib chargée dans le HTML
             const converted = htmlDocx.asBlob(fullHtml);
             const link = document.createElement("a");
             link.href = URL.createObjectURL(converted);
-            link.download = "Mon_Expose_BuroMaster.docx";
+            link.download = "BuroMaster_Expose.docx";
             link.click();
         } catch (e) {
-            alert("Erreur Word : vérifiez la bibliothèque html-docx.");
+            console.error(e);
+            alert("Erreur lors de l'export Word.");
         }
     }
-
     // --- 20. INITIALISATION FINALE ---
     // On active les raccourcis clavier
     window.addEventListener("keydown", (e) => {
