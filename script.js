@@ -410,23 +410,42 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
-    function updateTitlesOnly() {
-        const newSections = parsePlanForDev(content.plan || "");
-        const oldContentDev = { ...content.dev }; 
-        const newContentDev = {};
+    // --- 10 & 10b. SYNCHRONISATION INTELLIGENTE DU PLAN ---
 
-        newSections.forEach((section, index) => {
-            const oldTitles = Object.keys(oldContentDev);
-            const oldText = oldContentDev[section.title] || oldContentDev[oldTitles[index]] || "";
-            newContentDev[section.title] = oldText;
-        });
+function updateTitlesOnly() {
+    const newSections = parsePlanForDev(content.plan || "");
+    const oldContentDev = { ...content.dev }; // Copie de sauvegarde de l'ancien développement
+    const newContentDev = {};
 
-        content.dev = newContentDev;
-        lastSyncedPlan = content.plan;
-        setupDevBlocks();
-        updatePreview();
-        showNotification("Titres mis à jour avec succès !");
-    }
+    // Liste des anciens titres pour la récupération par position
+    const oldTitles = Object.keys(oldContentDev);
+
+    newSections.forEach((section, index) => {
+        const newTitle = section.title;
+
+        // STRATÉGIE DE RÉCUPÉRATION :
+        // 1. On cherche si le texte existe déjà pour ce titre EXACT
+        if (oldContentDev[newTitle] !== undefined) {
+            newContentDev[newTitle] = oldContentDev[newTitle];
+        } 
+        // 2. Sinon, on récupère le texte qui était à la même POSITION (ex: I devient 1.)
+        else if (oldTitles[index] !== undefined) {
+            newContentDev[newTitle] = oldContentDev[oldTitles[index]];
+        }
+        // 3. Sinon, on laisse vide pour une nouvelle rédaction
+        else {
+            newContentDev[newTitle] = "";
+        }
+    });
+
+    // On remplace l'ancien développement par le nouveau structuré
+    content.dev = newContentDev;
+    lastSyncedPlan = content.plan; // On marque le plan comme synchronisé
+    
+    setupDevBlocks(); // On redessine les éditeurs
+    updatePreview();  // On met à jour l'aperçu A4
+    showNotification("✅ Structure mise à jour (textes conservés) !");
+}
 
 // --- 11. GESTION DU ZOOM (LOGIQUE ET BOUTONS) ---
 
