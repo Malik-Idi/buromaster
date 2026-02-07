@@ -46,7 +46,7 @@ document.addEventListener("DOMContentLoaded", function () {
     // --- 3. GESTION DE L'HISTORIQUE (UNDO/REDO) - VERSION CORRIGÉE ---
     let historyStack = []; 
     let redoStack = [];
-    
+
     function saveToHistory() {
         if (historyStack.length > 20) historyStack.shift();
     
@@ -57,7 +57,7 @@ document.addEventListener("DOMContentLoaded", function () {
             reachedStepIndex: reachedStepIndex,
             currentStep: currentStep
         };
-    
+        
         historyStack.push(snapshot);
         redoStack = [];
         updateHistoryButtons();
@@ -102,7 +102,7 @@ document.addEventListener("DOMContentLoaded", function () {
             currentStep = nextState.currentStep;
         
             refreshUIFromData();
-         }
+        }
     }
 
     function updateHistoryButtons() {
@@ -170,25 +170,25 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     // --- 6. MISE À JOUR DE L'INTERFACE (REFRESH UI) - VERSION CORRIGÉE ---
-function refreshUIFromData() {
-    // goToStep contient déjà toute la logique pour afficher/masquer le dev ou l'éditeur
-    // et pour mettre à jour les valeurs. C'est plus propre de l'appeler ici.
-    goToStep(currentStep);
+    function refreshUIFromData() {
+        // goToStep contient déjà toute la logique pour afficher/masquer le dev ou l'éditeur
+        // et pour mettre à jour les valeurs. C'est plus propre de l'appeler ici.
+        goToStep(currentStep);
     
-    updatePreview(); 
-    updateHistoryButtons();
-}
+        updatePreview(); 
+        updateHistoryButtons();
+    }
 
-function schedulePreviewRefresh(delay = 300) {
-    clearTimeout(editorPreviewTimer);
-    editorPreviewTimer = setTimeout(() => {
-        if (currentStep !== "dev") {
-            content[currentStep] = editor.value;
-        }
-        updatePreview();
-        saveData();
-    }, delay);
-}
+    function schedulePreviewRefresh(delay = 300) {
+        clearTimeout(editorPreviewTimer);
+        editorPreviewTimer = setTimeout(() => {
+            if (currentStep !== "dev") {
+                content[currentStep] = editor.value;
+            }
+            updatePreview();
+            saveData();
+        }, delay);
+    }
 
        // --- 7. NAVIGATION ENTRE LES ÉTAPES (VERSION FINALE) ---
     function goToStep(step) {
