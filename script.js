@@ -519,13 +519,14 @@ function updatePreview() {
     updateZoomUI();
 }
 
-// --- 13. MOTEUR DE RENDU (DESSIN DES SECTIONS ET DÉTECTION DÉBORDEMENT) ---
+// --- 13. MOTEUR DE RENDU (DESSIN DES SECTIONS ET DÉTECTION DÉBORDEMENT) - VERSION CORRIGÉE ---
 function renderSection(title, text, pageElement, onBreak) {
     const isAutoFormat = autoFormatCheckbox.checked;
     const selectedFont = fontSelect.value;
     const selectedSize = fontSizeInput.value + "px";
     const limitHeight = 910; 
 
+    // 1. Gestion du titre de section
     if (title) {
         const t = document.createElement("div");
         t.className = "title-style";
@@ -534,40 +535,85 @@ function renderSection(title, text, pageElement, onBreak) {
         t.style.color = "var(--primary-color)";
         t.textContent = title.toUpperCase();
         pageElement.appendChild(t);
+        
+        // Sécurité : si le titre seul fait déborder (cas rare)
+        if (pageElement.scrollHeight > limitHeight) {
+            pageElement.removeChild(t);
+            pageElement = onBreak();
+            pageElement.appendChild(t);
+        }
     }
 
     if (!text) return pageElement;
 
-    const lines = text.split("\n");
-    for (let i = 0; i < lines.length; i++) {
-        const line = lines[i];
-        const div = document.createElement("div");
-        div.style.fontFamily = selectedFont;
-        div.style.fontSize = selectedSize;
-        
-        if (isAutoFormat) {
-            if (/^(introduction|conclusion)\b/i.test(line)) {
-                div.className = "intro-conclu-style";
-            } else if (/^([IVX]+|[0-9]+)\s*[\.\-\)]/.test(line)) {
-                div.style.fontWeight = "bold";
-                div.style.marginTop = "8px";
-            } else if (/^([A-Z]|[a-z])\s*[\.\-\)]/.test(line)) {
-                div.style.fontWeight = "600";
-                div.style.marginLeft = "10px";
-            } else {
-                div.className = "text-style";
-            }
-        } else {
-            div.className = "text-style";
+    // 2. Découpage par paragraphes (lignes saisies)
+    const paragraphs = text.split("\n");
+    
+    for (let p = 0; p < paragraphs.length; p++) {
+        const paragraphText = paragraphs[p];
+        if (paragraphText.trim() === "" && p !== paragraphs.length - 1) {
+            // Gestion des lignes vides (saut de ligne)
+            const emptyDiv = document.createElement("div");
+            emptyDiv.style.height = "1em";
+            emptyDiv.innerHTML = "&nbsp;";
+            pageElement.appendChild(emptyDiv);
+            continue;
         }
 
-        div.textContent = line.trim() === "" ? "\u00A0" : line;
+        // Création du conteneur pour le paragraphe
+        let div = document.createElement("div");
+        div.style.fontFamily = selectedFont;
+        div.style.fontSize = selectedSize;
+        div.className = "text-style";
+
+        // Application du formatage automatique (uniquement si activé)
+        if (isAutoFormat) {
+            if (/^(introduction|conclusion)\b/i.test(paragraphText)) {
+                div.className = "intro-conclu-style";
+            } else if (/^([IVX]+|[0-9]+)\s*[\.\-\)]/.test(paragraphText)) {
+                div.style.fontWeight = "bold";
+                div.style.marginTop = "8px";
+            } else if (/^([A-Z]|[a-z])\s*[\.\-\)]/.test(paragraphText)) {
+                div.style.fontWeight = "600";
+                div.style.marginLeft = "10px";
+            }
+        }
+
         pageElement.appendChild(div);
 
-        if (pageElement.scrollHeight > limitHeight) {
-            pageElement.removeChild(div);
-            pageElement = onBreak(); 
-            pageElement.appendChild(div);
+        // --- LOGIQUE DE DÉCOUPAGE PAR MOTS ---
+        const words = paragraphText.split(" ");
+        let currentTextInDiv = "";
+
+        for (let w = 0; w < words.length; w++) {
+            const word = words[w];
+            const previousText = div.textContent;
+            
+            // On teste l'ajout du mot suivant
+            div.textContent += (w === 0 ? "" : " ") + word;
+
+            // Si le scroll dépasse la limite A4
+            if (pageElement.scrollHeight > limitHeight) {
+                // On retire le mot qui a fait déborder
+                div.textContent = previousText;
+                
+                // On crée une nouvelle page
+                pageElement = onBreak();
+                
+                // On crée une nouvelle div sur la nouvelle page avec le même style
+                let newDiv = document.createElement("div");
+                newDiv.style.fontFamily = selectedFont;
+                newDiv.style.fontSize = selectedSize;
+                newDiv.className = div.className;
+                newDiv.style.fontWeight = div.style.fontWeight;
+                newDiv.style.marginLeft = div.style.marginLeft;
+                
+                pageElement.appendChild(newDiv);
+                
+                // On continue le remplissage dans la nouvelle div
+                div = newDiv;
+                div.textContent = word; // Le mot qui avait débordé commence ici
+            }
         }
     }
     return pageElement;
