@@ -439,11 +439,12 @@ function updateZoomUI() {
     const baseWidth = 210; // mm (Largeur A4)
     const baseHeight = 297; // mm (Hauteur A4)
 
-    wrappers.forEach(wrapper => {
-        // On ajuste la taille du conteneur pour qu'il corresponde à la feuille zoomée
-        // Cela permet au scroll de rester cohérent
+     wrappers.forEach(wrapper => {
+        // On ajoute +20mm de marge de sécurité multipliée par le scale
+        // pour éviter que les pages ne se chevauchent à haut zoom
+        const safetyMargin = 10 * scale; 
         wrapper.style.width = `${baseWidth * scale}mm`;
-        wrapper.style.height = `${baseHeight * scale}mm`;
+        wrapper.style.height = `${(baseHeight * scale) + safetyMargin}mm`;
     });
 
     sheets.forEach(sheet => {
