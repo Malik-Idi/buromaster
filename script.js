@@ -428,46 +428,38 @@ document.addEventListener("DOMContentLoaded", function () {
         showNotification("Titres mis à jour avec succès !");
     }
 
-// --- 11. GESTION DU ZOOM (LOGIQUE ET BOUTONS) - VERSION COMPLÈTE ---
+// --- 11. GESTION DU ZOOM (LOGIQUE ET BOUTONS) ---
 
-/**
- * 1. Fonction technique d'application du zoom
- * Cette fonction est appelée à chaque fois qu'on clique sur + ou -, 
- * mais aussi lors du rendu des pages pour maintenir le zoom choisi.
- */
+// 1. Fonction qui applique le zoom visuellement
 function updateZoomUI() {
     const wrappers = document.querySelectorAll(".page-wrapper");
     const sheets = document.querySelectorAll(".preview-sheet");
     
     const scale = currentZoom;
-    const baseWidth = 210; // mm (Largeur A4 standard)
-    const baseHeight = 297; // mm (Hauteur A4 standard)
+    const baseWidth = 210; // mm (Largeur A4)
+    const baseHeight = 297; // mm (Hauteur A4)
 
     wrappers.forEach(wrapper => {
-        // On ajuste la taille du "cadre" pour que le scroll reste fluide
+        // On ajuste la taille du conteneur pour qu'il corresponde à la feuille zoomée
+        // Cela permet au scroll de rester cohérent
         wrapper.style.width = `${baseWidth * scale}mm`;
         wrapper.style.height = `${baseHeight * scale}mm`;
     });
 
     sheets.forEach(sheet => {
-        // On applique la réduction/agrandissement visuel
         sheet.style.transform = `scale(${scale})`;
         sheet.style.transformOrigin = "top left"; 
     });
 
-    // Mise à jour du texte indicateur (ex: 60%)
     if (zoomLevelSpan) {
         zoomLevelSpan.textContent = `${Math.round(scale * 100)}%`;
     }
 }
 
-/**
- * 2. Activation des boutons Zoom
- * Ces écouteurs détectent les clics et modifient la variable globale currentZoom.
- */
+// 2. Écouteurs de clics pour les boutons Zoom (À placer dans le DOMContentLoaded)
 if (zoomInBtn) {
     zoomInBtn.addEventListener("click", () => {
-        if (currentZoom < 1.5) { // On bloque à 150% max pour éviter les bugs d'affichage
+        if (currentZoom < 1.5) { // Limite max 150%
             currentZoom += 0.1;
             updateZoomUI();
         }
@@ -476,7 +468,7 @@ if (zoomInBtn) {
 
 if (zoomOutBtn) {
     zoomOutBtn.addEventListener("click", () => {
-        if (currentZoom > 0.3) { // On bloque à 30% min pour que ça reste lisible
+        if (currentZoom > 0.3) { // Limite min 30%
             currentZoom -= 0.1;
             updateZoomUI();
         }
