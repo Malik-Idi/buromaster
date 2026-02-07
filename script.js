@@ -428,28 +428,59 @@ document.addEventListener("DOMContentLoaded", function () {
         showNotification("Titres mis à jour avec succès !");
     }
 
-// --- 11. GESTION DU ZOOM (VERSION CORRIGÉE) ---
+// --- 11. GESTION DU ZOOM (LOGIQUE ET BOUTONS) - VERSION COMPLÈTE ---
+
+/**
+ * 1. Fonction technique d'application du zoom
+ * Cette fonction est appelée à chaque fois qu'on clique sur + ou -, 
+ * mais aussi lors du rendu des pages pour maintenir le zoom choisi.
+ */
 function updateZoomUI() {
     const wrappers = document.querySelectorAll(".page-wrapper");
     const sheets = document.querySelectorAll(".preview-sheet");
     
     const scale = currentZoom;
-    // Dimensions réelles A4 en pixels (environ 794x1123 pour 96dpi)
-    const baseWidth = 210; // mm
-    const baseHeight = 297; // mm
+    const baseWidth = 210; // mm (Largeur A4 standard)
+    const baseHeight = 297; // mm (Hauteur A4 standard)
 
     wrappers.forEach(wrapper => {
-        // On ajuste la taille du conteneur pour qu'il corresponde à la feuille zoomée
+        // On ajuste la taille du "cadre" pour que le scroll reste fluide
         wrapper.style.width = `${baseWidth * scale}mm`;
         wrapper.style.height = `${baseHeight * scale}mm`;
     });
 
     sheets.forEach(sheet => {
+        // On applique la réduction/agrandissement visuel
         sheet.style.transform = `scale(${scale})`;
-        sheet.style.transformOrigin = "top left"; // Très important pour l'alignement
+        sheet.style.transformOrigin = "top left"; 
     });
 
-    zoomLevelSpan.textContent = `${Math.round(scale * 100)}%`;
+    // Mise à jour du texte indicateur (ex: 60%)
+    if (zoomLevelSpan) {
+        zoomLevelSpan.textContent = `${Math.round(scale * 100)}%`;
+    }
+}
+
+/**
+ * 2. Activation des boutons Zoom
+ * Ces écouteurs détectent les clics et modifient la variable globale currentZoom.
+ */
+if (zoomInBtn) {
+    zoomInBtn.addEventListener("click", () => {
+        if (currentZoom < 1.5) { // On bloque à 150% max pour éviter les bugs d'affichage
+            currentZoom += 0.1;
+            updateZoomUI();
+        }
+    });
+}
+
+if (zoomOutBtn) {
+    zoomOutBtn.addEventListener("click", () => {
+        if (currentZoom > 0.3) { // On bloque à 30% min pour que ça reste lisible
+            currentZoom -= 0.1;
+            updateZoomUI();
+        }
+    });
 }
 
 // --- 12. MOTEUR DE RENDU (LOGIQUE DE GÉNÉRATION DES PAGES) ---
