@@ -328,20 +328,32 @@ document.addEventListener("DOMContentLoaded", function () {
         syncBtn.style.background = "#607d8b"; 
         syncBtn.innerHTML = `<i class="fas fa-sync"></i> Mise à jour du Plan`;
 
-        // Activation intelligente
+                // --- 10. ACTIVATION INTELLIGENTE DU BOUTON SYNC ---
         const planHasChanged = (content.plan.trim() !== lastSyncedPlan.trim());
+        
+        // On peut synchroniser si le plan a changé ET que le développement n'est pas verrouillé
         const canSync = planHasChanged && !isLocked['dev'] && lastSyncedPlan !== "";
         
         syncBtn.disabled = !canSync;
         syncBtn.style.opacity = canSync ? "1" : "0.5";
         syncBtn.style.cursor = canSync ? "pointer" : "not-allowed";
 
+        // Petite touche visuelle : si un changement est détecté, on change la couleur pour alerter
+        if (canSync) {
+            syncBtn.style.background = "var(--primary-color)"; // Vert pour dire "Action requise"
+            syncBtn.innerHTML = `<i class="fas fa-sync-alt fa-spin"></i> Plan modifié ! Cliquez pour synchroniser`;
+        } else {
+            syncBtn.style.background = "#607d8b"; // Gris-bleu normal
+            syncBtn.innerHTML = `<i class="fas fa-sync"></i> Mise à jour du Plan`;
+        }
+
         container.appendChild(syncBtn);
 
+        // Initialisation au premier passage
         if (lastSyncedPlan === "" && content.plan !== "") {
             lastSyncedPlan = content.plan;
         }
-
+        
         // Événement d'ouverture de la Modal
         syncBtn.addEventListener("click", () => {
             const modal = document.getElementById("syncModal");
