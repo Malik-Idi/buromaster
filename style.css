@@ -150,3 +150,9 @@ header { background: var(--primary-color); color: white; padding: 15px; text-ali
 .modal-btn.danger:hover { border-color: #ff4444; background: #fff5f5; }
 .modal-btn.danger strong { color: #ff4444; }
 .modal-close-btn { background: none; border: none; color: #888; text-decoration: underline; cursor: pointer; }
+
+.step-link:focus {
+    outline: 2px solid var(--secondary-color);
+    outline-offset: 3px;
+    background: rgba(255, 255, 255, 0.4);
+}
