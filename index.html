@@ -1,22 +1,21 @@
-<!DOCTYPE html>
+!DOCTYPE html>
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>BuroMaster 2026 – Assistant d'Exposé</title>
     <link rel="stylesheet" href="style.css">
-    <!-- Correction du lien FontAwesome pour les icônes -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 </head>
 <body>
 
 <header>
     <h1><i class="fas fa-graduation-cap"></i> BuroMaster</h1>
     <nav class="steps">
-        <span class="step-link active" id="link-plan" role="button" tabindex="0">Plan</span>
-        <span class="step-link" id="link-intro" role="button" tabindex="0">Intro</span>
-        <span class="step-link" id="link-dev" role="button" tabindex="0">Développement</span>
-        <span class="step-link" id="link-conclu" role="button" tabindex="0">Conclusion</span>
+        <span class="step-link active" id="link-plan">Plan</span>
+        <span class="step-link" id="link-intro">Intro</span>
+        <span class="step-link" id="link-dev">Développement</span>
+        <span class="step-link" id="link-conclu">Conclusion</span>
     </nav>
 </header>
 
@@ -30,16 +29,16 @@
         <input type="text" id="theme" placeholder="Ex: La déforestation au Bénin">
     </div>
     <div class="config-group">
-        <button id="advancedOptionsBtn" class="btn-advanced" title="Options">
+        <button id="advancedOptionsBtn" class="secondary-btn" style="background: var(--dark-gray); color: white; border: none; padding: 10px; border-radius: 6px; cursor: pointer;">
             <i class="fas fa-cog"></i> Options
         </button>
-        <button id="resetAllBtn" class="btn-reset-danger" title="Tout réinitialiser">
+        <button id="resetAllBtn" class="reset-btn" style="background: #ff4444; color: white; border: none; padding: 10px; border-radius: 6px; cursor: pointer; margin-left: 5px;">
             <i class="fas fa-trash"></i>
         </button>
     </div>
 </section>
 
-<div id="advancedPanel" class="advanced-panel">
+<div id="advancedPanel" class="advanced-panel" style="display: none;">
     <div class="option-item">
         <label>Police :</label>
         <select id="fontSelect">
@@ -64,29 +63,24 @@
 
 <main class="container">
     <section class="work-area">
-        <div class="work-area-header">
-            <h2 id="step-title">Édition du Plan</h2>
-            <label class="auto-format-label">
+        <div class="block-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+            <h2 id="step-title" style="margin: 0;">Édition du Plan</h2>
+            <label class="auto-format-label" style="font-size: 0.85em;">
                 <input type="checkbox" id="autoFormatCheckbox" checked> Mise en forme auto
             </label>
         </div>
-        
         <div class="history-controls">
             <button id="undoBtn" title="Annuler"><i class="fas fa-undo"></i></button>
             <button id="redoBtn" title="Rétablir"><i class="fas fa-redo"></i></button>
         </div>
-
         <button type="button" id="generateBtn" class="primary-btn">
             <i class="fas fa-magic"></i> Générer avec l'IA
         </button>
-
         <textarea id="editor" class="editor" placeholder="Commencez à rédiger..."></textarea>
-        
-        <div id="dev-blocks-container" class="dev-blocks-container"></div>
-
-        <div class="actions-bar">
+        <div id="dev-blocks-container" style="display: none;"></div>
+        <div class="actions-bar" style="margin-top: 20px;">
             <button type="button" id="validateBtn" class="validate-btn">Valider cette étape</button>
-            <button type="button" id="nextStepBtn" class="next-btn">Étape suivante</button>
+            <button type="button" id="nextStepBtn" class="next-btn" style="display: none;">Étape suivante</button>
             <button type="button" id="downloadPdf" class="pdf-btn">
                 <i class="fas fa-file-pdf"></i> Télécharger le PDF
             </button>
@@ -97,15 +91,16 @@
         <div class="preview-header">
             <h2>Aperçu A4</h2>
             <div class="preview-controls">
-                <button id="zoomOutBtn" title="Zoom arrière"><i class="fas fa-search-minus"></i></button>
+                <button id="zoomOutBtn"><i class="fas fa-minus"></i></button>
                 <span id="zoomLevel">60%</span>
-                <button id="zoomInBtn" title="Zoom avant"><i class="fas fa-search-plus"></i></button>
+                <button id="zoomInBtn"><i class="fas fa-plus"></i></button>
             </div>
         </div>
         <div class="preview-scroll" id="preview-pages"></div>
     </section>
 </main>
 
+<!-- BOÎTE DE DIALOGUE PERSONNALISÉE (SYNC PLAN) -->
 <div id="syncModal" class="modal-overlay" style="display: none;">
     <div class="modal-content">
         <h3><i class="fas fa-sync-alt"></i> Synchronisation du Plan</h3>
@@ -124,9 +119,8 @@
     </div>
 </div>
 
-<!-- Correction des liens vers les bibliothèques JS -->
-<script src="https://cdnjs.cloudflare.com"></script>
-<script src="https://unpkg.com"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<script src="https://unpkg.com/html-docx-js/dist/html-docx.js"></script>
 <script src="script.js"></script>
 </body>
 </html>
