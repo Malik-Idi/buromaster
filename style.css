@@ -50,11 +50,22 @@ header { background: var(--primary-color); color: white; padding: 15px; text-ali
 .preview-header { display: flex; justify-content: space-between; align-items: center; color: white; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,0.2); }
 
 .preview-scroll { 
-    width: 100%; height: 75vh; overflow-y: auto; overflow-x: hidden; 
-    display: flex; flex-direction: column; align-items: center; gap: 30px; padding: 40px 10px;
+    width: 100%; 
+    height: 75vh; 
+    overflow-y: auto; 
+    overflow-x: auto; /* Permet le scroll horizontal si on zoome trop */
+    display: flex; 
+    flex-direction: column; 
+    align-items: center; 
+    gap: 40px; /* Espace fixe entre les pages */
+    padding: 40px 10px;
 }
 
-.page-wrapper { display: block; transition: transform 0.2s ease-out; margin-bottom: 20px; }
+.page-wrapper { 
+    display: block; 
+    position: relative; /* Important pour le positionnement du zoom */
+    flex-shrink: 0; /* Empêche l'écrasement des pages */
+}
 
 .preview-sheet { 
     background: white; width: 210mm; min-height: 297mm; padding: 20mm; position: relative; 
