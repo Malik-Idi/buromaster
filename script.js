@@ -43,40 +43,66 @@ document.addEventListener("DOMContentLoaded", function () {
     let lastSyncedPlan = ""; 
 
 
-    // --- 3. GESTION DE L'HISTORIQUE (UNDO/REDO) ---
-    // On stocke les versions précédentes de l'objet "content"
+    // --- 3. GESTION DE L'HISTORIQUE (UNDO/REDO) - VERSION CORRIGÉE ---
     let historyStack = []; 
     let redoStack = [];
-
+    
     function saveToHistory() {
-        // On limite l'historique à 20 actions pour ne pas ralentir le site
         if (historyStack.length > 20) historyStack.shift();
-        
-        // On enregistre une copie profonde du contenu actuel
-        historyStack.push(JSON.parse(JSON.stringify(content)));
-        
-        // Quand on fait une nouvelle action, on vide la pile de "Redo"
+    
+        // On enregistre un instantané complet : contenu, verrous et progression
+        const snapshot = {
+            content: JSON.parse(JSON.stringify(content)),
+            isLocked: JSON.parse(JSON.stringify(isLocked)),
+            reachedStepIndex: reachedStepIndex,
+            currentStep: currentStep
+        };
+    
+        historyStack.push(snapshot);
         redoStack = [];
         updateHistoryButtons();
     }
 
     function undo() {
         if (historyStack.length > 0) {
-            // On met le contenu actuel dans le redo avant de revenir en arrière
-            redoStack.push(JSON.parse(JSON.stringify(content)));
-            content = historyStack.pop();
-            
-            refreshUIFromData(); // On met à jour l'affichage
+            // Snapshot de l'état actuel pour le redo
+            redoStack.push({
+                content: JSON.parse(JSON.stringify(content)),
+                isLocked: JSON.parse(JSON.stringify(isLocked)),
+                reachedStepIndex: reachedStepIndex,
+                currentStep: currentStep
+            });
+
+            const previousState = historyStack.pop();
+        
+            // Restauration de tous les paramètres
+            content = previousState.content;
+            isLocked = previousState.isLocked;
+            reachedStepIndex = previousState.reachedStepIndex;
+            currentStep = previousState.currentStep;
+        
+            refreshUIFromData();
         }
     }
 
     function redo() {
         if (redoStack.length > 0) {
-            historyStack.push(JSON.parse(JSON.stringify(content)));
-            content = redoStack.pop();
-            
+            historyStack.push({
+                content: JSON.parse(JSON.stringify(content)),
+                isLocked: JSON.parse(JSON.stringify(isLocked)),
+                reachedStepIndex: reachedStepIndex,
+                currentStep: currentStep
+            });
+
+            const nextState = redoStack.pop();
+        
+            content = nextState.content;
+            isLocked = nextState.isLocked;
+            reachedStepIndex = nextState.reachedStepIndex;
+            currentStep = nextState.currentStep;
+        
             refreshUIFromData();
-        }
+         }
     }
 
     function updateHistoryButtons() {
@@ -143,28 +169,26 @@ document.addEventListener("DOMContentLoaded", function () {
         return "plan";
     }
 
-    // --- 6. MISE À JOUR DE L'INTERFACE (REFRESH UI) ---
-    // Cette fonction est appelée après un Undo/Redo ou un changement d'étape
-    function refreshUIFromData() {
-        if (currentStep === "dev") {
-            setupDevBlocks(); // On verra cette fonction en portion 3
-        } else {
-            editor.value = content[currentStep] || "";
-        }
-        updatePreview(); // Mise à jour de la feuille A4
-        updateHistoryButtons();
-    }
+    // --- 6. MISE À JOUR DE L'INTERFACE (REFRESH UI) - VERSION CORRIGÉE ---
+function refreshUIFromData() {
+    // goToStep contient déjà toute la logique pour afficher/masquer le dev ou l'éditeur
+    // et pour mettre à jour les valeurs. C'est plus propre de l'appeler ici.
+    goToStep(currentStep);
+    
+    updatePreview(); 
+    updateHistoryButtons();
+}
 
-    function schedulePreviewRefresh(delay = 300) {
-        clearTimeout(editorPreviewTimer);
-        editorPreviewTimer = setTimeout(() => {
-            if (currentStep !== "dev") {
-                content[currentStep] = editor.value;
-            }
-            updatePreview();
-            saveData();
-        }, delay);
-    }
+function schedulePreviewRefresh(delay = 300) {
+    clearTimeout(editorPreviewTimer);
+    editorPreviewTimer = setTimeout(() => {
+        if (currentStep !== "dev") {
+            content[currentStep] = editor.value;
+        }
+        updatePreview();
+        saveData();
+    }, delay);
+}
 
        // --- 7. NAVIGATION ENTRE LES ÉTAPES (VERSION FINALE) ---
     function goToStep(step) {
