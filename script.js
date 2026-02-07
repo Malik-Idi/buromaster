@@ -943,14 +943,29 @@ function createNewPage(num, container) {
     goToStep(lastStep);
 
     Object.entries(stepLinks).forEach(([step, link]) => {
-        if (!link) return;
-        link.addEventListener("click", () => {
-            const targetIndex = stepsOrder.indexOf(step);
-            if (targetIndex <= reachedStepIndex) {
-                goToStep(step);
-            }
-        });
+    if (!link) return;
+
+    // Fonction commune pour changer d'étape
+    const handleNavigation = () => {
+        const targetIndex = stepsOrder.indexOf(step);
+        if (targetIndex <= reachedStepIndex) {
+            goToStep(step);
+        } else {
+            showNotification("🔒 Cette étape est encore verrouillée.");
+        }
+    };
+
+    // Gestion du clic souris
+    link.addEventListener("click", handleNavigation);
+
+    // Gestion de la touche Entrée au clavier
+    link.addEventListener("keydown", (e) => {
+        if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            handleNavigation();
+        }
     });
+});
     
     // --- 21. Boutont de réinitialisation ---
     const resetBtn = document.getElementById("resetAllBtn");
