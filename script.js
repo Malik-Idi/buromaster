@@ -452,8 +452,7 @@ function updateZoomUI() {
     zoomLevelSpan.textContent = `${Math.round(scale * 100)}%`;
 }
 
-  // --- 12 & 13. MOTEUR DE RENDU (SAUTS DE PAGE FORCÉS PAR SECTION) ---
-
+// --- 12. MOTEUR DE RENDU (LOGIQUE DE GÉNÉRATION DES PAGES) ---
 function updatePreview() {
     if (!pagesContainer) return;
     pagesContainer.innerHTML = ""; 
@@ -468,7 +467,7 @@ function updatePreview() {
             currentPageObj = createNewPage(pageNum, pagesContainer);
             return currentPageObj.content;
         });
-        pageNum++; // On prépare le numéro pour la page suivante
+        pageNum++; 
     }
 
     // 2. Introduction (Force une nouvelle page)
@@ -487,7 +486,6 @@ function updatePreview() {
     if (Object.keys(content.dev).length > 0) {
         let currentPageObj = createNewPage(pageNum, pagesContainer);
         
-        // Titre principal du développement
         renderSection("DÉVELOPPEMENT", "", currentPageObj.content, () => {
             pageNum++; 
             currentPageObj = createNewPage(pageNum, pagesContainer);
@@ -498,13 +496,12 @@ function updatePreview() {
         
         orderedTitles.forEach((sectionTitle) => {
             if (!content.dev[sectionTitle]) return;
-            // On continue sur la page actuelle, le saut ne se fait que si ça déborde
             let nextContent = renderSection(sectionTitle, content.dev[sectionTitle], currentPageObj.content, () => {
                 pageNum++; 
                 currentPageObj = createNewPage(pageNum, pagesContainer);
                 return currentPageObj.content;
             });
-            currentPageObj.content = nextContent; // On met à jour la référence de la page en cours
+            currentPageObj.content = nextContent; 
         });
         pageNum++;
     }
@@ -522,11 +519,12 @@ function updatePreview() {
     updateZoomUI();
 }
 
+// --- 13. MOTEUR DE RENDU (DESSIN DES SECTIONS ET DÉTECTION DÉBORDEMENT) ---
 function renderSection(title, text, pageElement, onBreak) {
     const isAutoFormat = autoFormatCheckbox.checked;
     const selectedFont = fontSelect.value;
     const selectedSize = fontSizeInput.value + "px";
-    const limitHeight = 910; // Hauteur limite avant bascule
+    const limitHeight = 910; 
 
     if (title) {
         const t = document.createElement("div");
@@ -566,7 +564,6 @@ function renderSection(title, text, pageElement, onBreak) {
         div.textContent = line.trim() === "" ? "\u00A0" : line;
         pageElement.appendChild(div);
 
-        // --- DÉTECTION DE DÉBORDEMENT ---
         if (pageElement.scrollHeight > limitHeight) {
             pageElement.removeChild(div);
             pageElement = onBreak(); 
@@ -576,6 +573,7 @@ function renderSection(title, text, pageElement, onBreak) {
     return pageElement;
 }
 
+// --- 13b. CRÉATION PHYSIQUE DES PAGES A4 ---
 function createNewPage(num, container) {
     const wrapper = document.createElement("div");
     wrapper.className = "page-wrapper";
