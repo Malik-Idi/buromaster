@@ -1,7 +1,8 @@
 * { margin: 0; padding: 0; box-sizing: border-box; }
+
 body {
     font-family: 'Poppins', sans-serif;
-    background: #0f172a; /* Bleu nuit profond */
+    background: #0f172a; 
     color: white;
     overflow-x: hidden;
 }
@@ -13,46 +14,127 @@ body {
 }
 
 .container {
-    max-width: 800px;
+    max-width: 1100px;
     margin: 0 auto;
-    padding: 100px 20px;
+    padding: 60px 20px;
     text-align: center;
 }
 
-h1 { font-size: 3.5rem; letter-spacing: 2px; margin-bottom: 10px; }
-.subtitle { opacity: 0.8; font-weight: 300; margin-bottom: 50px; }
-.highlight-ia { border: 2px solid #38bdf8; box-shadow: 0 0 15px rgba(56, 189, 248, 0.3); }
+header h1 {
+    font-size: 3rem;
+    letter-spacing: 2px;
+    margin-bottom: 10px;
+    color: #f8fafc;
+}
 
+.subtitle {
+    opacity: 0.8;
+    font-weight: 300;
+    margin-bottom: 60px;
+    font-size: 1.1rem;
+}
 
-.projects {
-    background: rgba(255, 255, 255, 0.05);
-    padding: 30px;
-    border-radius: 20px;
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+h2 {
+    margin-bottom: 30px;
+    font-size: 2rem;
+    position: relative;
+    display: inline-block;
+}
+
+h2::after {
+    content: '';
+    display: block;
+    width: 50px;
+    height: 3px;
+    background: #38bdf8;
+    margin: 10px auto;
+}
+
+/* Grille de Services */
+.projects-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 25px;
+    margin-top: 20px;
 }
 
 .project-card {
-    background: rgba(255, 255, 255, 0.1);
-    padding: 25px;
-    border-radius: 15px;
-    transition: transform 0.3s ease;
-    margin-top: 20px;
+    background: rgba(255, 255, 255, 0.05);
+    padding: 35px 25px;
+    border-radius: 20px;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    transition: all 0.4s ease;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
 }
 
 .project-card:hover {
     transform: translateY(-10px);
-    background: rgba(255, 255, 255, 0.15);
+    background: rgba(255, 255, 255, 0.08);
+    border-color: #38bdf8;
 }
 
+.icon-service {
+    font-size: 2.5rem;
+    color: #38bdf8;
+    margin-bottom: 20px;
+}
+
+.project-card h3 {
+    font-size: 1.25rem;
+    margin-bottom: 12px;
+}
+
+.project-card p {
+    font-size: 0.9rem;
+    opacity: 0.7;
+    line-height: 1.5;
+    margin-bottom: 20px;
+}
+
+/* Boutons */
 .btn {
     display: inline-block;
-    margin-top: 15px;
     padding: 10px 25px;
-    background: #38bdf8; /* Bleu ciel */
+    background: #38bdf8;
     color: #0f172a;
     text-decoration: none;
     border-radius: 50px;
     font-weight: 600;
+    font-size: 0.9rem;
+    transition: 0.3s;
 }
 
+.btn:hover {
+    background: white;
+    transform: scale(1.05);
+}
+
+/* Spécial BuroMaster AI */
+.highlight-ia {
+    border: 2px solid #38bdf8;
+    background: rgba(56, 189, 248, 0.05);
+}
+
+.ia-icon {
+    color: #fbbf24; /* Couleur Or */
+    animation: glow 2s infinite alternate;
+}
+
+.btn-ia {
+    background: #fbbf24;
+}
+
+@keyframes glow {
+    from { text-shadow: 0 0 5px #fbbf24; }
+    to { text-shadow: 0 0 20px #fbbf24; }
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+    header h1 { font-size: 2rem; }
+    .projects-grid { grid-template-columns: 1fr; }
+}
