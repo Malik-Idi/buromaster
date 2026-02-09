@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Concepteur d'Épreuves | BuroMaster</title>
+    <link rel="stylesheet" href="style-epreuve.css">
+    <link href="https://fonts.googleapis.com" rel="stylesheet">
+</head>
+<body>
+    <div class="toolbar">
+        <a href="../" class="back-link">← Retour</a>
+        <div class="controls">
+            <button onclick="imprimer()" class="action-btn">📥 Télécharger l'Épreuve</button>
+        </div>
+    </div>
+
+    <div class="paper-container">
+        <!-- L'épreuve est directement éditable par le prof -->
+        <div class="a4-epreuve" id="epreuve-zone" contenteditable="true">
+            <div class="header-epreuve">
+                <div class="header-left">
+                    <p>Établissement : ........................</p>
+                    <p>Année : 2023-2024</p>
+                </div>
+                <div class="header-right">
+                    <p>Classe : ............</p>
+                    <p>Durée : ............</p>
+                </div>
+            </div>
+            
+            <div class="title-box">
+                <h2 style="text-align: center; text-transform: uppercase; margin: 20px 0;">ÉPREUVE DE : ........................</h2>
+            </div>
+
+            <div class="content-body">
+                <p><strong>Exercice 1 (5 points)</strong></p>
+                <p>Cliquez ici pour commencer à rédiger votre question...</p>
+                
+                <br>
+                <p><strong>Exercice 2 (5 points)</strong></p>
+                <p>Rédigez la suite ici...</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function imprimer() {
+            window.print();
+        }
+    </script>
+</body>
+</html>
