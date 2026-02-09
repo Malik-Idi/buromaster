@@ -21,6 +21,8 @@ body {
 
 h1 { font-size: 3.5rem; letter-spacing: 2px; margin-bottom: 10px; }
 .subtitle { opacity: 0.8; font-weight: 300; margin-bottom: 50px; }
+.highlight-ia { border: 2px solid #38bdf8; box-shadow: 0 0 15px rgba(56, 189, 248, 0.3); }
+
 
 .projects {
     background: rgba(255, 255, 255, 0.05);
