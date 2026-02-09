@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Traduction & Conversion | BuroMaster</title>
+    <link rel="stylesheet" href="style-conv.css">
+    <link href="https://fonts.googleapis.com" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <a href="../" class="back-link">← Retour</a>
+        <h1>Outils Linguistiques & Documents</h1>
+
+        <div class="grid">
+            <!-- Section Traduction -->
+            <div class="card">
+                <h2>🌍 Traduction Rapide</h2>
+                <textarea id="text-to-translate" placeholder="Collez votre texte à traduire..."></textarea>
+                <div class="controls">
+                    <select id="lang-to">
+                        <option value="en">Vers l'Anglais</option>
+                        <option value="fr">Vers le Français</option>
+                        <option value="es">Vers l'Espagnol</option>
+                    </select>
+                    <button onclick="translateText()" class="btn-action">Traduire</button>
+                </div>
+                <div id="translation-result" class="result-box">Le résultat s'affichera ici...</div>
+            </div>
+
+            <!-- Section Conversion -->
+            <div class="card">
+                <h2>📄 Conversion de fichiers</h2>
+                <p>Pour convertir vos PDF en Word avec une qualité maximale, nous vous recommandons notre partenaire sécurisé :</p>
+                <a href="https://www.ilovepdf.com" target="_blank" class="external-link">PDF vers Word (Gratuit)</a>
+                <a href="https://www.ilovepdf.com" target="_blank" class="external-link">Word vers PDF (Gratuit)</a>
+                <div class="info-note">
+                    ⚠️ La conversion de fichiers complexes nécessite un traitement sécurisé que nous déléguons aux experts du domaine.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        async function translateText() {
+            const text = document.getElementById('text-to-translate').value;
+            const lang = document.getElementById('lang-to').value;
+            const resultBox = document.getElementById('translation-result');
+
+            if(!text) return alert("Entrez du texte !");
+            
+            resultBox.innerText = "Traduction en cours...";
+            
+            try {
+                const res = await fetch(`https://api.mymemory.translated.net{encodeURIComponent(text)}&langpair=fr|${lang}`);
+                const data = await res.json();
+                resultBox.innerText = data.responseData.translatedText;
+            } catch (error) {
+                resultBox.innerText = "Erreur de connexion.";
+            }
+        }
+    </script>
+</body>
+</html>
