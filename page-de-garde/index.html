@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Créateur de Page de Garde | BuroMaster</title>
+    <link rel="stylesheet" href="style-pdg.css">
+    <link href="https://fonts.googleapis.com" rel="stylesheet">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Formulaire -->
+        <div class="editor-panel">
+            <a href="../" class="back-link">← Retour</a>
+            <h2>Personnalisation</h2>
+            <div class="input-group">
+                <label>Nom de l'établissement</label>
+                <input type="text" id="school" placeholder="Ex: Université de Cotonou" oninput="updatePreview()">
+            </div>
+            <div class="input-group">
+                <label>Titre de l'exposé / Devoir</label>
+                <input type="text" id="title" placeholder="Ex: L'impact de l'IA" oninput="updatePreview()">
+            </div>
+            <div class="input-group">
+                <label>Présenté par :</label>
+                <input type="text" id="student" placeholder="Votre nom" oninput="updatePreview()">
+            </div>
+            <div class="input-group">
+                <label>Sous la direction de :</label>
+                <input type="text" id="teacher" placeholder="Nom du professeur" oninput="updatePreview()">
+            </div>
+            <div class="input-group">
+                <label>Année Académique</label>
+                <input type="text" id="year" placeholder="2023-2024" oninput="updatePreview()">
+            </div>
+            <button onclick="window.print()" class="print-btn">Télécharger / Imprimer (PDF)</button>
+        </div>
+
+        <!-- Prévisualisation -->
+        <div class="preview-panel">
+            <div class="a4-page" id="capture">
+                <div class="border-design"></div>
+                <div class="content">
+                    <h3 id="p-school">NOM DE L'ÉTABLISSEMENT</h3>
+                    <div class="spacer"></div>
+                    <h1 id="p-title">TITRE DE VOTRE TRAVAIL</h1>
+                    <div class="spacer"></div>
+                    <div class="info-block">
+                        <p>Présenté par : <strong id="p-student">...</strong></p>
+                        <p>Sous la direction de : <strong id="p-teacher">...</strong></p>
+                    </div>
+                    <div class="footer">
+                        <p id="p-year">Année Académique 2023-2024</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function updatePreview() {
+            document.getElementById('p-school').innerText = document.getElementById('school').value || "NOM DE L'ÉTABLISSEMENT";
+            document.getElementById('p-title').innerText = document.getElementById('title').value || "TITRE DE VOTRE TRAVAIL";
+            document.getElementById('p-student').innerText = document.getElementById('student').value || "...";
+            document.getElementById('p-teacher').innerText = document.getElementById('teacher').value || "...";
+            document.getElementById('p-year').innerText = "Année Académique " + (document.getElementById('year').value || "2023-2024");
+        }
+    </script>
+</body>
+</html>
