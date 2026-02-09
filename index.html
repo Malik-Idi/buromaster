@@ -3,10 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Malik Idi | Portfolio</title>
+    <title>Malik Idi | BuroMaster Portfolio</title>
     <link rel="stylesheet" href="style.css">
-    <!-- Police moderne -->
+    <!-- Polices et Icônes -->
     <link href="https://fonts.googleapis.com" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com">
 </head>
 <body>
     <canvas id="canvas-bg"></canvas>
@@ -14,68 +15,77 @@
     <div class="container">
         <header>
             <h1>Malik Idi</h1>
-            <p class="subtitle">Développeur & Créateur de solutions</p>
+            <p class="subtitle">Développeur & Créateur de solutions numériques</p>
         </header>
 
-        <section class="projects">
+        <section class="services-section">
             <h2>Mes Services</h2>
             
-            <!-- Projet 1 : Déjà fait -->
-            <div class="project-card">
-                <h3>Générateur d'exposés</h3>
-                <p>Outil intelligent pour aider les élèves dans leurs recherches.</p>
-                <a href="./generateur-expose/" class="btn">Lancer l'outil</a>
-            </div>
+            <div class="projects-grid">
+                <!-- 1. Exposé -->
+                <div class="project-card">
+                    <i class="fas fa-book-open icon-service"></i>
+                    <h3>Générateur d'exposés</h3>
+                    <p>Recherches intelligentes pour les élèves.</p>
+                    <a href="./generateur-expose/" class="btn">Lancer l'outil</a>
+                </div>
 
-             <!-- Projet 2 : Nouveau -->
-            <div class="project-card">
-                <h3>Générateur d'Épreuves</h3>
-                <p>Espace dédié aux enseignants pour concevoir des examens professionnels.</p>
-                <a href="./generateur-epreuve/" class="btn">Accéder à l'espace Prof</a>
-            </div>
+                <!-- 2. Épreuves -->
+                <div class="project-card">
+                    <i class="fas fa-graduation-cap icon-service"></i>
+                    <h3>Espace Professeur</h3>
+                    <p>Conception d'épreuves et examens pros.</p>
+                    <a href="./generateur-epreuve/" class="btn">Accéder</a>
+                </div>
 
-            <!-- Projet 7 : Nouveau -->
-            <div class="project-card highlight">
-                <h3>Créateur de Page de Garde</h3>
-                <p>Générez instantanément une page de garde professionnelle et élégante.</p>
-                <a href="./page-de-garde/" class="btn">Créer maintenant</a>
-            </div>
+                <!-- 7. Page de garde -->
+                <div class="project-card">
+                    <i class="fas fa-scroll icon-service"></i>
+                    <h3>Page de Garde</h3>
+                    <p>Mise en page élégante pour vos travaux.</p>
+                    <a href="./page-de-garde/" class="btn">Générer</a>
+                </div>
 
-             <!-- Projet 3 : Nouveau -->
-            <div class="project-card">
-                <h3>Créateur de CV Pro</h3>
-                <p>Réalisez un CV moderne et percutant en quelques clics.</p>
-                <a href="./generateur-cv/" class="btn">Créer mon CV</a>
-            </div>
+                <!-- 3. CV -->
+                <div class="project-card">
+                    <i class="fas fa-user-tie icon-service"></i>
+                    <h3>Créateur de CV</h3>
+                    <p>Réalisez un CV moderne et percutant.</p>
+                    <a href="./generateur-cv/" class="btn">Créer</a>
+                </div>
 
-                        <!-- Projet 4 : Nouveau -->
-            <div class="project-card">
-                <h3>Lettre de Motivation</h3>
-                <p>Générez une lettre convaincante grâce à nos modèles professionnels.</p>
-                <a href="./lettre-motivation/" class="btn">Rédiger ma lettre</a>
-            </div>
+                <!-- 4. Lettre de Motivation -->
+                <div class="project-card">
+                    <i class="fas fa-file-signature icon-service"></i>
+                    <h3>Lettre de Motivation</h3>
+                    <p>Modèles pros pré-remplis pour vous.</p>
+                    <a href="./lettre-motivation/" class="btn">Rédiger</a>
+                </div>
 
-                        <!-- Projet 5 : Nouveau -->
-            <div class="project-card">
-                <h3>Transcription & Saisie</h3>
-                <p>Optimisez votre saisie de données avec nos outils de formatage et compteurs.</p>
-                <a href="./saisie-data/" class="btn">Espace Saisie</a>
-            </div>
+                <!-- 5. Saisie -->
+                <div class="project-card">
+                    <i class="fas fa-keyboard icon-service"></i>
+                    <h3>Saisie & Data</h3>
+                    <p>Assistant de transcription ultra-rapide.</p>
+                    <a href="./saisie-data/" class="btn">Ouvrir</a>
+                </div>
 
-                        <!-- Projet 6 : Nouveau -->
-            <div class="project-card">
-                <h3>Traduction & Conversion</h3>
-                <p>Traduisez vos textes instantanément et convertissez vos documents PDF/Word.</p>
-                <a href="./traduction-conversion/" class="btn">Ouvrir les outils</a>
-            </div>
+                <!-- 6. Traduction -->
+                <div class="project-card">
+                    <i class="fas fa-globe icon-service"></i>
+                    <h3>Traduction & PDF</h3>
+                    <p>Traduisez et convertissez vos fichiers.</p>
+                    <a href="./traduction-conversion/" class="btn">Convertir</a>
+                </div>
 
-                        <!-- Projet 8 : Nouveau -->
-            <div class="project-card highlight-ia">
-                <h3>BuroMaster AI</h3>
-                <p>Posez vos questions et obtenez des réponses instantanées grâce à notre IA.</p>
-                <a href="./chat-ia/" class="btn">Discuter avec l'IA</a>
+                <!-- 8. IA -->
+                <div class="project-card highlight-ia">
+                    <i class="fas fa-robot icon-service ia-icon"></i>
+                    <h3>BuroMaster AI</h3>
+                    <p>Posez vos questions à notre intelligence artificielle.</p>
+                    <a href="./chat-ia/" class="btn btn-ia">Discuter avec l'IA</a>
+                </div>
             </div>
-
         </section>
     </div>
 
