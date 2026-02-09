@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Saisie & Data Entry | BuroMaster</title>
+    <link rel="stylesheet" href="style-saisie.css">
+    <link href="https://fonts.googleapis.com" rel="stylesheet">
+</head>
+<body>
+    <div class="saisie-container">
+        <header>
+            <a href="../" class="back-link">← Retour</a>
+            <h1>Assistant de Saisie</h1>
+            <div class="stats">
+                <span>Mots: <strong id="word-count">0</strong></span> | 
+                <span>Caractères: <strong id="char-count">0</strong></span>
+            </div>
+        </header>
+
+        <textarea id="main-editor" placeholder="Commencez à saisir ou coller votre texte ici..." oninput="analyzeText()"></textarea>
+
+        <div class="tools-grid">
+            <button onclick="transform('up')">TOUT EN MAJUSCULE</button>
+            <button onclick="transform('down')">tout en minuscule</button>
+            <button onclick="cleanText()">Nettoyer Espaces</button>
+            <button onclick="copyText()" class="copy-btn">Copier le texte</button>
+            <button onclick="startDictation()" id="mic-btn" class="mic-btn">🎙️ Dictée Vocale</button>
+        </div>
+    </div>
+
+    <script>
+        const editor = document.getElementById('main-editor');
+
+        function analyzeText() {
+            const text = editor.value.trim();
+            document.getElementById('word-count').innerText = text ? text.split(/\s+/).length : 0;
+            document.getElementById('char-count').innerText = text.length;
+        }
+
+        function transform(type) {
+            editor.value = (type === 'up') ? editor.value.toUpperCase() : editor.value.toLowerCase();
+            analyzeText();
+        }
+
+        function cleanText() {
+            editor.value = editor.value.replace(/\s\s+/g, ' ').trim();
+            analyzeText();
+        }
+
+        function copyText() {
+            editor.select();
+            document.execCommand('copy');
+            alert("Texte copié !");
+        }
+
+        function startDictation() {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            if (!SpeechRecognition) return alert("Votre navigateur ne supporte pas la dictée vocale.");
+            
+            const recognition = new SpeechRecognition();
+            recognition.lang = 'fr-FR';
+            recognition.onresult = (event) => {
+                editor.value += event.results[0][0].transcript;
+                analyzeText();
+            };
+            recognition.start();
+        }
+    </script>
+</body>
+</html>
