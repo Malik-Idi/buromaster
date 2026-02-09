@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Générateur de Lettre | BuroMaster</title>
+    <link rel="stylesheet" href="style-lettre.css">
+    <link href="https://fonts.googleapis.com" rel="stylesheet">
+</head>
+<body>
+    <div class="app-wrapper">
+        <div class="form-side">
+            <a href="../" class="back-btn">← Retour</a>
+            <h2>Ma Lettre</h2>
+            
+            <label>Choisir un modèle :</label>
+            <select id="template-select" onchange="applyTemplate()">
+                <option value="vide">--- Lettre Vide ---</option>
+                <option value="stage">Demande de Stage</option>
+                <option value="emploi">Candidature Emploi</option>
+                <option value="etude">Inscription Études</option>
+            </select>
+
+            <div class="input-fields">
+                <input type="text" id="user-info" placeholder="Vos coordonnées (Nom, Prénom, Tel)" oninput="updateLetter()">
+                <input type="text" id="dest-info" placeholder="Coordonnées Destinataire" oninput="updateLetter()">
+                <input type="text" id="letter-object" placeholder="Objet de la lettre" oninput="updateLetter()">
+                <textarea id="letter-body" placeholder="Corps de la lettre..." oninput="updateLetter()"></textarea>
+            </div>
+            
+            <button onclick="window.print()" class="print-btn">Exporter en PDF</button>
+        </div>
+
+        <div class="paper-side">
+            <div class="a4-paper" id="paper">
+                <div id="out-user" class="align-left">VOS COORDONNÉES</div>
+                <div id="out-dest" class="align-right">DESTINATAIRE</div>
+                <div class="date-place">Fait le : <span id="current-date"></span></div>
+                <div id="out-object" class="object-line">OBJET : ...</div>
+                <div id="out-body" class="letter-content">Le contenu de votre lettre s'affichera ici...</div>
+                <div class="signature">Signature</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const templates = {
+            stage: {
+                obj: "Demande de stage conventionné",
+                body: "Monsieur/Madame,\n\nActuellement étudiant en [Votre Filière], je suis à la recherche d'un stage de [Durée]. Passionné par votre secteur, je souhaite mettre mes compétences au service de [Nom Entreprise].\n\nDans l'attente d'une réponse, je vous prie d'agréer mes salutations distinguées."
+            },
+            emploi: {
+                obj: "Candidature au poste de [Nom du poste]",
+                body: "Monsieur/Madame,\n\nC'est avec un grand intérêt que je postule à l'offre parue sur [Source]. Fort d'une expérience de [X] années, je suis convaincu de pouvoir contribuer au succès de votre équipe.\n\nJe reste à votre disposition pour un entretien."
+            }
+        };
+
+        function applyTemplate() {
+            const choice = document.getElementById('template-select').value;
+            if(templates[choice]) {
+                document.getElementById('letter-object').value = templates[choice].obj;
+                document.getElementById('letter-body').value = templates[choice].body;
+                updateLetter();
+            }
+        }
+
+        function updateLetter() {
+            document.getElementById('out-user').innerText = document.getElementById('user-info').value || "VOS COORDONNÉES";
+            document.getElementById('out-dest').innerText = document.getElementById('dest-info').value || "DESTINATAIRE";
+            document.getElementById('out-object').innerText = "OBJET : " + (document.getElementById('letter-object').value || "...");
+            document.getElementById('out-body').innerText = document.getElementById('letter-body').value || "Contenu...";
+        }
+
+        document.getElementById('current-date').innerText = new Date().toLocaleDateString('fr-FR');
+    </script>
+</body>
+</html>
