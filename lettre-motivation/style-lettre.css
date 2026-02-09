@@ -1,0 +1,28 @@
+body { margin: 0; font-family: 'Poppins', sans-serif; background: #e5e7eb; }
+.app-wrapper { display: flex; height: 100vh; }
+
+.form-side { width: 350px; background: #1f2937; color: white; padding: 25px; overflow-y: auto; }
+.form-side input, .form-side textarea, .form-side select { 
+    width: 100%; margin-bottom: 15px; padding: 12px; border-radius: 6px; border: none; font-family: inherit;
+}
+.form-side textarea { height: 250px; }
+
+.paper-side { flex: 1; display: flex; justify-content: center; padding: 40px; overflow-y: auto; }
+.a4-paper { 
+    width: 210mm; min-height: 297mm; background: white; padding: 25mm; 
+    box-shadow: 0 10px 25px rgba(0,0,0,0.2); color: #111; font-family: 'Merriweather', serif; line-height: 1.6;
+}
+
+.align-left { text-align: left; margin-bottom: 20px; }
+.align-right { text-align: right; margin-bottom: 40px; font-weight: bold; }
+.object-line { font-weight: bold; text-decoration: underline; margin-bottom: 30px; }
+.letter-content { white-space: pre-line; margin-bottom: 50px; }
+.signature { text-align: right; font-style: italic; margin-top: 40px; }
+
+.print-btn { width: 100%; padding: 15px; background: #10b981; color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
+
+@media print {
+    .form-side { display: none; }
+    .paper-side { padding: 0; }
+    .a4-paper { box-shadow: none; width: 100%; }
+}
