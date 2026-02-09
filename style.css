@@ -1,1 +1,56 @@
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+    font-family: 'Poppins', sans-serif;
+    background: #0f172a; /* Bleu nuit profond */
+    color: white;
+    overflow-x: hidden;
+}
+
+#canvas-bg {
+    position: fixed;
+    top: 0; left: 0;
+    z-index: -1;
+}
+
+.container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 100px 20px;
+    text-align: center;
+}
+
+h1 { font-size: 3.5rem; letter-spacing: 2px; margin-bottom: 10px; }
+.subtitle { opacity: 0.8; font-weight: 300; margin-bottom: 50px; }
+
+.projects {
+    background: rgba(255, 255, 255, 0.05);
+    padding: 30px;
+    border-radius: 20px;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.project-card {
+    background: rgba(255, 255, 255, 0.1);
+    padding: 25px;
+    border-radius: 15px;
+    transition: transform 0.3s ease;
+    margin-top: 20px;
+}
+
+.project-card:hover {
+    transform: translateY(-10px);
+    background: rgba(255, 255, 255, 0.15);
+}
+
+.btn {
+    display: inline-block;
+    margin-top: 15px;
+    padding: 10px 25px;
+    background: #38bdf8; /* Bleu ciel */
+    color: #0f172a;
+    text-decoration: none;
+    border-radius: 50px;
+    font-weight: 600;
+}
 
