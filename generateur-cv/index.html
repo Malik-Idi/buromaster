@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>CV Designer | BuroMaster</title>
+    <link rel="stylesheet" href="style-cv.css">
+    <link href="https://fonts.googleapis.com" rel="stylesheet">
+</head>
+<body>
+    <div class="cv-app">
+        <!-- Formulaire de saisie -->
+        <div class="sidebar">
+            <a href="../" class="back">← Accueil</a>
+            <h2>Mon CV</h2>
+            <input type="text" id="in-name" placeholder="Nom Complet" oninput="updateCV()">
+            <input type="text" id="in-job" placeholder="Poste visé" oninput="updateCV()">
+            <input type="email" id="in-email" placeholder="Email" oninput="updateCV()">
+            <textarea id="in-about" placeholder="Profil / À propos..." oninput="updateCV()"></textarea>
+            <textarea id="in-exp" placeholder="Expériences (une par ligne)" oninput="updateCV()"></textarea>
+            <button onclick="window.print()" class="print-btn">Exporter en PDF</button>
+        </div>
+
+        <!-- Zone d'aperçu -->
+        <div class="preview">
+            <div class="cv-page" id="cv-content">
+                <div class="cv-header">
+                    <h1 id="out-name">VOTRE NOM</h1>
+                    <p id="out-job" class="job-title">VOTRE PROFESSION</p>
+                    <p id="out-email" class="contact-info">email@exemple.com</p>
+                </div>
+                <div class="cv-section">
+                    <h3>Profil Professionnel</h3>
+                    <p id="out-about">Décrivez vos points forts ici...</p>
+                </div>
+                <div class="cv-section">
+                    <h3>Expériences</h3>
+                    <div id="out-exp" class="list-render"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function updateCV() {
+            document.getElementById('out-name').innerText = document.getElementById('in-name').value || "VOTRE NOM";
+            document.getElementById('out-job').innerText = document.getElementById('in-job').value || "VOTRE PROFESSION";
+            document.getElementById('out-email').innerText = document.getElementById('in-email').value || "email@exemple.com";
+            document.getElementById('out-about').innerText = document.getElementById('in-about').value || "Décrivez vos points forts...";
+            
+            // Gestion de la liste d'expériences
+            const expText = document.getElementById('in-exp').value;
+            const lines = expText.split('\n').map(line => `<li>${line}</li>`).join('');
+            document.getElementById('out-exp').innerHTML = `<ul>${lines}</ul>`;
+        }
+    </script>
+</body>
+</html>
