@@ -1,1 +1,31 @@
+body { background: #525659; margin: 0; font-family: 'Roboto', sans-serif; }
+
+.toolbar { 
+    background: #202124; padding: 15px; display: flex; 
+    justify-content: space-between; position: sticky; top: 0; z-index: 100;
+}
+
+.back-link { color: #38bdf8; text-decoration: none; font-weight: bold; }
+
+.action-btn { 
+    background: #38bdf8; border: none; padding: 8px 20px; 
+    border-radius: 5px; cursor: pointer; font-weight: bold; 
+}
+
+.paper-container { display: flex; justify-content: center; padding: 40px 0; }
+
+.a4-epreuve { 
+    width: 210mm; min-height: 297mm; background: white; 
+    padding: 20mm; box-shadow: 0 0 10px rgba(0,0,0,0.5);
+    color: black; outline: none;
+}
+
+.header-epreuve { display: flex; justify-content: space-between; border-bottom: 2px solid black; padding-bottom: 10px; }
+
+@media print {
+    body { background: white; }
+    .toolbar { display: none; }
+    .paper-container { padding: 0; }
+    .a4-epreuve { box-shadow: none; width: 100%; margin: 0; }
+}
 
