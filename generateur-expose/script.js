@@ -325,43 +325,44 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     // --- 10. CRÉATION PHYSIQUE DES PAGES A4 ---
-    function createNewPage(num, container) {
-        const wrapper = document.createElement("div");
-        wrapper.className = "page-wrapper";
-        
-        wrapper.innerHTML = `
-            <div class="preview-sheet">
-                <div class="page-content"></div>
-                <div class="page-footer">BuroMaster | Page ${num}</div>
-            </div>
-        `;
-        
-        const contentArea = wrapper.querySelector(".page-content");
+let typingTimer; // Timer pour le debounce
 
-        // ÉCOUTEUR : Quand l'utilisateur tape DIRECTEMENT sur la feuille
-        contentArea.addEventListener("input", () => {
-            if (currentStep === "dev") return; // Géré par les blocs spécifiques
-            
-            // On synchronise le texte de la feuille vers notre mémoire
-            content[currentStep] = contentArea.innerText;
-            
-            // Si ça déborde, on rafraîchit pour créer une nouvelle page
-            if (contentArea.scrollHeight > 910) {
+function createNewPage(num, container) {
+    const wrapper = document.createElement("div");
+    wrapper.className = "page-wrapper";
+    wrapper.innerHTML = `
+        <div class="preview-sheet">
+            <div class="page-content"></div>
+            <div class="page-footer">BuroMaster | Page ${num}</div>
+        </div>`;
+    
+    const contentArea = wrapper.querySelector(".page-content");
+
+    contentArea.addEventListener("input", () => {
+        if (currentStep === "dev") return;
+        
+        // 1. Sauvegarde immédiate en mémoire (silencieuse)
+        content[currentStep] = contentArea.innerText;
+        saveData();
+
+        // 2. Vérification du débordement avec "Debounce"
+        // On attend que l'élève s'arrête de taper 1,5 seconde avant de recalculer les pages
+        clearTimeout(typingTimer);
+        typingTimer = setTimeout(() => {
+            if (contentArea.scrollHeight > 920) {
+                // On ne reconstruit les pages que si ça déborde vraiment
+                const scrollPos = container.scrollTop; // On mémorise le scroll
                 updatePreview();
-                // On replace le curseur à la fin pour ne pas perdre le focus
-                const range = document.createRange();
-                const sel = window.getSelection();
-                range.selectNodeContents(contentArea);
-                range.collapse(false);
-                sel.removeAllRanges();
-                sel.addRange(range);
+                container.scrollTop = scrollPos; // On restaure le scroll
+                showNotification("Nouvelle page créée 📄");
             }
-            saveData();
-        });
+        }, 1500); 
+    });
 
-        container.appendChild(wrapper);
-        return { wrapper, content: contentArea };
-    }
+    container.appendChild(wrapper);
+    return { wrapper, content: contentArea };
+}
+
     // --- 11. ANALYSEUR DE PLAN (EXTRACTION DES TITRES) ---
     // Cette fonction transforme ton texte de plan en une liste d'objets utilisables
     function parsePlanForDev(planText) {
