@@ -230,7 +230,7 @@ function updateDevBlocksFromContent() {
 
         updateHeaderUI(); 
         saveData(); 
-
+    }
     function updateHeaderUI() {
         document.querySelectorAll(".step-link").forEach((link, index) => {
             const stepName = stepsOrder[index];
@@ -252,8 +252,7 @@ function updateDevBlocksFromContent() {
                 link.classList.add("unlocked");
             }
         });
-    }
-  }      
+    }     
 
     // --- 8. MOTEUR DE RENDU (DESSIN ET ÉDITION DIRECTE) ---
     function updatePreview() {
