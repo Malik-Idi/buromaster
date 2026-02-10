@@ -203,12 +203,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
         updateHeaderUI(); 
         saveData(); 
-                // --- AUTO-SCROLL VERS LE HAUT ---
-        setTimeout(() => {
-            const firstPage = pagesContainer.querySelector(".page-wrapper");
-            if (firstPage) firstPage.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }, 150);
-    }
 
     function updateHeaderUI() {
         document.querySelectorAll(".step-link").forEach((link, index) => {
