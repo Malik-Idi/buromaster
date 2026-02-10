@@ -230,7 +230,8 @@ function updateDevBlocksFromContent() {
 
         updateHeaderUI(); 
         saveData(); 
-    }
+        }
+
     function updateHeaderUI() {
         document.querySelectorAll(".step-link").forEach((link, index) => {
             const stepName = stepsOrder[index];
