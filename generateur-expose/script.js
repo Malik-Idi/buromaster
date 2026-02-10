@@ -11,6 +11,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const generateBtn = document.getElementById("generateBtn");
     const downloadBtn = document.getElementById("downloadPdf");
     const autoFormatCheckbox = document.getElementById("autoFormatCheckbox");
+    const resetAllBtn = document.getElementById("resetAllBtn");
     
     const stepLinks = {
         plan: document.getElementById("link-plan"),
@@ -190,6 +191,13 @@ function updateDevBlocksFromContent() {
         stepTitle.textContent = "Édition : " + (stepNames[step] || step);
         
         const locked = isLocked[step];
+
+        let previewTimer = null;
+
+        function schedulePreviewRefresh(delay = 300) {
+            clearTimeout(previewTimer);
+            previewTimer = setTimeout(updatePreview, delay);
+        }
 
         // LOGIQUE ÉDITION DIRECTE : 
         // On prépare la feuille A4 pour être éditable ou non selon le verrouillage
