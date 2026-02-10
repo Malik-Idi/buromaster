@@ -253,6 +253,7 @@ function updateDevBlocksFromContent() {
             }
         });
     }
+  }      
 
     // --- 8. MOTEUR DE RENDU (DESSIN ET ÉDITION DIRECTE) ---
     function updatePreview() {
