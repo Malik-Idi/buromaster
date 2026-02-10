@@ -418,15 +418,47 @@ function createNewPage(num, container) {
         container.innerHTML = "";
 
         // Bouton de synchronisation si le plan a changé
-        const planHasChanged = (content.plan.trim() !== lastSyncedPlan.trim());
-        if (planHasChanged && lastSyncedPlan !== "") {
-            const syncBtn = document.createElement("button");
-            syncBtn.className = "ai-generate-btn"; // Même style que le bouton IA
-            syncBtn.style.background = "var(--success)";
-            syncBtn.innerHTML = `<i class="fas fa-sync-alt fa-spin"></i> Plan modifié ! Synchroniser ?`;
-            syncBtn.onclick = () => { document.getElementById("syncModal").style.display = "flex"; };
-            container.appendChild(syncBtn);
-        }
+const planHasChanged = (content.plan.trim() !== lastSyncedPlan.trim());
+if (planHasChanged && lastSyncedPlan !== "") {
+    const syncBtn = document.createElement("button");
+    syncBtn.className = "ai-generate-btn"; // Même style que le bouton IA
+    syncBtn.style.background = "var(--success)";
+    syncBtn.innerHTML = `<i class="fas fa-sync-alt fa-spin"></i> Plan modifié ! Synchroniser ?`;
+    container.appendChild(syncBtn);
+
+    syncBtn.addEventListener("click", () => {
+        const modal = document.getElementById("syncModal");
+        if (!modal) return;
+
+        modal.style.display = "flex";
+
+        // Boutons internes du modal
+        const btnTitles = document.getElementById("btnSyncTitles");
+        const btnAll = document.getElementById("btnSyncAll");
+        const btnCancel = document.getElementById("btnCancelSync");
+
+        if (btnTitles) btnTitles.onclick = () => {
+            updateTitlesOnly();   // garde les textes existants
+            modal.style.display = "none";
+            lastSyncedPlan = content.plan; // mise à jour du plan synchronisé
+            showNotification("Titres synchronisés ✅");
+        };
+
+        if (btnAll) btnAll.onclick = () => {
+            content.dev = {}; // réinitialise tous les blocs
+            lastSyncedPlan = content.plan;
+            setupDevBlocks();
+            updatePreview();
+            modal.style.display = "none";
+            showNotification("Tout réinitialisé et synchronisé ✅");
+        };
+
+        if (btnCancel) btnCancel.onclick = () => {
+            modal.style.display = "none";
+            showNotification("Action annulée ❌");
+        };
+    });
+}
 
         const sections = parsePlanForDev(content.plan || "");
         if (sections.length === 0) {
