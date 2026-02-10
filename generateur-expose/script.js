@@ -1,9 +1,10 @@
 document.addEventListener("DOMContentLoaded", function () {
     // --- 1. SÉLECTION DES ÉLÉMENTS DU DOM ---
-    const editor = document.getElementById("editor"); 
+    // On lie le JavaScript aux IDs que nous avons mis dans le nouveau HTML
+    const editor = document.getElementById("editor"); // Notre tampon invisible
     const themeInput = document.getElementById("theme");
     const studentClassInput = document.getElementById("studentClass");
-    const pagesContainer = document.getElementById("preview-pages");
+    const pagesContainer = document.getElementById("preview-pages"); // La zone A4
     const stepTitle = document.getElementById("step-title");
     const validateBtn = document.getElementById("validateBtn");
     const nextStepBtn = document.getElementById("nextStepBtn");
@@ -28,7 +29,6 @@ document.addEventListener("DOMContentLoaded", function () {
     const zoomLevelSpan = document.getElementById("zoomLevel");
     const undoBtn = document.getElementById("undoBtn");
     const redoBtn = document.getElementById("redoBtn");
-    const resetAllBtn = document.getElementById("resetAllBtn");
 
     // --- 2. ÉTAT DE L'APPLICATION ---
     let currentStep = "plan"; 
@@ -36,17 +36,19 @@ document.addEventListener("DOMContentLoaded", function () {
     let content = { plan: "", intro: "", dev: {}, conclu: "" };
     let isLocked = { plan: false, intro: false, dev: false, conclu: false };
     let reachedStepIndex = 0;
-    let currentZoom = 0.6; 
+    let currentZoom = 0.6; // 60% pour voir la page entière
     let editorPreviewTimer = null;
     let lastSyncedPlan = ""; 
+
+    // --- 3. GESTION DE L'HISTORIQUE (UNDO/REDO) ---
     let historyStack = []; 
     let redoStack = [];
 
-    // --- 3. HISTORIQUE & SAUVEGARDE ---
+    // Sauvegarde l'état pour pouvoir y revenir plus tard
     function saveToHistory() {
         if (historyStack.length > 25) historyStack.shift();
         historyStack.push(JSON.parse(JSON.stringify(content)));
-        redoStack = [];
+        redoStack = []; // On vide le redo à chaque nouvelle action
         updateHistoryButtons();
     }
 
@@ -72,296 +74,514 @@ document.addEventListener("DOMContentLoaded", function () {
         if(undoBtn && redoBtn) {
             undoBtn.disabled = historyStack.length === 0;
             redoBtn.disabled = redoStack.length === 0;
+            undoBtn.style.opacity = undoBtn.disabled ? "0.3" : "1";
+            redoBtn.style.opacity = redoBtn.disabled ? "0.3" : "1";
         }
     }
 
+    // --- 4. SAUVEGARDE LOCALE (LOCALSTORAGE) ---
+    // Permet de retrouver son travail après avoir fermé le navigateur
     function saveData() {
         const snapshot = {
-            content, isLocked, reachedStepIndex,
+            content,
+            isLocked,
+            reachedStepIndex,
             theme: themeInput.value,
             studentClass: studentClassInput.value,
             autoFormat: autoFormatCheckbox.checked,
-            settings: { font: fontSelect.value, fontSize: fontSizeInput.value, aiLevel: aiDetailLevel.value },
-            currentStep, lastUpdate: Date.now()
+            settings: {
+                font: fontSelect.value,
+                fontSize: fontSizeInput.value,
+                aiLevel: aiDetailLevel.value
+            },
+            currentStep,
+            lastUpdate: Date.now()
         };
         localStorage.setItem("buroMaster_premium_save", JSON.stringify(snapshot));
     }
 
+    // --- 5. FONCTION DE CHARGEMENT ---
     function loadData() {
         try {
             const saved = localStorage.getItem("buroMaster_premium_save");
             if (saved) {
                 const data = JSON.parse(saved);
-                if (Date.now() - (data.lastUpdate || 0) > 43200000) return "plan"; // 12h
+                
+                // Sécurité BuroMaster : Nettoyage après 12h pour ne pas encombrer le navigateur
+                const douzeHeuresEnMs = 12 * 60 * 60 * 1000;
+                const tempsEcoule = Date.now() - (data.lastUpdate || 0);
+
+                if (tempsEcoule > douzeHeuresEnMs) {
+                    localStorage.removeItem("buroMaster_premium_save");
+                    return "plan"; 
+                }
+
                 content = data.content || content;
                 isLocked = data.isLocked || isLocked;
                 reachedStepIndex = data.reachedStepIndex || 0;
                 if (themeInput) themeInput.value = data.theme || "";
                 if (studentClassInput) studentClassInput.value = data.studentClass || "";
+                
                 if (data.settings) {
-                    fontSelect.value = data.settings.font;
-                    fontSizeInput.value = data.settings.fontSize;
-                    aiDetailLevel.value = data.settings.aiLevel;
+                    fontSelect.value = data.settings.font || "'Times New Roman', serif";
+                    fontSizeInput.value = data.settings.fontSize || "12";
+                    aiDetailLevel.value = data.settings.aiLevel || "standard";
                 }
+                autoFormatCheckbox.checked = (data.autoFormat !== undefined) ? data.autoFormat : true;
                 return data.currentStep || "plan";
             }
-        } catch (e) { console.error(e); }
+        } catch (e) {
+            console.error("Erreur de chargement :", e);
+        }
         return "plan";
     }
 
-    // --- 4. NAVIGATION & UI ---
+    // --- 6. MISE À JOUR DE L'INTERFACE (REFRESH UI) ---
+    function refreshUIFromData() {
+        if (currentStep === "dev") {
+            setupDevBlocks(); 
+        } else {
+            // On met à jour notre tampon invisible
+            editor.value = content[currentStep] || "";
+        }
+        updatePreview(); 
+        updateHistoryButtons();
+    }
+
+    // --- 7. NAVIGATION ENTRE LES ÉTAPES ---
     function goToStep(step) {
         clearTimeout(editorPreviewTimer);
+
+        // Sauvegarde du texte actuel avant de changer
+        if (currentStep !== "dev") {
+            content[currentStep] = editor.value;
+        }
+
         currentStep = step;
-        
+
         const stepNames = { plan: "Plan", intro: "Introduction", dev: "Développement", conclu: "Conclusion" };
-        stepTitle.textContent = "Édition : " + stepNames[step];
+        stepTitle.textContent = "Édition : " + (stepNames[step] || step);
         
         const locked = isLocked[step];
 
-        // Visibilité des contrôles
+        // LOGIQUE ÉDITION DIRECTE : 
+        // On prépare la feuille A4 pour être éditable ou non selon le verrouillage
+        updatePreview(); 
+
+        // Configuration des boutons de la barre latérale
+        validateBtn.textContent = locked ? "Modifier cette étape" : "Valider cette étape";
+        validateBtn.style.background = locked ? "#f59e0b" : "#10b981"; // Orange vs Vert
+
+        // Gestion du bouton "Suivant" ou "Exporter Word"
+        if (step === "conclu" && locked) {
+            nextStepBtn.textContent = "Exporter en Word (.doc)";
+            nextStepBtn.style.display = "block";
+            nextStepBtn.classList.add("is-word-btn");
+        } else {
+            nextStepBtn.classList.remove("is-word-btn");
+            const currentIndex = stepsOrder.indexOf(step);
+            const hasNext = currentIndex < stepsOrder.length - 1;
+            
+            if (locked && hasNext) {
+                nextStepBtn.style.display = "block";
+                nextStepBtn.textContent = "Étape Suivante";
+            } else {
+                nextStepBtn.style.display = "none";
+            }
+        }
+
+        // Le bouton IA ne s'affiche que si l'étape n'est pas verrouillée
         generateBtn.style.display = (!locked && step !== "dev") ? "block" : "none";
-        document.getElementById("dev-blocks-container").style.display = (step === "dev") ? "block" : "none";
 
-        if (step === "dev") setupDevBlocks();
+        // Bascule entre les blocs de développement (Étape 3) et le reste
+        if (step === "dev") {
+            document.getElementById("dev-blocks-container").style.display = "block";
+            setupDevBlocks(); 
+        } else {
+            document.getElementById("dev-blocks-container").style.display = "none";
+        }
 
-        updateHeaderUI();
-        updatePreview();
-        saveData();
-
-        // SCROLL VERS LA PAGE ACTIVE
-        setTimeout(() => {
-            const activePage = document.querySelector(".page-wrapper");
-            if(activePage) activePage.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }, 300);
+        updateHeaderUI(); 
+        saveData(); 
     }
 
     function updateHeaderUI() {
         document.querySelectorAll(".step-link").forEach((link, index) => {
             const stepName = stepsOrder[index];
-            link.classList.toggle("active", stepName === currentStep);
-            link.classList.toggle("unlocked", index <= reachedStepIndex);
-            const icon = isLocked[stepName] ? '<i class="fas fa-lock"></i> ' : '';
-            link.innerHTML = icon + stepName.charAt(0).toUpperCase() + stepName.slice(1);
+            link.classList.remove("active", "unlocked");
+            
+            const labels = { plan: "Plan", intro: "Intro", dev: "Corps", conclu: "Fin" };
+            let text = labels[stepName];
+            
+            // Icône de cadenas dynamique
+            if (isLocked[stepName]) {
+                link.innerHTML = `<i class="fas fa-lock" style="font-size:0.7rem"></i> ${text}`;
+            } else {
+                link.innerHTML = text;
+            }
+
+            if (stepName === currentStep) {
+                link.classList.add("active");
+            } else if (index <= reachedStepIndex) {
+                link.classList.add("unlocked");
+            }
         });
     }
 
-    // --- 5. MOTEUR DE RENDU (L'ANCIEN COEUR ROBUSTE) ---
+    // --- 8. MOTEUR DE RENDU (DESSIN ET ÉDITION DIRECTE) ---
     function updatePreview() {
         if (!pagesContainer) return;
         pagesContainer.innerHTML = ""; 
         let pageNum = 1;
 
-        const renderFlow = (title, text, isEditable) => {
-            let currentPageObj = createNewPage(pageNum, pagesContainer, isEditable);
-            renderSection(title, text, currentPageObj.content, () => { 
+        // On boucle sur les étapes pour construire l'aperçu complet
+        // 1. Sommaire, 2. Intro, 3. Développement, 4. Conclusion
+        
+        // --- LOGIQUE ÉDITION DIRECTE ---
+        // On crée la première page pour l'étape actuelle
+        let currentPageObj = createNewPage(pageNum, pagesContainer);
+        
+        // On rend la zone éditable seulement si l'étape n'est pas verrouillée
+        const contentArea = currentPageObj.content;
+        const locked = isLocked[currentStep];
+        contentArea.contentEditable = !locked;
+        contentArea.style.cursor = locked ? "not-allowed" : "text";
+        contentArea.style.color = locked ? "#64748b" : "black";
+
+        // On dessine le contenu de l'étape actuelle sur les pages
+        if (currentStep !== "dev") {
+            const titleNames = { plan: "SOMMAIRE", intro: "INTRODUCTION", conclu: "CONCLUSION" };
+            renderSection(titleNames[currentStep], content[currentStep], currentPageObj.content, () => { 
                 pageNum++; 
-                currentPageObj = createNewPage(pageNum, pagesContainer, isEditable);
+                currentPageObj = createNewPage(pageNum, pagesContainer);
+                currentPageObj.content.contentEditable = !locked;
                 return currentPageObj.content;
             });
-            pageNum++;
-        };
-
-        if (currentStep === "plan") renderFlow("SOMMAIRE", content.plan, !isLocked.plan);
-        else if (currentStep === "intro") renderFlow("INTRODUCTION", content.intro, !isLocked.intro);
-        else if (currentStep === "conclu") renderFlow("CONCLUSION", content.conclu, !isLocked.conclu);
-        else if (currentStep === "dev") {
-            let currentPageObj = createNewPage(pageNum, pagesContainer, false);
-            renderSection("DÉVELOPPEMENT", "", currentPageObj.content, () => {
-                pageNum++; currentPageObj = createNewPage(pageNum, pagesContainer, false); return currentPageObj.content;
-            });
-            const sections = parsePlanForDev(content.plan || "");
-            sections.forEach(s => {
-                renderSection(s.title, content.dev[s.title], currentPageObj.content, () => {
-                    pageNum++; currentPageObj = createNewPage(pageNum, pagesContainer, false); return currentPageObj.content;
-                });
-            });
+        } else {
+            // Cas spécial pour le Développement (multi-blocs)
+            renderDevOnA4(pagesContainer, pageNum, locked);
         }
+
         updateZoomUI();
     }
 
+    // --- 9. DESSIN DES SECTIONS ET DÉTECTION DÉBORDEMENT ---
     function renderSection(title, text, pageElement, onBreak) {
-        const limitHeight = 910;
+        const isAutoFormat = autoFormatCheckbox.checked;
+        const selectedFont = fontSelect.value;
+        const selectedSize = fontSizeInput.value + "px";
+        const limitHeight = 910; // Limite de hauteur en pixels pour un A4 (environ 297mm)
+
         if (title) {
             const t = document.createElement("div");
-            t.className = "page-header";
-            t.style.fontFamily = fontSelect.value;
-            t.textContent = title.toUpperCase();
-            pageElement.appendChild(t);
+            t.className = "page-header"; // Utilise le style élégant défini en CSS
+            t.style.fontFamily = selectedFont;
+            t.textContent = title;
+            pageElement.parentNode.insertBefore(t, pageElement); // Place le titre en haut de page
         }
+
         if (!text) return pageElement;
 
         const paragraphs = text.split("\n");
-        paragraphs.forEach(para => {
+        for (let p = 0; p < paragraphs.length; p++) {
+            const paragraphText = paragraphs[p];
             let div = document.createElement("div");
-            div.style.fontFamily = fontSelect.value;
-            div.style.fontSize = fontSizeInput.value + "px";
+            div.style.fontFamily = selectedFont;
+            div.style.fontSize = selectedSize;
             div.className = "text-style";
+
+            // Formatage IA automatique pendant le rendu
+            if (isAutoFormat) {
+                if (/^([IVX]+|[0-9]+)\s*[\.\-\)]/.test(paragraphText)) {
+                    div.style.fontWeight = "bold";
+                    div.style.color = "var(--brand-dark)";
+                } else if (/^([A-Z]|[a-z])\s*[\.\-\)]/.test(paragraphText)) {
+                    div.style.marginLeft = "20px";
+                }
+            }
+
             pageElement.appendChild(div);
 
-            const words = para.split(" ");
-            words.forEach(word => {
+            // Découpage par mots pour gérer le saut de page
+            const words = paragraphText.split(" ");
+            words.forEach((word, w) => {
                 const prev = div.textContent;
-                div.textContent += (div.textContent ? " " : "") + word;
+                div.textContent += (w === 0 ? "" : " ") + word;
+
                 if (pageElement.scrollHeight > limitHeight) {
-                    div.textContent = prev;
-                    pageElement = onBreak();
-                    div = document.createElement("div");
-                    div.className = "text-style";
-                    div.style.fontFamily = fontSelect.value;
-                    div.style.fontSize = fontSizeInput.value + "px";
+                    div.textContent = prev; // On retire le mot qui déborde
+                    pageElement = onBreak(); // On change de page
+                    let newDiv = document.createElement("div");
+                    newDiv.style.fontFamily = selectedFont;
+                    newDiv.style.fontSize = selectedSize;
+                    newDiv.className = div.className;
+                    pageElement.appendChild(newDiv);
+                    div = newDiv;
                     div.textContent = word;
-                    pageElement.appendChild(div);
-                    
-                    // AUTO-SCROLL SUR SAUT DE PAGE
-                    pageElement.closest('.page-wrapper').scrollIntoView({ behavior: 'smooth' });
-                    pageElement.closest('.page-wrapper').style.border = "2px solid var(--brand)";
-                    setTimeout(() => pageElement.closest('.page-wrapper').style.border = "none", 1000);
                 }
             });
-        });
+        }
         return pageElement;
     }
 
-    function createNewPage(num, container, isEditable) {
-        const wrapper = document.createElement("div");
-        wrapper.className = "page-wrapper";
-        wrapper.innerHTML = `
-            <div class="preview-sheet">
-                <div class="page-content" ${isEditable ? 'contenteditable="true"' : ''}></div>
-                <div class="page-footer">BuroMaster | Page ${num}</div>
-            </div>`;
-        
-        const contentArea = wrapper.querySelector(".page-content");
-        if(isEditable) {
-            contentArea.addEventListener("input", () => {
-                content[currentStep] = contentArea.innerText;
-                clearTimeout(editorPreviewTimer);
-                editorPreviewTimer = setTimeout(() => {
-                    if (contentArea.scrollHeight > 920) updatePreview();
-                    saveData();
-                }, 1000);
-            });
-        }
-        container.appendChild(wrapper);
-        return { wrapper, content: contentArea };
-    }
+    // --- 10. CRÉATION PHYSIQUE DES PAGES A4 ---
+let typingTimer; // Timer pour le debounce
 
-    // --- 6. PARSER & BLOCS DÉVELOPPEMENT ---
+function createNewPage(num, container) {
+    const wrapper = document.createElement("div");
+    wrapper.className = "page-wrapper";
+    wrapper.innerHTML = `
+        <div class="preview-sheet">
+            <div class="page-content"></div>
+            <div class="page-footer">BuroMaster | Page ${num}</div>
+        </div>`;
+    
+    const contentArea = wrapper.querySelector(".page-content");
+
+    contentArea.addEventListener("input", () => {
+        if (currentStep === "dev") return;
+        
+        // 1. Sauvegarde immédiate en mémoire (silencieuse)
+        content[currentStep] = contentArea.innerText;
+        saveData();
+
+        // 2. Vérification du débordement avec "Debounce"
+        // On attend que l'élève s'arrête de taper 1,5 seconde avant de recalculer les pages
+        clearTimeout(typingTimer);
+        typingTimer = setTimeout(() => {
+            if (contentArea.scrollHeight > 920) {
+                // On ne reconstruit les pages que si ça déborde vraiment
+                const scrollPos = container.scrollTop; // On mémorise le scroll
+                updatePreview();
+                container.scrollTop = scrollPos; // On restaure le scroll
+                showNotification("Nouvelle page créée 📄");
+            }
+        }, 1500); 
+    });
+
+    container.appendChild(wrapper);
+    return { wrapper, content: contentArea };
+}
+
+    // --- 11. ANALYSEUR DE PLAN (EXTRACTION DES TITRES) ---
+    // Cette fonction transforme ton texte de plan en une liste d'objets utilisables
     function parsePlanForDev(planText) {
         const sections = [];
         const lines = planText.split('\n');
         let currentSection = null;
+
+        // Expressions régulières pour détecter les formats (I., A., 1., etc.)
         const sectionRegex = /^([IVX]+|[0-9]+)\s*[\.\-\)]\s+/;
+        const subpartRegex = /^([A-Z]|[a-z])\s*[\.\-\)]\s+/;
+
         lines.forEach(line => {
-            if (sectionRegex.test(line.trim())) {
-                currentSection = { title: line.trim(), subparts: [] };
+            const cleanLine = line.trim();
+            if (!cleanLine || /^(introduction|conclusion)$/i.test(cleanLine)) return; 
+
+            if (sectionRegex.test(cleanLine)) {
+                currentSection = { title: cleanLine, subparts: [] };
                 sections.push(currentSection);
+            } else if (subpartRegex.test(cleanLine) && currentSection) {
+                currentSection.subparts.push(cleanLine);
             }
         });
         return sections;
     }
 
+    // --- 12. GESTION DES BLOCS DE DÉVELOPPEMENT (À GAUCHE) ---
     function setupDevBlocks() {
         const container = document.getElementById("dev-blocks-container");
+        if (!container) return;
         container.innerHTML = "";
+
+        // Bouton de synchronisation si le plan a changé
+        const planHasChanged = (content.plan.trim() !== lastSyncedPlan.trim());
+        if (planHasChanged && lastSyncedPlan !== "") {
+            const syncBtn = document.createElement("button");
+            syncBtn.className = "ai-generate-btn"; // Même style que le bouton IA
+            syncBtn.style.background = "var(--success)";
+            syncBtn.innerHTML = `<i class="fas fa-sync-alt fa-spin"></i> Plan modifié ! Synchroniser ?`;
+            syncBtn.onclick = () => { document.getElementById("syncModal").style.display = "flex"; };
+            container.appendChild(syncBtn);
+        }
+
         const sections = parsePlanForDev(content.plan || "");
-        
-        sections.forEach(s => {
+        if (sections.length === 0) {
+            container.innerHTML += `<p style="color:var(--brand); font-size:0.8rem; text-align:center; padding:20px;">
+                <i class="fas fa-info-circle"></i> Validez d'abord un plan pour générer les blocs ici.
+            </p>`;
+            return;
+        }
+
+        sections.forEach(section => {
             const block = document.createElement("div");
             block.className = "dev-block";
+            block.dataset.sectionTitle = section.title; 
+
             block.innerHTML = `
-                <div style="display:flex; justify-content:space-between;">
-                    <strong style="color:var(--brand)">${s.title}</strong>
-                    <button class="generate-sub-btn"><i class="fas fa-robot"></i> IA</button>
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <strong style="font-size:0.8rem; color:var(--brand);">${section.title}</strong>
+                    <button class="generate-sub-btn" style="display: ${isLocked['dev'] ? 'none' : 'block'}">
+                        <i class="fas fa-robot"></i> IA
+                    </button>
                 </div>
-                <textarea class="sub-editor">${content.dev[s.title] || ""}</textarea>`;
+                <textarea class="sub-editor" placeholder="Rédigez cette partie...">${content.dev[section.title] || ""}</textarea>
+            `;
             container.appendChild(block);
-            
-            const txt = block.querySelector("textarea");
-            txt.addEventListener("input", () => {
-                content.dev[s.title] = txt.value;
-                updatePreview();
+
+            const textarea = block.querySelector(".sub-editor");
+            const aiBtn = block.querySelector(".generate-sub-btn");
+
+            // Quand on écrit dans un bloc, ça met à jour la mémoire et la feuille A4
+            textarea.addEventListener("input", () => {
+                content.dev[section.title] = textarea.value;
+                schedulePreviewRefresh(500);
             });
-            block.querySelector("button").onclick = () => handleSubGeneration(s.title, txt);
+
+            if (aiBtn) {
+                aiBtn.addEventListener("click", () => handleSubGeneration(block, textarea, aiBtn));
+            }
         });
     }
 
-    // --- 7. IA & API ---
-    async function handleSubGeneration(title, textarea) {
-        saveToHistory();
-        textarea.value = "⏳ Rédaction en cours...";
-        const prompt = `Développe la partie "${title}" pour l'exposé "${themeInput.value}". Niveau: ${studentClassInput.value}.`;
-        const res = await callAiAPI(prompt);
-        if(res) {
-            textarea.value = res;
-            content.dev[title] = res;
-            updatePreview();
-            saveData();
-        }
+    // --- 13. SYNCHRONISATION INTELLIGENTE DES TITRES ---
+    function updateTitlesOnly() {
+        const newSections = parsePlanForDev(content.plan || "");
+        const oldContentDev = { ...content.dev };
+        const newContentDev = {};
+        const oldTitles = Object.keys(oldContentDev);
+
+        newSections.forEach((section, index) => {
+            const newTitle = section.title;
+            // On essaie de récupérer le texte par le nom exact ou par la position
+            if (oldContentDev[newTitle] !== undefined) {
+                newContentDev[newTitle] = oldContentDev[newTitle];
+            } else if (oldTitles[index] !== undefined) {
+                newContentDev[newTitle] = oldContentDev[oldTitles[index]];
+            } else {
+                newContentDev[newTitle] = "";
+            }
+        });
+
+        content.dev = newContentDev;
+        lastSyncedPlan = content.plan;
+        setupDevBlocks();
+        updatePreview();
+        showNotification("Structure mise à jour ! ✅");
+    }
+    // --- 14. LOGIQUE DE GÉNÉRATION IA ---
+    if (generateBtn) {
+        generateBtn.addEventListener("click", async () => {
+            const theme = themeInput.value.trim();
+            if (!theme) return showNotification("⚠️ Entrez un thème d'abord.");
+
+            saveToHistory();
+            const originalBtnHTML = generateBtn.innerHTML;
+            generateBtn.innerHTML = "<i class='fas fa-spinner fa-spin'></i> Rédaction...";
+            generateBtn.disabled = true;
+
+            const detailInstruction = {
+                "concis": "brève et directe",
+                "standard": "équilibrée et scolaire",
+                "detaille": "très riche et approfondie"
+            }[aiDetailLevel.value];
+
+            let prompt = `Agis comme un expert scolaire. Rédige le/la ${currentStep} pour un exposé sur : "${theme}". 
+                         Niveau : ${studentClassInput.value || 'scolaire'}. Longueur : ${detailInstruction}.`;
+
+            const result = await callAiAPI(prompt);
+            if (result) {
+                content[currentStep] = result;
+                refreshUIFromData();
+                saveData();
+                showNotification("IA : Rédaction terminée ! ✨");
+            }
+            generateBtn.innerHTML = originalBtnHTML;
+            generateBtn.disabled = false;
+        });
     }
 
     async function callAiAPI(prompt) {
         try {
-            // METTRE TON URL VERCEL ICI
-            const response = await fetch("https://ton-projet-vercel.vercel.app", {
+            // On utilise l'URL relative pour pointer vers ton dossier /api/ sur GitHub
+            const response = await fetch(`${window.location.origin}/api/generate`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ prompt })
             });
             const data = await response.json();
             return data.text || null;
-        } catch (e) { return null; }
+        } catch (err) {
+            console.error("Erreur API:", err);
+            return null;
+        }
     }
 
-    // --- 8. EXPORTS & ZOOM ---
+    // --- 15. EXPORT PDF ET WORD ---
+    downloadBtn.addEventListener("click", () => {
+        const sheets = document.querySelectorAll(".preview-sheet");
+        if (sheets.length === 0) return showNotification("L'exposé est vide.");
+
+        const options = {
+            margin: 0,
+            filename: `BuroMaster_${themeInput.value || 'Expose'}.pdf`,
+            html2canvas: { scale: 2 },
+            jsPDF: { unit: "mm", format: "a4", orientation: "portrait" }
+        };
+        html2pdf().set(options).from(pagesContainer).save();
+    });
+
+    function exportToWord() {
+        let contentHtml = "";
+        document.querySelectorAll(".preview-sheet").forEach(s => {
+            contentHtml += s.innerHTML + '<br style="page-break-after: always;">';
+        });
+        const converted = htmlDocx.asBlob(`<!DOCTYPE html><html><body>${contentHtml}</body></html>`);
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(converted);
+        link.download = `BuroMaster_${themeInput.value || 'Expose'}.docx`;
+        link.click();
+    }
+
+    // --- 16. GESTION DU ZOOM ET NOTIFICATIONS ---
     function updateZoomUI() {
-        const wrappers = document.querySelectorAll(".page-wrapper");
         const sheets = document.querySelectorAll(".preview-sheet");
-        wrappers.forEach(w => {
-            w.style.width = `${210 * currentZoom}mm`;
-            w.style.height = `${297 * currentZoom + 10}mm`;
+        sheets.forEach(sheet => {
+            sheet.style.transform = `scale(${currentZoom})`;
+            sheet.style.transformOrigin = "top center";
         });
-        sheets.forEach(s => s.style.transform = `scale(${currentZoom})`);
-        zoomLevelSpan.textContent = `${Math.round(currentZoom * 100)}%`;
+        if (zoomLevelSpan) zoomLevelSpan.textContent = `${Math.round(currentZoom * 100)}%`;
     }
 
-    downloadBtn.onclick = () => {
-        const sheets = document.querySelectorAll(".preview-sheet");
-        const worker = document.createElement("div");
-        sheets.forEach(s => {
-            const clone = s.cloneNode(true);
-            clone.style.transform = "none";
-            worker.appendChild(clone);
-        });
-        html2pdf().set({ margin: 0, filename: 'Expose.pdf', jsPDF: { unit: 'mm', format: 'a4' } }).from(worker).save();
-    };
+    if (zoomInBtn) zoomInBtn.onclick = () => { if (currentZoom < 1.3) { currentZoom += 0.1; updateZoomUI(); } };
+    if (zoomOutBtn) zoomOutBtn.onclick = () => { if (currentZoom > 0.4) { currentZoom -= 0.1; updateZoomUI(); } };
 
-    // --- 9. INITIALISATION ---
-    validateBtn.onclick = () => {
-        isLocked[currentStep] = !isLocked[currentStep];
-        if(isLocked[currentStep]) reachedStepIndex = Math.max(reachedStepIndex, stepsOrder.indexOf(currentStep) + 1);
-        goToStep(currentStep);
-    };
-
-    resetAllBtn.onclick = () => { if(confirm("Tout effacer ?")) { localStorage.clear(); location.reload(); } };
-    zoomInBtn.onclick = () => { if(currentZoom < 1.3) { currentZoom += 0.1; updateZoomUI(); } };
-    zoomOutBtn.onclick = () => { if(currentZoom > 0.4) { currentZoom -= 0.1; updateZoomUI(); } };
-
-    const start = loadData();
-    refreshUIFromData();
-    goToStep(start);
-    
     function showNotification(msg) {
-        const t = document.createElement("div");
-        t.className = "toast-notification";
-        t.textContent = msg;
-        document.body.appendChild(t);
-        setTimeout(() => t.remove(), 3000);
+        const toast = document.createElement("div");
+        toast.className = "toast-notification";
+        toast.textContent = msg;
+        document.body.appendChild(toast);
+        setTimeout(() => toast.remove(), 4000);
     }
 
-    function refreshUIFromData() {
-        updateHeaderUI();
-        updatePreview();
+    // --- 17. INITIALISATION FINALE ---
+    validateBtn.addEventListener("click", () => {
+        isLocked[currentStep] = !isLocked[currentStep];
+        if (isLocked[currentStep]) reachedStepIndex = Math.max(reachedStepIndex, stepsOrder.indexOf(currentStep) + 1);
+        goToStep(currentStep);
+    });
+
+    if (resetAllBtn) {
+        resetAllBtn.onclick = () => {
+            if (confirm("⚠️ Tout effacer ?")) {
+                localStorage.removeItem("buroMaster_premium_save");
+                window.location.reload();
+            }
+        };
     }
-});
+
+    // Lancement
+    const startStep = loadData();
+    goToStep(startStep);
+    refreshUIFromData();
+}); // FIN DU SCRIPT
