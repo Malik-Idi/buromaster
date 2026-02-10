@@ -1,424 +1,431 @@
 document.addEventListener("DOMContentLoaded", function () {
-    // --- 1. SÉLECTION DES ÉLÉMENTS DU DOM ---
-    // On lie le JavaScript aux IDs que nous avons mis dans le nouveau HTML
-    const editor = document.getElementById("editor"); // Notre tampon invisible
-    const themeInput = document.getElementById("theme");
-    const studentClassInput = document.getElementById("studentClass");
-    const pagesContainer = document.getElementById("preview-pages"); // La zone A4
-    const stepTitle = document.getElementById("step-title");
-    const validateBtn = document.getElementById("validateBtn");
-    const nextStepBtn = document.getElementById("nextStepBtn");
-    const generateBtn = document.getElementById("generateBtn");
-    const downloadBtn = document.getElementById("downloadPdf");
-    const autoFormatCheckbox = document.getElementById("autoFormatCheckbox");
-    const resetAllBtn = document.getElementById("resetAllBtn");
-    
-    const stepLinks = {
-        plan: document.getElementById("link-plan"),
-        intro: document.getElementById("link-intro"),
-        dev: document.getElementById("link-dev"),
-        conclu: document.getElementById("link-conclu")
-    };
-    
-    const advancedOptionsBtn = document.getElementById("advancedOptionsBtn");
-    const advancedPanel = document.getElementById("advancedPanel");
-    const fontSelect = document.getElementById("fontSelect");
-    const fontSizeInput = document.getElementById("fontSizeInput");
-    const aiDetailLevel = document.getElementById("aiDetailLevel");
-    const zoomInBtn = document.getElementById("zoomInBtn");
-    const zoomOutBtn = document.getElementById("zoomOutBtn");
-    const zoomLevelSpan = document.getElementById("zoomLevel");
-    const undoBtn = document.getElementById("undoBtn");
-    const redoBtn = document.getElementById("redoBtn");
+    /**
+     * --- 1. SÉLECTION SÉCURISÉE DES ÉLÉMENTS ---
+     * Utilisation d'un helper pour éviter que le script ne s'arrête si un ID manque.
+     */
+    const getEl = (id) => document.getElementById(id);
 
-    // --- 2. ÉTAT DE L'APPLICATION ---
+    const ui = {
+        editor: getEl("editor"),
+        theme: getEl("theme"),
+        studentClass: getEl("studentClass"),
+        pagesContainer: getEl("preview-pages"),
+        stepTitle: getEl("step-title"),
+        validateBtn: getEl("validateBtn"),
+        nextStepBtn: getEl("nextStepBtn"),
+        generateBtn: getEl("generateBtn"),
+        downloadBtn: getEl("downloadPdf"),
+        autoFormatCheckbox: getEl("autoFormatCheckbox"),
+        resetAllBtn: getEl("resetAllBtn"),
+        fontSelect: getEl("fontSelect"),
+        fontSizeInput: getEl("fontSizeInput"),
+        aiDetailLevel: getEl("aiDetailLevel"),
+        zoomInBtn: getEl("zoomInBtn"),
+        zoomOutBtn: getEl("zoomOutBtn"),
+        zoomLevelSpan: getEl("zoomLevel"),
+        undoBtn: getEl("undoBtn"),
+        redoBtn: getEl("redoBtn"),
+        devBlocksContainer: getEl("dev-blocks-container"),
+        advancedPanel: getEl("advancedPanel")
+    };
+
+    /**
+     * --- 2. ÉTAT DE L'APPLICATION (STATE MANAGEMENT) ---
+     */
+    const CONFIG = {
+        STORAGE_KEY: "buroMaster_premium_save",
+        MAX_HISTORY: 30,
+        EXPIRATION_MS: 12 * 60 * 60 * 1000 // 12 heures
+    };
+
     let currentStep = "plan"; 
     const stepsOrder = ["plan", "intro", "dev", "conclu"];
-    let content = { plan: "", intro: "", dev: {}, conclu: "" };
-    let isLocked = { plan: false, intro: false, dev: false, conclu: false };
+    
+    // Objet de données principal
+    let content = { 
+        plan: "", 
+        intro: "", 
+        dev: {}, // Stockage par titres de sections
+        conclu: "" 
+    };
+
+    let isLocked = { 
+        plan: false, 
+        intro: false, 
+        dev: false, 
+        conclu: false 
+    };
+
     let reachedStepIndex = 0;
-    let currentZoom = 0.6; // 60% pour voir la page entière
-    let editorPreviewTimer = null;
+    let currentZoom = 0.6; 
     let lastSyncedPlan = ""; 
+    let historyStack = [];
+    let redoStack = [];
 
-    // --- 3. GESTION DE L'HISTORIQUE (UNDO/REDO) ---
-let historyStack = [];
-let redoStack = [];
+    /**
+     * --- 3. SYSTÈME D'HISTORIQUE ROBUSTE ---
+     * Utilise le clonage profond pour éviter les mutations accidentelles.
+     */
+    function saveToHistory() {
+        try {
+            if (historyStack.length >= CONFIG.MAX_HISTORY) historyStack.shift();
+            
+            // On sauvegarde une copie immuable de l'état actuel
+            historyStack.push(JSON.parse(JSON.stringify({
+                content: content,
+                isLocked: isLocked,
+                reachedStepIndex: reachedStepIndex
+            })));
 
-function saveToHistory() {
-    if (historyStack.length > 25) historyStack.shift();
-
-    // Sauvegarde profonde pour éviter les références
-    const snapshot = JSON.parse(JSON.stringify(content));
-    historyStack.push(snapshot);
-
-    redoStack = [];
-    updateHistoryButtons();
-}
-
-function undo() {
-    if (historyStack.length === 0) return;
-
-    // Sauvegarde actuelle dans redo
-    redoStack.push(JSON.parse(JSON.stringify(content)));
-
-    // Récupère la dernière version
-    content = historyStack.pop();
-
-    // Mise à jour de l'UI
-    refreshUIFromData();
-    updateDevBlocksFromContent(); // synchronise les textarea dev
-    showNotification("Action annulée ↩️");
-}
-
-function redo() {
-    if (redoStack.length === 0) return;
-
-    historyStack.push(JSON.parse(JSON.stringify(content)));
-    content = redoStack.pop();
-
-    refreshUIFromData();
-    updateDevBlocksFromContent(); // synchronise les textarea dev
-    showNotification("Action rétablie ↪️");
-}
-
-function updateHistoryButtons() {
-    if (undoBtn) undoBtn.disabled = historyStack.length === 0;
-    if (redoBtn) redoBtn.disabled = redoStack.length === 0;
-
-    if (undoBtn) undoBtn.style.opacity = undoBtn.disabled ? "0.3" : "1";
-    if (redoBtn) redoBtn.style.opacity = redoBtn.disabled ? "0.3" : "1";
-}
-
-// --- Fonction helper pour remettre les contenus des blocs de développement ---
-function updateDevBlocksFromContent() {
-    if (currentStep !== "dev") return;
-
-    const container = document.getElementById("dev-blocks-container");
-    if (!container) return;
-
-    container.querySelectorAll(".sub-editor").forEach(textarea => {
-        const parent = textarea.closest(".dev-block");
-        if (!parent) return;
-        const title = parent.dataset.sectionTitle;
-        textarea.value = content.dev[title] || "";
-    });
-
-    setupDevBlocks(); // réaffiche les boutons IA correctement
-}
-
-    // --- 4. SAUVEGARDE LOCALE (LOCALSTORAGE) ---
-    // Permet de retrouver son travail après avoir fermé le navigateur
-    function saveData() {
-        const snapshot = {
-            content,
-            isLocked,
-            reachedStepIndex,
-            theme: themeInput.value,
-            studentClass: studentClassInput.value,
-            autoFormat: autoFormatCheckbox.checked,
-            settings: {
-                font: fontSelect.value,
-                fontSize: fontSizeInput.value,
-                aiLevel: aiDetailLevel.value
-            },
-            currentStep,
-            lastUpdate: Date.now()
-        };
-        localStorage.setItem("buroMaster_premium_save", JSON.stringify(snapshot));
+            redoStack = []; // On vide le redo à chaque nouvelle action
+            updateHistoryButtons();
+        } catch (err) {
+            console.error("Erreur historique:", err);
+        }
     }
 
-    // --- 5. FONCTION DE CHARGEMENT ---
+    function undo() {
+        if (historyStack.length === 0) return;
+        
+        // On place l'état actuel dans le redo
+        redoStack.push(JSON.parse(JSON.stringify({
+            content: content,
+            isLocked: isLocked,
+            reachedStepIndex: reachedStepIndex
+        })));
+
+        const previousState = historyStack.pop();
+        content = previousState.content;
+        isLocked = previousState.isLocked;
+        reachedStepIndex = previousState.reachedStepIndex;
+
+        refreshUIFromData();
+        showNotification("Action annulée ↩️");
+    }
+
+    function redo() {
+        if (redoStack.length === 0) return;
+
+        historyStack.push(JSON.parse(JSON.stringify({
+            content: content,
+            isLocked: isLocked,
+            reachedStepIndex: reachedStepIndex
+        })));
+
+        const nextState = redoStack.pop();
+        content = nextState.content;
+        isLocked = nextState.isLocked;
+        reachedStepIndex = nextState.reachedStepIndex;
+
+        refreshUIFromData();
+        showNotification("Action rétablie ↪️");
+    }
+
+    function updateHistoryButtons() {
+        if (ui.undoBtn) {
+            ui.undoBtn.disabled = historyStack.length === 0;
+            ui.undoBtn.style.opacity = ui.undoBtn.disabled ? "0.4" : "1";
+            ui.undoBtn.style.cursor = ui.undoBtn.disabled ? "not-allowed" : "pointer";
+        }
+        if (ui.redoBtn) {
+            ui.redoBtn.disabled = redoStack.length === 0;
+            ui.redoBtn.style.opacity = ui.redoBtn.disabled ? "0.4" : "1";
+            ui.redoBtn.style.cursor = ui.redoBtn.disabled ? "not-allowed" : "pointer";
+        }
+    }
+
+    /**
+     * --- 4. PERSISTANCE DES DONNÉES (LOCALSTORAGE) ---
+     */
+    function saveData() {
+        try {
+            const snapshot = {
+                content,
+                isLocked,
+                reachedStepIndex,
+                theme: ui.theme ? ui.theme.value : "",
+                studentClass: ui.studentClass ? ui.studentClass.value : "",
+                autoFormat: ui.autoFormatCheckbox ? ui.autoFormatCheckbox.checked : true,
+                settings: {
+                    font: ui.fontSelect ? ui.fontSelect.value : "'Times New Roman', serif",
+                    fontSize: ui.fontSizeInput ? ui.fontSizeInput.value : "12",
+                    aiLevel: ui.aiDetailLevel ? ui.aiDetailLevel.value : "standard"
+                },
+                currentStep,
+                lastUpdate: Date.now()
+            };
+            localStorage.setItem(CONFIG.STORAGE_KEY, JSON.stringify(snapshot));
+        } catch (e) {
+            console.warn("Échec de la sauvegarde locale :", e);
+        }
+    }
+
+    /**
+     * --- 5. CHARGEMENT ET VÉRIFICATION D'INTEGRITÉ ---
+     */
     function loadData() {
         try {
-            const saved = localStorage.getItem("buroMaster_premium_save");
-            if (saved) {
-                const data = JSON.parse(saved);
-                
-                // Sécurité BuroMaster : Nettoyage après 12h pour ne pas encombrer le navigateur
-                const douzeHeuresEnMs = 12 * 60 * 60 * 1000;
-                const tempsEcoule = Date.now() - (data.lastUpdate || 0);
+            const saved = localStorage.getItem(CONFIG.STORAGE_KEY);
+            if (!saved) return "plan";
 
-                if (tempsEcoule > douzeHeuresEnMs) {
-                    localStorage.removeItem("buroMaster_premium_save");
-                    return "plan"; 
-                }
+            const data = JSON.parse(saved);
+            const isExpired = (Date.now() - (data.lastUpdate || 0)) > CONFIG.EXPIRATION_MS;
 
-                content = data.content || content;
-                isLocked = data.isLocked || isLocked;
-                reachedStepIndex = data.reachedStepIndex || 0;
-                if (themeInput) themeInput.value = data.theme || "";
-                if (studentClassInput) studentClassInput.value = data.studentClass || "";
-                
-                if (data.settings) {
-                    fontSelect.value = data.settings.font || "'Times New Roman', serif";
-                    fontSizeInput.value = data.settings.fontSize || "12";
-                    aiDetailLevel.value = data.settings.aiLevel || "standard";
-                }
-                autoFormatCheckbox.checked = (data.autoFormat !== undefined) ? data.autoFormat : true;
-                return data.currentStep || "plan";
+            if (isExpired) {
+                localStorage.removeItem(CONFIG.STORAGE_KEY);
+                return "plan";
             }
+
+            // Restauration intelligente des données
+            content = data.content || content;
+            isLocked = data.isLocked || isLocked;
+            reachedStepIndex = data.reachedStepIndex || 0;
+            
+            if (ui.theme) ui.theme.value = data.theme || "";
+            if (ui.studentClass) ui.studentClass.value = data.studentClass || "";
+            if (data.settings) {
+                if (ui.fontSelect) ui.fontSelect.value = data.settings.font;
+                if (ui.fontSizeInput) ui.fontSizeInput.value = data.settings.fontSize;
+                if (ui.aiDetailLevel) ui.aiDetailLevel.value = data.settings.aiLevel;
+            }
+            if (ui.autoFormatCheckbox) ui.autoFormatCheckbox.checked = !!data.autoFormat;
+            
+            return data.currentStep || "plan";
         } catch (e) {
-            console.error("Erreur de chargement :", e);
+            console.error("Erreur lors du chargement des données :", e);
+            return "plan";
         }
-        return "plan";
     }
 
-    // --- 6. MISE À JOUR DE L'INTERFACE (REFRESH UI) ---
+    /**
+     * --- 6. SYNCHRONISATION UI/DONNÉES ---
+     */
     function refreshUIFromData() {
+        // Bloque le rendu si on est en train de charger
         if (currentStep === "dev") {
-            setupDevBlocks(); 
+            if (typeof setupDevBlocks === "function") setupDevBlocks(); 
         } else {
-            // On met à jour notre tampon invisible
-            editor.value = content[currentStep] || "";
+            if (ui.editor) ui.editor.value = content[currentStep] || "";
         }
-        updatePreview(); 
+        
+        // Met à jour la prévisualisation A4
+        if (typeof updatePreview === "function") updatePreview();
+        
         updateHistoryButtons();
+        updateHeaderUI(); // Sera défini dans la partie suivante
     }
-
-    // --- 7. NAVIGATION ENTRE LES ÉTAPES ---
+    
+    /**
+     * --- 7. NAVIGATION ENTRE LES ÉTAPES ---
+     * Gère le passage d'une section à l'autre avec validation de l'état.
+     */
     function goToStep(step) {
-        clearTimeout(editorPreviewTimer);
+        if (!stepsOrder.includes(step)) return;
 
-        // Sauvegarde du texte actuel avant de changer
-        if (currentStep !== "dev") {
-            content[currentStep] = editor.value;
+        // 1. Sauvegarde l'état actuel du texte (si pas en mode dev)
+        if (currentStep !== "dev" && ui.editor) {
+            content[currentStep] = ui.editor.value;
         }
 
         currentStep = step;
 
-        const stepNames = { plan: "Plan", intro: "Introduction", dev: "Développement", conclu: "Conclusion" };
-        stepTitle.textContent = "Édition : " + (stepNames[step] || step);
+        // 2. Mise à jour des titres et indicateurs
+        const stepNames = { plan: "Sommaire", intro: "Introduction", dev: "Développement", conclu: "Conclusion" };
+        if (ui.stepTitle) {
+            ui.stepTitle.textContent = `Édition : ${stepNames[step]}`;
+        }
         
         const locked = isLocked[step];
 
-        let previewTimer = null;
-
-        function schedulePreviewRefresh(delay = 300) {
-            clearTimeout(previewTimer);
-            previewTimer = setTimeout(updatePreview, delay);
+        // 3. Configuration des boutons d'action
+        if (ui.validateBtn) {
+            ui.validateBtn.textContent = locked ? "Modifier cette étape" : "Valider cette étape";
+            ui.validateBtn.style.backgroundColor = locked ? "#f59e0b" : "#10b981";
         }
 
-        // LOGIQUE ÉDITION DIRECTE : 
-        // On prépare la feuille A4 pour être éditable ou non selon le verrouillage
-        updatePreview(); 
-
-        // Configuration des boutons de la barre latérale
-        validateBtn.textContent = locked ? "Modifier cette étape" : "Valider cette étape";
-        validateBtn.style.background = locked ? "#f59e0b" : "#10b981"; // Orange vs Vert
-
-        // Gestion du bouton "Suivant" ou "Exporter Word"
-        if (step === "conclu" && locked) {
-            nextStepBtn.textContent = "Exporter en Word (.doc)";
-            nextStepBtn.style.display = "block";
-            nextStepBtn.classList.add("is-word-btn");
-        } else {
-            nextStepBtn.classList.remove("is-word-btn");
+        // 4. Logique du bouton Suivant / Export
+        if (ui.nextStepBtn) {
             const currentIndex = stepsOrder.indexOf(step);
-            const hasNext = currentIndex < stepsOrder.length - 1;
-            
-            if (locked && hasNext) {
-                nextStepBtn.style.display = "block";
-                nextStepBtn.textContent = "Étape Suivante";
+            if (step === "conclu" && locked) {
+                ui.nextStepBtn.textContent = "Exporter en Word (.doc)";
+                ui.nextStepBtn.style.display = "block";
+                ui.nextStepBtn.onclick = () => { if(typeof exportToWord === "function") exportToWord(); };
+            } else if (locked && currentIndex < stepsOrder.length - 1) {
+                ui.nextStepBtn.textContent = "Étape Suivante";
+                ui.nextStepBtn.style.display = "block";
+                ui.nextStepBtn.onclick = () => goToStep(stepsOrder[currentIndex + 1]);
             } else {
-                nextStepBtn.style.display = "none";
+                ui.nextStepBtn.style.display = "none";
             }
         }
 
-        // Le bouton IA ne s'affiche que si l'étape n'est pas verrouillée
-        generateBtn.style.display = (!locked && step !== "dev") ? "block" : "none";
-
-        // Bascule entre les blocs de développement (Étape 3) et le reste
-        if (step === "dev") {
-            document.getElementById("dev-blocks-container").style.display = "block";
-            setupDevBlocks(); 
-        } else {
-            document.getElementById("dev-blocks-container").style.display = "none";
+        // 5. Affichage des panneaux (Éditeur classique vs Blocs Dev)
+        if (ui.generateBtn) ui.generateBtn.style.display = (!locked && step !== "dev") ? "block" : "none";
+        if (ui.devBlocksContainer) {
+            ui.devBlocksContainer.style.display = (step === "dev") ? "block" : "none";
+        }
+        if (ui.editor) {
+            ui.editor.style.display = (step === "dev") ? "none" : "block";
         }
 
-        updateHeaderUI(); 
+        // 6. Rafraîchissement complet
+        refreshUIFromData();
         saveData(); 
-        }
+    }
 
-    function updateHeaderUI() {
-        document.querySelectorAll(".step-link").forEach((link, index) => {
-            const stepName = stepsOrder[index];
-            link.classList.remove("active", "unlocked");
-            
-            const labels = { plan: "Plan", intro: "Intro", dev: "Corps", conclu: "Fin" };
-            let text = labels[stepName];
-            
-            // Icône de cadenas dynamique
-            if (isLocked[stepName]) {
-                link.innerHTML = `<i class="fas fa-lock" style="font-size:0.7rem"></i> ${text}`;
-            } else {
-                link.innerHTML = text;
-            }
-
-            if (stepName === currentStep) {
-                link.classList.add("active");
-            } else if (index <= reachedStepIndex) {
-                link.classList.add("unlocked");
-            }
-        });
-    }     
-
-    // --- 8. MOTEUR DE RENDU (DESSIN ET ÉDITION DIRECTE) ---
+    /**
+     * --- 8. MOTEUR DE RENDU (PRÉVISUALISATION A4) ---
+     * Transforme les données textuelles en pages physiques.
+     */
     function updatePreview() {
-        if (!pagesContainer) return;
-        pagesContainer.innerHTML = ""; 
+        if (!ui.pagesContainer) return;
+        
+        // On vide proprement le conteneur
+        ui.pagesContainer.innerHTML = ""; 
         let pageNum = 1;
 
-        // On boucle sur les étapes pour construire l'aperçu complet
-        // 1. Sommaire, 2. Intro, 3. Développement, 4. Conclusion
-        
-        // --- LOGIQUE ÉDITION DIRECTE ---
-        // On crée la première page pour l'étape actuelle
-        let currentPageObj = createNewPage(pageNum, pagesContainer);
-        
-        // On rend la zone éditable seulement si l'étape n'est pas verrouillée
-        const contentArea = currentPageObj.content;
+        // Création de la première page
+        let currentFullPage = createNewPage(pageNum, ui.pagesContainer);
         const locked = isLocked[currentStep];
+
+        // Configuration de la zone éditable
+        const contentArea = currentFullPage.content;
         contentArea.contentEditable = !locked;
         contentArea.style.cursor = locked ? "not-allowed" : "text";
-        contentArea.style.color = locked ? "#64748b" : "black";
 
-        // On dessine le contenu de l'étape actuelle sur les pages
         if (currentStep !== "dev") {
-            const titleNames = { plan: "SOMMAIRE", intro: "INTRODUCTION", conclu: "CONCLUSION" };
-            renderSection(titleNames[currentStep], content[currentStep], currentPageObj.content, () => { 
-                pageNum++; 
-                currentPageObj = createNewPage(pageNum, pagesContainer);
-                currentPageObj.content.contentEditable = !locked;
-                return currentPageObj.content;
+            const titles = { plan: "SOMMAIRE", intro: "INTRODUCTION", conclu: "CONCLUSION" };
+            renderTextToPages(titles[currentStep], content[currentStep], currentFullPage, (nextNum) => {
+                return createNewPage(nextNum, ui.pagesContainer);
             });
         } else {
-            // Cas spécial pour le Développement (multi-blocs)
-            renderDevOnA4(pagesContainer, pageNum, locked);
+            // Appel de la fonction de rendu spécifique au développement
+            if (typeof renderDevOnA4 === "function") {
+                renderDevOnA4(ui.pagesContainer, pageNum, locked);
+            }
         }
 
-        updateZoomUI();
+        if (typeof updateZoomUI === "function") updateZoomUI();
     }
 
-    // --- 9. DESSIN DES SECTIONS ET DÉTECTION DÉBORDEMENT ---
-    function renderSection(title, text, pageElement, onBreak) {
-        const isAutoFormat = autoFormatCheckbox.checked;
-        const selectedFont = fontSelect.value;
-        const selectedSize = fontSizeInput.value + "px";
-        const limitHeight = 910; // Limite de hauteur en pixels pour un A4 (environ 297mm)
+    /**
+     * --- 9. LOGIQUE DE DÉBORDEMENT (PAGE BREAK) ---
+     * Découpe le texte intelligemment pour éviter que ça ne dépasse de la feuille.
+     */
+    function renderTextToPages(title, text, pageObj, onPageBreak) {
+        const font = ui.fontSelect ? ui.fontSelect.value : "serif";
+        const size = (ui.fontSizeInput ? ui.fontSizeInput.value : "12") + "px";
+        const maxHeight = 940; // Hauteur maximale du contenu dans une page A4 (en px)
 
         if (title) {
-            const t = document.createElement("div");
-            t.className = "page-header"; // Utilise le style élégant défini en CSS
-            t.style.fontFamily = selectedFont;
-            t.textContent = title;
-            pageElement.parentNode.insertBefore(t, pageElement); // Place le titre en haut de page
+            const header = document.createElement("div");
+            header.className = "page-header-title";
+            header.style.fontFamily = font;
+            header.textContent = title;
+            pageObj.content.appendChild(header);
         }
 
-        if (!text) return pageElement;
+        if (!text) return;
 
         const paragraphs = text.split("\n");
-        for (let p = 0; p < paragraphs.length; p++) {
-            const paragraphText = paragraphs[p];
-            let div = document.createElement("div");
-            div.style.fontFamily = selectedFont;
-            div.style.fontSize = selectedSize;
-            div.className = "text-style";
+        let currentPageArea = pageObj.content;
+        let currentPageNum = 1;
 
-            // Formatage IA automatique pendant le rendu
-            if (isAutoFormat) {
-                if (/^([IVX]+|[0-9]+)\s*[\.\-\)]/.test(paragraphText)) {
-                    div.style.fontWeight = "bold";
-                    div.style.color = "var(--brand-dark)";
-                } else if (/^([A-Z]|[a-z])\s*[\.\-\)]/.test(paragraphText)) {
-                    div.style.marginLeft = "20px";
-                }
-            }
+        paragraphs.forEach(paraText => {
+            if (!paraText.trim() && paraText !== "") return;
 
-            pageElement.appendChild(div);
+            const pDiv = document.createElement("div");
+            pDiv.className = "text-paragraph";
+            pDiv.style.fontFamily = font;
+            pDiv.style.fontSize = size;
+            currentPageArea.appendChild(pDiv);
 
-            // Découpage par mots pour gérer le saut de page
-            const words = paragraphText.split(" ");
-            words.forEach((word, w) => {
-                const prev = div.textContent;
-                div.textContent += (w === 0 ? "" : " ") + word;
+            const words = paraText.split(" ");
+            words.forEach(word => {
+                const testText = pDiv.textContent;
+                pDiv.textContent += (pDiv.textContent ? " " : "") + word;
 
-                if (pageElement.scrollHeight > limitHeight) {
-                    div.textContent = prev; // On retire le mot qui déborde
-                    pageElement = onBreak(); // On change de page
-                    let newDiv = document.createElement("div");
-                    newDiv.style.fontFamily = selectedFont;
-                    newDiv.style.fontSize = selectedSize;
-                    newDiv.className = div.className;
-                    pageElement.appendChild(newDiv);
-                    div = newDiv;
-                    div.textContent = word;
+                // Si le paragraphe dépasse la hauteur de la page
+                if (currentPageArea.scrollHeight > maxHeight) {
+                    pDiv.textContent = testText; // On retire le mot
+                    currentPageNum++;
+                    const newPage = onPageBreak(currentPageNum);
+                    currentPageArea = newPage.content;
+                    
+                    // On crée un nouveau paragraphe sur la nouvelle page pour la suite
+                    const newP = document.createElement("div");
+                    newP.className = "text-paragraph";
+                    newP.style.fontFamily = font;
+                    newP.style.fontSize = size;
+                    newP.textContent = word;
+                    currentPageArea.appendChild(newP);
                 }
             });
-        }
-        return pageElement;
+        });
     }
 
-    // --- 10. CRÉATION PHYSIQUE DES PAGES A4 ---
-let typingTimer; // Timer pour le debounce
+    /**
+     * --- 10. CRÉATION PHYSIQUE DE LA PAGE ---
+     * Structure HTML d'une feuille A4.
+     */
+    function createNewPage(num, container) {
+        const wrapper = document.createElement("div");
+        wrapper.className = "page-wrapper";
+        wrapper.innerHTML = `
+            <div class="preview-sheet">
+                <div class="page-content"></div>
+                <div class="page-footer">BuroMaster | Page ${num}</div>
+            </div>`;
 
-function createNewPage(num, container) {
-    const wrapper = document.createElement("div");
-    wrapper.className = "page-wrapper";
-    wrapper.innerHTML = `
-        <div class="preview-sheet">
-            <div class="page-content"></div>
-            <div class="page-footer">BuroMaster | Page ${num}</div>
-        </div>`;
+        const contentArea = wrapper.querySelector(".page-content");
 
-    const contentArea = wrapper.querySelector(".page-content");
+        // Écouteur d'édition directe avec protection (Debounce)
+        contentArea.addEventListener("input", () => {
+            if (currentStep === "dev" || isLocked[currentStep]) return;
+            
+            // Mise à jour de la donnée source
+            content[currentStep] = contentArea.innerText;
+            
+            // On attend que l'utilisateur arrête de taper pour recalculer les pages
+            clearTimeout(editorPreviewTimer);
+            editorPreviewTimer = setTimeout(() => {
+                if (contentArea.scrollHeight > 940) {
+                    updatePreview();
+                }
+                saveData();
+            }, 1000);
+        });
 
-    contentArea.addEventListener("input", () => {
-        if (currentStep === "dev") return;
+        container.appendChild(wrapper);
+        return { wrapper, content: contentArea };
+    }
 
-        content[currentStep] = contentArea.innerText;
-        saveData();
-
-        clearTimeout(typingTimer);
-        typingTimer = setTimeout(() => {
-            if (contentArea.scrollHeight > 920) {
-                // Sauvegarde du scroll actuel **en prenant en compte le zoom**
-                const scrollRatio = container.scrollTop / container.scrollHeight;
-
-                updatePreview();
-
-                // Restoration du scroll après mise à jour
-                requestAnimationFrame(() => {
-                    container.scrollTop = scrollRatio * container.scrollHeight;
-                });
-
-                showNotification("Nouvelle page créée 📄");
-            }
-        }, 1500);
-    });
-
-    container.appendChild(wrapper);
-    updateZoomUI(); // applique le zoom à la nouvelle page
-    return { wrapper, content: contentArea };
-}
-
-    // --- 11. ANALYSEUR DE PLAN (EXTRACTION DES TITRES) ---
-    // Cette fonction transforme ton texte de plan en une liste d'objets utilisables
+      /**
+     * --- 11. ANALYSEUR DE PLAN ROBUSTE ---
+     * Transforme le texte brut du sommaire en structure hiérarchique.
+     */
     function parsePlanForDev(planText) {
+        if (!planText || typeof planText !== "string") return [];
+        
         const sections = [];
         const lines = planText.split('\n');
         let currentSection = null;
 
-        // Expressions régulières pour détecter les formats (I., A., 1., etc.)
-        const sectionRegex = /^([IVX]+|[0-9]+)\s*[\.\-\)]\s+/;
-        const subpartRegex = /^([A-Z]|[a-z])\s*[\.\-\)]\s+/;
+        // Regex améliorées pour détecter : I. Titre, 1. Titre, A) Titre
+        const sectionRegex = /^([IVX]+|[0-9]+)\s*[\.\-\)]\s*(.+)/i;
+        const subpartRegex = /^([A-Z]|[a-z])\s*[\.\-\)]\s*(.+)/i;
 
         lines.forEach(line => {
             const cleanLine = line.trim();
-            if (!cleanLine || /^(introduction|conclusion)$/i.test(cleanLine)) return; 
+            if (!cleanLine || /^(introduction|conclusion|sommaire)/i.test(cleanLine)) return; 
 
-            if (sectionRegex.test(cleanLine)) {
-                currentSection = { title: cleanLine, subparts: [] };
+            const sectionMatch = cleanLine.match(sectionRegex);
+            if (sectionMatch) {
+                currentSection = { 
+                    fullTitle: cleanLine, 
+                    titleOnly: sectionMatch[2].trim(),
+                    subparts: [] 
+                };
                 sections.push(currentSection);
             } else if (subpartRegex.test(cleanLine) && currentSection) {
                 currentSection.subparts.push(cleanLine);
@@ -427,232 +434,338 @@ function createNewPage(num, container) {
         return sections;
     }
 
-    // --- 12. GESTION DES BLOCS DE DÉVELOPPEMENT (À GAUCHE) ---
+    /**
+     * --- 12. GESTION DES BLOCS DE RÉDACTION (PANNEAU GAUCHE) ---
+     */
     function setupDevBlocks() {
-        const container = document.getElementById("dev-blocks-container");
-        if (!container) return;
-        container.innerHTML = "";
-
-        // Bouton de synchronisation si le plan a changé
-const planHasChanged = (content.plan.trim() !== lastSyncedPlan.trim());
-if (planHasChanged && lastSyncedPlan !== "") {
-    const syncBtn = document.createElement("button");
-    syncBtn.className = "ai-generate-btn"; // Même style que le bouton IA
-    syncBtn.style.background = "var(--success)";
-    syncBtn.innerHTML = `<i class="fas fa-sync-alt fa-spin"></i> Plan modifié ! Synchroniser ?`;
-    container.appendChild(syncBtn);
-
-    syncBtn.addEventListener("click", () => {
-        const modal = document.getElementById("syncModal");
-        if (!modal) return;
-
-        modal.style.display = "flex";
-
-        // Boutons internes du modal
-        const btnTitles = document.getElementById("btnSyncTitles");
-        const btnAll = document.getElementById("btnSyncAll");
-        const btnCancel = document.getElementById("btnCancelSync");
-
-        if (btnTitles) btnTitles.onclick = () => {
-            updateTitlesOnly();   // garde les textes existants
-            modal.style.display = "none";
-            lastSyncedPlan = content.plan; // mise à jour du plan synchronisé
-            showNotification("Titres synchronisés ✅");
-        };
-
-        if (btnAll) btnAll.onclick = () => {
-            content.dev = {}; // réinitialise tous les blocs
-            lastSyncedPlan = content.plan;
-            setupDevBlocks();
-            updatePreview();
-            modal.style.display = "none";
-            showNotification("Tout réinitialisé et synchronisé ✅");
-        };
-
-        if (btnCancel) btnCancel.onclick = () => {
-            modal.style.display = "none";
-            showNotification("Action annulée ❌");
-        };
-    });
-}
+        if (!ui.devBlocksContainer) return;
+        ui.devBlocksContainer.innerHTML = "";
 
         const sections = parsePlanForDev(content.plan || "");
+        
+        // 1. Vérification de cohérence entre le Plan et le Développement
+        const planHasChanged = (content.plan.trim() !== lastSyncedPlan.trim());
+        if (planHasChanged && lastSyncedPlan !== "" && !isLocked["dev"]) {
+            renderSyncAlert(ui.devBlocksContainer);
+        }
+
         if (sections.length === 0) {
-            container.innerHTML += `<p style="color:var(--brand); font-size:0.8rem; text-align:center; padding:20px;">
-                <i class="fas fa-info-circle"></i> Validez d'abord un plan pour générer les blocs ici.
-            </p>`;
+            ui.devBlocksContainer.innerHTML = `
+                <div class="empty-state-alert">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <p>Aucune section détectée dans votre plan. <br>Format requis : "I. Titre"</p>
+                </div>`;
             return;
         }
 
+        // 2. Création des Textareas pour chaque section du plan
         sections.forEach(section => {
             const block = document.createElement("div");
-            block.className = "dev-block";
-            block.dataset.sectionTitle = section.title; 
+            block.className = "dev-block-item";
+            
+            const savedValue = content.dev[section.fullTitle] || "";
 
             block.innerHTML = `
-                <div style="display:flex; justify-content:space-between; align-items:center;">
-                    <strong style="font-size:0.8rem; color:var(--brand);">${section.title}</strong>
-                    <button class="generate-sub-btn" style="display: ${isLocked['dev'] ? 'none' : 'block'}">
-                        <i class="fas fa-robot"></i> IA
+                <div class="dev-block-header">
+                    <span class="section-badge">${section.fullTitle}</span>
+                    <button class="ai-mini-gen" data-section="${section.fullTitle}" 
+                            style="display: ${isLocked['dev'] ? 'none' : 'flex'}">
+                        <i class="fas fa-magic"></i> IA
                     </button>
                 </div>
-                <textarea class="sub-editor" placeholder="Rédigez cette partie...">${content.dev[section.title] || ""}</textarea>
+                <textarea class="dev-textarea" 
+                          placeholder="Développez la partie : ${section.titleOnly}..."
+                          ${isLocked['dev'] ? 'disabled' : ''}>${savedValue}</textarea>
             `;
-            container.appendChild(block);
 
-            const textarea = block.querySelector(".sub-editor");
-            const aiBtn = block.querySelector(".generate-sub-btn");
+            ui.devBlocksContainer.appendChild(block);
 
-            // Quand on écrit dans un bloc, ça met à jour la mémoire et la feuille A4
+            const textarea = block.querySelector(".dev-textarea");
             textarea.addEventListener("input", () => {
-                content.dev[section.title] = textarea.value;
-                schedulePreviewRefresh(500);
+                content.dev[section.fullTitle] = textarea.value;
+                schedulePreviewRefresh(800); // Rendu asynchrone pour fluidité
             });
 
+            const aiBtn = block.querySelector(".ai-mini-gen");
             if (aiBtn) {
-                aiBtn.addEventListener("click", () => handleSubGeneration(block, textarea, aiBtn));
+                aiBtn.onclick = () => handleSubGeneration(section.fullTitle, textarea, aiBtn);
             }
         });
     }
 
-    // --- 13. SYNCHRONISATION INTELLIGENTE DES TITRES ---
-    function updateTitlesOnly() {
-        const newSections = parsePlanForDev(content.plan || "");
-        const oldContentDev = { ...content.dev };
-        const newContentDev = {};
-        const oldTitles = Object.keys(oldContentDev);
+    /**
+     * --- 13. MOTEUR DE RENDU SPÉCIFIQUE AU DÉVELOPPEMENT ---
+     * Cette fonction répare l'erreur de "page blanche" en dessinant les blocs.
+     */
+    function renderDevOnA4(container, startPageNum, locked) {
+        let currentPageNum = startPageNum;
+        let currentFullPage = createNewPage(currentPageNum, container);
+        const font = ui.fontSelect ? ui.fontSelect.value : "serif";
+        const size = (ui.fontSizeInput ? ui.fontSizeInput.value : "12") + "px";
+        const maxHeight = 930;
 
-        newSections.forEach((section, index) => {
-            const newTitle = section.title;
-            // On essaie de récupérer le texte par le nom exact ou par la position
-            if (oldContentDev[newTitle] !== undefined) {
-                newContentDev[newTitle] = oldContentDev[newTitle];
-            } else if (oldTitles[index] !== undefined) {
-                newContentDev[newTitle] = oldContentDev[oldTitles[index]];
-            } else {
-                newContentDev[newTitle] = "";
+        const sections = parsePlanForDev(content.plan || "");
+        
+        sections.forEach((section) => {
+            const textContent = content.dev[section.fullTitle] || "";
+            
+            // 1. Rendu du Titre de Section
+            const h2 = document.createElement("h2");
+            h2.className = "a4-section-title";
+            h2.style.fontFamily = font;
+            h2.textContent = section.fullTitle;
+            currentFullPage.content.appendChild(h2);
+
+            // 2. Rendu du contenu textuel avec gestion des sauts de page
+            if (textContent) {
+                const paragraphs = textContent.split("\n");
+                paragraphs.forEach(para => {
+                    const p = document.createElement("p");
+                    p.className = "a4-paragraph";
+                    p.style.fontFamily = font;
+                    p.style.fontSize = size;
+                    currentFullPage.content.appendChild(p);
+
+                    const words = para.split(" ");
+                    words.forEach(word => {
+                        const oldText = p.textContent;
+                        p.textContent += (p.textContent ? " " : "") + word;
+
+                        if (currentFullPage.content.scrollHeight > maxHeight) {
+                            p.textContent = oldText;
+                            currentPageNum++;
+                            currentFullPage = createNewPage(currentPageNum, container);
+                            
+                            // Nouveau paragraphe sur nouvelle page
+                            const newP = document.createElement("p");
+                            newP.className = "a4-paragraph";
+                            newP.style.fontFamily = font;
+                            newP.style.fontSize = size;
+                            newP.textContent = word;
+                            currentFullPage.content.appendChild(newP);
+                        }
+                    });
+                });
             }
         });
-
-        content.dev = newContentDev;
-        lastSyncedPlan = content.plan;
-        setupDevBlocks();
-        updatePreview();
-        showNotification("Structure mise à jour ! ✅");
     }
-    // --- 14. LOGIQUE DE GÉNÉRATION IA ---
-    if (generateBtn) {
-        generateBtn.addEventListener("click", async () => {
-            const theme = themeInput.value.trim();
-            if (!theme) return showNotification("⚠️ Entrez un thème d'abord.");
 
+    /**
+     * --- HELPER : ALERTE SYNCHRONISATION ---
+     */
+    function renderSyncAlert(container) {
+        const alertDiv = document.createElement("div");
+        alertDiv.className = "sync-warning-banner";
+        alertDiv.innerHTML = `
+            <span><i class="fas fa-sync"></i> Le plan a changé !</span>
+            <button id="btnForceSync">Synchroniser les blocs</button>
+        `;
+        container.prepend(alertDiv);
+        
+        const btn = alertDiv.querySelector("#btnForceSync");
+        btn.onclick = () => {
+            if (typeof updateTitlesOnly === "function") updateTitlesOnly();
+        };
+    }
+
+       /**
+     * --- 14. LOGIQUE DE GÉNÉRATION IA (SÉCURISÉE) ---
+     * Gère les appels API avec gestion d'erreurs et feedback visuel.
+     */
+    if (ui.generateBtn) {
+        ui.generateBtn.addEventListener("click", async () => {
+            const theme = ui.theme ? ui.theme.value.trim() : "";
+            if (!theme) return showNotification("⚠️ Veuillez entrer un thème avant de solliciter l'IA.");
+
+            // Sauvegarde l'état actuel avant modification par l'IA
             saveToHistory();
-            const originalBtnHTML = generateBtn.innerHTML;
-            generateBtn.innerHTML = "<i class='fas fa-spinner fa-spin'></i> Rédaction...";
-            generateBtn.disabled = true;
 
+            const originalHTML = ui.generateBtn.innerHTML;
+            ui.generateBtn.innerHTML = "<i class='fas fa-spinner fa-spin'></i> Rédaction en cours...";
+            ui.generateBtn.disabled = true;
+
+            const detailLevel = ui.aiDetailLevel ? ui.aiDetailLevel.value : "standard";
             const detailInstruction = {
                 "concis": "brève et directe",
-                "standard": "équilibrée et scolaire",
-                "detaille": "très riche et approfondie"
-            }[aiDetailLevel.value];
+                "standard": "équilibrée et structurée",
+                "detaille": "riche, approfondie et détaillée"
+            }[detailLevel] || "standard";
 
-            let prompt = `Agis comme un expert scolaire. Rédige le/la ${currentStep} pour un exposé sur : "${theme}". 
-                         Niveau : ${studentClassInput.value || 'scolaire'}. Longueur : ${detailInstruction}.`;
+            const prompt = `Agis en tant qu'expert académique. Rédige la section '${currentStep}' 
+                           pour un exposé sur le thème : "${theme}". 
+                           Public cible : Classe de ${ui.studentClass ? ui.studentClass.value : 'Scolaire'}. 
+                           Style de rédaction : ${detailInstruction}. 
+                           Réponds uniquement avec le contenu textuel, sans commentaires superflus.`;
 
-            const result = await callAiAPI(prompt);
-            if (result) {
-                content[currentStep] = result;
-                refreshUIFromData();
-                saveData();
-                showNotification("IA : Rédaction terminée ! ✨");
+            try {
+                const result = await callAiAPI(prompt);
+                if (result) {
+                    content[currentStep] = result;
+                    if (ui.editor && currentStep !== "dev") ui.editor.value = result;
+                    refreshUIFromData();
+                    saveData();
+                    showNotification("Rédaction IA terminée avec succès ! ✨");
+                } else {
+                    showNotification("❌ L'IA n'a pas pu répondre. Vérifiez votre connexion.");
+                }
+            } catch (err) {
+                console.error("Erreur critique IA:", err);
+                showNotification("❌ Erreur technique lors de la génération.");
+            } finally {
+                ui.generateBtn.innerHTML = originalHTML;
+                ui.generateBtn.disabled = false;
             }
-            generateBtn.innerHTML = originalBtnHTML;
-            generateBtn.disabled = false;
         });
     }
 
+    /**
+     * --- 15. COMMUNICATION API ---
+     * Sécurisé contre les erreurs de réseau.
+     */
     async function callAiAPI(prompt) {
         try {
-            // On utilise l'URL relative pour pointer vers ton dossier /api/ sur GitHub
+            // Utilisation d'un Timeout pour éviter les requêtes infinies
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 30000); // 30s max
+
             const response = await fetch(`${window.location.origin}/api/generate`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ prompt })
+                body: JSON.stringify({ prompt }),
+                signal: controller.signal
             });
+
+            clearTimeout(timeoutId);
+
+            if (!response.ok) throw new Error(`Erreur HTTP: ${response.status}`);
             const data = await response.json();
             return data.text || null;
         } catch (err) {
-            console.error("Erreur API:", err);
+            if (err.name === 'AbortError') console.error("Requête IA expirée.");
+            else console.error("Erreur API:", err);
             return null;
         }
     }
 
-    // --- 15. EXPORT PDF ET WORD ---
-    downloadBtn.addEventListener("click", () => {
-        const sheets = document.querySelectorAll(".preview-sheet");
-        if (sheets.length === 0) return showNotification("L'exposé est vide.");
+    /**
+     * --- 16. EXPORTS PDF & WORD (HAUTE FIDÉLITÉ) ---
+     */
+    if (ui.downloadBtn) {
+        ui.downloadBtn.addEventListener("click", () => {
+            const sheets = document.querySelectorAll(".preview-sheet");
+            if (sheets.length === 0) return showNotification("L'exposé est vide.");
 
-        const options = {
-            margin: 0,
-            filename: `BuroMaster_${themeInput.value || 'Expose'}.pdf`,
-            html2canvas: { scale: 2 },
-            jsPDF: { unit: "mm", format: "a4", orientation: "portrait" }
-        };
-        html2pdf().set(options).from(pagesContainer).save();
-    });
+            // Vérification de la présence de la librairie html2pdf
+            if (typeof html2pdf === "undefined") {
+                return showNotification("❌ Librairie PDF manquante. Vérifiez votre connexion.");
+            }
 
-    function exportToWord() {
-        let contentHtml = "";
-        document.querySelectorAll(".preview-sheet").forEach(s => {
-            contentHtml += s.innerHTML + '<br style="page-break-after: always;">';
+            const options = {
+                margin: 0,
+                filename: `BuroMaster_${ui.theme ? ui.theme.value.replace(/\s+/g, '_') : 'Expose'}.pdf`,
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2, useCORS: true, logging: false },
+                jsPDF: { unit: "mm", format: "a4", orientation: "portrait" }
+            };
+
+            showNotification("Génération du PDF en cours... ⏳");
+            html2pdf().set(options).from(ui.pagesContainer).save();
         });
-        const converted = htmlDocx.asBlob(`<!DOCTYPE html><html><body>${contentHtml}</body></html>`);
-        const link = document.createElement("a");
-        link.href = URL.createObjectURL(converted);
-        link.download = `BuroMaster_${themeInput.value || 'Expose'}.docx`;
-        link.click();
     }
 
-    // --- 16. GESTION DU ZOOM ET NOTIFICATIONS ---
-    function updateZoomUI() {
+    window.exportToWord = function() {
+        try {
+            if (typeof htmlDocx === "undefined") {
+                return showNotification("❌ Librairie Word manquante.");
+            }
+            let contentHtml = `
+                <style>
+                    body { font-family: 'Times New Roman', serif; }
+                    .page-break { page-break-after: always; }
+                </style>
+            `;
+            document.querySelectorAll(".page-content").forEach(p => {
+                contentHtml += `<div>${p.innerHTML}</div><div class="page-break"></div>`;
+            });
+
+            const converted = htmlDocx.asBlob(`<!DOCTYPE html><html><body>${contentHtml}</body></html>`);
+            const url = URL.createObjectURL(converted);
+            const link = document.createElement("a");
+            link.href = url;
+            link.download = `BuroMaster_${ui.theme ? ui.theme.value : 'Document'}.docx`;
+            link.click();
+            setTimeout(() => URL.revokeObjectURL(url), 100);
+        } catch (err) {
+            console.error("Erreur Export Word:", err);
+            showNotification("❌ Échec de l'export Word.");
+        }
+    };
+
+    /**
+     * --- 17. ZOOM, NOTIFICATIONS ET CLEANUP ---
+     */
+    window.updateZoomUI = function() {
+        if (!ui.zoomLevelSpan) return;
         const sheets = document.querySelectorAll(".preview-sheet");
         sheets.forEach(sheet => {
             sheet.style.transform = `scale(${currentZoom})`;
             sheet.style.transformOrigin = "top center";
+            // Ajustement de la marge du conteneur pour compenser le zoom
+            sheet.parentElement.style.height = (1123 * currentZoom) + "px";
         });
-        if (zoomLevelSpan) zoomLevelSpan.textContent = `${Math.round(currentZoom * 100)}%`;
-    }
+        ui.zoomLevelSpan.textContent = `${Math.round(currentZoom * 100)}%`;
+    };
 
-    if (zoomInBtn) zoomInBtn.onclick = () => { if (currentZoom < 1.3) { currentZoom += 0.1; updateZoomUI(); } };
-    if (zoomOutBtn) zoomOutBtn.onclick = () => { if (currentZoom > 0.4) { currentZoom -= 0.1; updateZoomUI(); } };
+    if (ui.zoomInBtn) ui.zoomInBtn.onclick = () => { if (currentZoom < 1.5) { currentZoom += 0.1; updateZoomUI(); } };
+    if (ui.zoomOutBtn) ui.zoomOutBtn.onclick = () => { if (currentZoom > 0.3) { currentZoom -= 0.1; updateZoomUI(); } };
 
     function showNotification(msg) {
         const toast = document.createElement("div");
-        toast.className = "toast-notification";
-        toast.textContent = msg;
+        toast.className = "toast-notification"; 
+        toast.innerHTML = msg;
         document.body.appendChild(toast);
-        setTimeout(() => toast.remove(), 4000);
+        // Animation simple de sortie
+        setTimeout(() => {
+            toast.style.opacity = "0";
+            setTimeout(() => toast.remove(), 500);
+        }, 3500);
     }
 
-    // --- 17. INITIALISATION FINALE ---
-    validateBtn.addEventListener("click", () => {
-        isLocked[currentStep] = !isLocked[currentStep];
-        if (isLocked[currentStep]) reachedStepIndex = Math.max(reachedStepIndex, stepsOrder.indexOf(currentStep) + 1);
-        goToStep(currentStep);
-    });
+    /**
+     * --- 18. INITIALISATION FINALE ---
+     */
+    if (ui.validateBtn) {
+        ui.validateBtn.onclick = () => {
+            saveToHistory();
+            isLocked[currentStep] = !isLocked[currentStep];
+            if (isLocked[currentStep]) {
+                reachedStepIndex = Math.max(reachedStepIndex, stepsOrder.indexOf(currentStep) + 1);
+            }
+            goToStep(currentStep);
+            showNotification(isLocked[currentStep] ? "Étape validée 🔒" : "Édition autorisée 🔓");
+        };
+    }
 
-    if (resetAllBtn) {
-        resetAllBtn.onclick = () => {
-            if (confirm("⚠️ Tout effacer ?")) {
-                localStorage.removeItem("buroMaster_premium_save");
+    if (ui.resetAllBtn) {
+        ui.resetAllBtn.onclick = () => {
+            if (confirm("⚠️ ATTENTION : Cela supprimera tout votre travail actuel. Continuer ?")) {
+                localStorage.removeItem(CONFIG.STORAGE_KEY);
                 window.location.reload();
             }
         };
     }
 
-    // Lancement
-    const startStep = loadData();
-    goToStep(startStep);
-    refreshUIFromData();
-}); // FIN DU SCRIPT
+    // LANCEMENT SÉCURISÉ
+    try {
+        const startStep = loadData();
+        // On initialise d'abord les éléments d'interface
+        updateHistoryButtons();
+        // On lance la navigation
+        goToStep(startStep);
+    } catch (err) {
+        console.error("Erreur fatale au démarrage:", err);
+        showNotification("⚠️ Erreur lors du chargement de l'application.");
+    }
+
+}); // FIN DU SCRIPT DOMContentLoaded
+ 
