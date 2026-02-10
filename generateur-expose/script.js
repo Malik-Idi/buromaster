@@ -203,6 +203,11 @@ document.addEventListener("DOMContentLoaded", function () {
 
         updateHeaderUI(); 
         saveData(); 
+                // --- AUTO-SCROLL VERS LE HAUT ---
+        setTimeout(() => {
+            const firstPage = pagesContainer.querySelector(".page-wrapper");
+            if (firstPage) firstPage.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 150);
     }
 
     function updateHeaderUI() {
@@ -330,6 +335,7 @@ let typingTimer; // Timer pour le debounce
 function createNewPage(num, container) {
     const wrapper = document.createElement("div");
     wrapper.className = "page-wrapper";
+    wrapper.id = "page-" + num; // ID unique pour le scroll
     wrapper.innerHTML = `
         <div class="preview-sheet">
             <div class="page-content"></div>
@@ -341,22 +347,39 @@ function createNewPage(num, container) {
     contentArea.addEventListener("input", () => {
         if (currentStep === "dev") return;
         
-        // 1. Sauvegarde immédiate en mémoire (silencieuse)
+        // Sauvegarde silencieuse en mémoire
         content[currentStep] = contentArea.innerText;
         saveData();
 
-        // 2. Vérification du débordement avec "Debounce"
-        // On attend que l'élève s'arrête de taper 1,5 seconde avant de recalculer les pages
+        // Gestion du saut de page
         clearTimeout(typingTimer);
         typingTimer = setTimeout(() => {
             if (contentArea.scrollHeight > 920) {
-                // On ne reconstruit les pages que si ça déborde vraiment
-                const scrollPos = container.scrollTop; // On mémorise le scroll
                 updatePreview();
-                container.scrollTop = scrollPos; // On restaure le scroll
-                showNotification("Nouvelle page créée 📄");
+                
+                // --- LOGIQUE DE DÉFILEMENT (SCROLL) ---
+                const pages = container.querySelectorAll(".page-wrapper");
+                const lastPage = pages[pages.length - 1];
+                
+                if (lastPage) {
+                    // On défile vers la nouvelle page
+                    lastPage.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    
+                    // --- EFFET VISUEL PRO (SURBRILLANCE) ---
+                    const sheet = lastPage.querySelector(".preview-sheet");
+                    sheet.style.transition = "all 0.5s ease";
+                    sheet.style.boxShadow = "0 0 30px var(--brand)";
+                    sheet.style.border = "2px solid var(--brand)";
+                    
+                    // On retire l'effet après 1.5 seconde
+                    setTimeout(() => {
+                        sheet.style.boxShadow = "var(--paper-shadow)";
+                        sheet.style.border = "none";
+                    }, 1500);
+                }
+                showNotification("Nouvelle page générée 📄");
             }
-        }, 1500); 
+        }, 1200); 
     });
 
     container.appendChild(wrapper);
