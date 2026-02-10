@@ -356,54 +356,40 @@ let typingTimer; // Timer pour le debounce
 function createNewPage(num, container) {
     const wrapper = document.createElement("div");
     wrapper.className = "page-wrapper";
-    wrapper.id = "page-" + num; // ID unique pour le scroll
     wrapper.innerHTML = `
         <div class="preview-sheet">
             <div class="page-content"></div>
             <div class="page-footer">BuroMaster | Page ${num}</div>
         </div>`;
-    
+
     const contentArea = wrapper.querySelector(".page-content");
 
     contentArea.addEventListener("input", () => {
         if (currentStep === "dev") return;
-        
-        // Sauvegarde silencieuse en mémoire
+
         content[currentStep] = contentArea.innerText;
         saveData();
 
-        // Gestion du saut de page
         clearTimeout(typingTimer);
         typingTimer = setTimeout(() => {
             if (contentArea.scrollHeight > 920) {
+                // Sauvegarde du scroll actuel **en prenant en compte le zoom**
+                const scrollRatio = container.scrollTop / container.scrollHeight;
+
                 updatePreview();
-                
-                // --- LOGIQUE DE DÉFILEMENT (SCROLL) ---
-                const pages = container.querySelectorAll(".page-wrapper");
-                const lastPage = pages[pages.length - 1];
-                
-                if (lastPage) {
-                    // On défile vers la nouvelle page
-                    lastPage.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                    
-                    // --- EFFET VISUEL PRO (SURBRILLANCE) ---
-                    const sheet = lastPage.querySelector(".preview-sheet");
-                    sheet.style.transition = "all 0.5s ease";
-                    sheet.style.boxShadow = "0 0 30px var(--brand)";
-                    sheet.style.border = "2px solid var(--brand)";
-                    
-                    // On retire l'effet après 1.5 seconde
-                    setTimeout(() => {
-                        sheet.style.boxShadow = "var(--paper-shadow)";
-                        sheet.style.border = "none";
-                    }, 1500);
-                }
-                showNotification("Nouvelle page générée 📄");
+
+                // Restoration du scroll après mise à jour
+                requestAnimationFrame(() => {
+                    container.scrollTop = scrollRatio * container.scrollHeight;
+                });
+
+                showNotification("Nouvelle page créée 📄");
             }
-        }, 1200); 
+        }, 1500);
     });
 
     container.appendChild(wrapper);
+    updateZoomUI(); // applique le zoom à la nouvelle page
     return { wrapper, content: contentArea };
 }
 
