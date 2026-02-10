@@ -41,43 +41,70 @@ document.addEventListener("DOMContentLoaded", function () {
     let lastSyncedPlan = ""; 
 
     // --- 3. GESTION DE L'HISTORIQUE (UNDO/REDO) ---
-    let historyStack = []; 
-    let redoStack = [];
+let historyStack = [];
+let redoStack = [];
 
-    // Sauvegarde l'état pour pouvoir y revenir plus tard
-    function saveToHistory() {
-        if (historyStack.length > 25) historyStack.shift();
-        historyStack.push(JSON.parse(JSON.stringify(content)));
-        redoStack = []; // On vide le redo à chaque nouvelle action
-        updateHistoryButtons();
-    }
+function saveToHistory() {
+    if (historyStack.length > 25) historyStack.shift();
 
-    function undo() {
-        if (historyStack.length > 0) {
-            redoStack.push(JSON.parse(JSON.stringify(content)));
-            content = historyStack.pop();
-            refreshUIFromData();
-            showNotification("Action annulée ↩️");
-        }
-    }
+    // Sauvegarde profonde pour éviter les références
+    const snapshot = JSON.parse(JSON.stringify(content));
+    historyStack.push(snapshot);
 
-    function redo() {
-        if (redoStack.length > 0) {
-            historyStack.push(JSON.parse(JSON.stringify(content)));
-            content = redoStack.pop();
-            refreshUIFromData();
-            showNotification("Action rétablie ↪️");
-        }
-    }
+    redoStack = [];
+    updateHistoryButtons();
+}
 
-    function updateHistoryButtons() {
-        if(undoBtn && redoBtn) {
-            undoBtn.disabled = historyStack.length === 0;
-            redoBtn.disabled = redoStack.length === 0;
-            undoBtn.style.opacity = undoBtn.disabled ? "0.3" : "1";
-            redoBtn.style.opacity = redoBtn.disabled ? "0.3" : "1";
-        }
-    }
+function undo() {
+    if (historyStack.length === 0) return;
+
+    // Sauvegarde actuelle dans redo
+    redoStack.push(JSON.parse(JSON.stringify(content)));
+
+    // Récupère la dernière version
+    content = historyStack.pop();
+
+    // Mise à jour de l'UI
+    refreshUIFromData();
+    updateDevBlocksFromContent(); // synchronise les textarea dev
+    showNotification("Action annulée ↩️");
+}
+
+function redo() {
+    if (redoStack.length === 0) return;
+
+    historyStack.push(JSON.parse(JSON.stringify(content)));
+    content = redoStack.pop();
+
+    refreshUIFromData();
+    updateDevBlocksFromContent(); // synchronise les textarea dev
+    showNotification("Action rétablie ↪️");
+}
+
+function updateHistoryButtons() {
+    if (undoBtn) undoBtn.disabled = historyStack.length === 0;
+    if (redoBtn) redoBtn.disabled = redoStack.length === 0;
+
+    if (undoBtn) undoBtn.style.opacity = undoBtn.disabled ? "0.3" : "1";
+    if (redoBtn) redoBtn.style.opacity = redoBtn.disabled ? "0.3" : "1";
+}
+
+// --- Fonction helper pour remettre les contenus des blocs de développement ---
+function updateDevBlocksFromContent() {
+    if (currentStep !== "dev") return;
+
+    const container = document.getElementById("dev-blocks-container");
+    if (!container) return;
+
+    container.querySelectorAll(".sub-editor").forEach(textarea => {
+        const parent = textarea.closest(".dev-block");
+        if (!parent) return;
+        const title = parent.dataset.sectionTitle;
+        textarea.value = content.dev[title] || "";
+    });
+
+    setupDevBlocks(); // réaffiche les boutons IA correctement
+}
 
     // --- 4. SAUVEGARDE LOCALE (LOCALSTORAGE) ---
     // Permet de retrouver son travail après avoir fermé le navigateur
