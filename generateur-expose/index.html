@@ -4,16 +4,19 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>BuroMaster Premium | Assistant d'Exposé</title>
-    <!-- Correction 1 : Importation stable des icônes et polices -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com">
+    
+    <!-- Polices & Icônes (Chargement sécurisé) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com">
+    
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
 <header class="app-header">
     <div class="header-left">
-        <!-- Correction 3 : Bouton retour à l'accueil -->
         <a href="../index.html" class="back-home-btn" title="Retour à l'accueil">
             <i class="fas fa-house-chimney"></i>
         </a>
@@ -22,11 +25,12 @@
             <span>BuroMaster</span>
         </div>
     </div>
+    <!-- NAVIGATION CORRIGÉE : Ajout des attributs data-step cruciaux pour script-ui.js -->
     <nav class="steps-navigation">
-        <span class="step-link active" id="link-plan" role="button" tabindex="0">Plan</span>
-        <span class="step-link" id="link-intro" role="button" tabindex="0">Introduction</span>
-        <span class="step-link" id="link-dev" role="button" tabindex="0">Développement</span>
-        <span class="step-link" id="link-conclu" role="button" tabindex="0">Conclusion</span>
+        <span class="step-link" data-step="plan" id="link-plan" role="button">Plan</span>
+        <span class="step-link" data-step="intro" id="link-intro" role="button">Introduction</span>
+        <span class="step-link" data-step="dev" id="link-dev" role="button">Développement</span>
+        <span class="step-link" data-step="conclu" id="link-conclu" role="button">Conclusion</span>
     </nav>
 </header>
 
@@ -41,7 +45,7 @@
             <input type="text" id="theme" placeholder="Entrez le sujet de votre travail...">
         </div>
         <div class="quick-actions">
-            <button id="advancedOptionsBtn" class="action-icon-btn" title="Paramètres"><i class="fas fa-cog"></i></button>
+            <button id="advancedOptionsBtn" class="action-icon-btn" title="Paramètres" onclick="document.getElementById('advancedPanel').style.display = document.getElementById('advancedPanel').style.display === 'none' ? 'flex' : 'none'"><i class="fas fa-cog"></i></button>
             <button id="resetAllBtn" class="action-icon-btn danger" title="Réinitialiser"><i class="fas fa-trash-can"></i></button>
         </div>
     </div>
@@ -78,18 +82,18 @@
             <h2 id="step-title">Édition du Plan</h2>
             
             <div class="history-btns">
-                <button id="undoBtn" title="Annuler (Ctrl+Z)"><i class="fas fa-undo"></i></button>
-                <button id="redoBtn" title="Rétablir (Ctrl+Y)"><i class="fas fa-redo"></i></button>
+                <button id="undoBtn" title="Annuler"><i class="fas fa-undo"></i></button>
+                <button id="redoBtn" title="Rétablir"><i class="fas fa-redo"></i></button>
             </div>
 
             <button type="button" id="generateBtn" class="ai-generate-btn">
                 <i class="fas fa-wand-magic-sparkles"></i> Demander à l'IA
             </button>
 
-            <!-- Textarea masqué : sert de tampon pour ton script JS -->
-            <textarea id="editor" style="display:none;"></textarea>
+            <!-- L'éditeur principal (pour Plan, Intro, Conclusion) -->
+            <textarea id="editor" placeholder="Saisissez votre contenu ici..."></textarea>
             
-            <!-- Conteneur pour les blocs de développement (Étape Corps) -->
+            <!-- Conteneur pour les blocs de développement -->
             <div id="dev-blocks-container" style="display: none;"></div>
 
             <div class="final-actions">
@@ -102,7 +106,7 @@
         </div>
     </aside>
 
-    <!-- Zone Centrale : Édition directe sur la feuille A4 -->
+    <!-- Zone Centrale : Prévisualisation A4 -->
     <section class="paper-viewer">
         <div class="viewer-header">
             <label class="toggle-format">
@@ -117,47 +121,18 @@
         </div>
         
         <div class="canvas-area">
-            <!-- Correction 2 : La zone A4 qui devient l'éditeur direct -->
-            <div id="preview-pages" class="a4-stack">
-                <!-- Les pages générées par createNewPage() injecteront l'attribut contenteditable -->
-            </div>
+            <!-- La zone où les pages A4 seront générées par le script-engine -->
+            <div id="preview-pages" class="a4-stack"></div>
         </div>
     </section>
 </main>
 
-<!-- Modal de synchronisation -->
-<div id="syncModal" class="modal-blur-overlay" style="display: none;">
-    <div class="modal-card">
-        <div class="modal-header-icon"><i class="fas fa-arrows-rotate"></i></div>
-        <h3>Mise à jour du plan</h3>
-        <p>Le plan a été modifié. Choisissez comment mettre à jour votre travail :</p>
-        <div class="modal-buttons-grid">
-            <button id="btnSyncTitles" class="m-btn-secondary">
-                <strong>Garder mes textes</strong>
-                <span>Seuls les titres changeront</span>
-            </button>
-            <button id="btnSyncAll" class="m-btn-danger">
-                <strong>Réinitialiser tout</strong>
-                <span>L'IA réécrira le contenu</span>
-            </button>
-        </div>
-        <button id="btnCancelSync" class="m-btn-cancel">Ignorer</button>
-    </div>
-</div>
+<!-- LIBRAIRIES EXTERNES -->
+<script src="https://cdnjs.cloudflare.com"></script>
+<script src="https://unpkg.com"></script>
 
-<!-- --- LIBRAIRIES EXTERNES --- -->
-
-<!-- Font Awesome (icônes) -->
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-<!-- html2pdf (export PDF) -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-<!-- html-docx-js (export Word) -->
-<script src="https://unpkg.com/html-docx-js/dist/html-docx.js"></script>
-
-<!-- 1. Le cerveau (données et calculs) en premier -->
+<!-- SCRIPTS LOCAUX (L'ordre est vital : le Cerveau avant l'Interface) -->
 <script src="script-engine.js"></script>
-
-<!-- 2. L'interface (boutons et affichage) en second -->
 <script src="script-ui.js"></script>
 
 </body>
