@@ -2,7 +2,8 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>BuroMaster AI | Chat</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BuroMaster AI | Interface Officielle</title>
     <link rel="stylesheet" href="style-chat.css">
     <link href="https://fonts.googleapis.com" rel="stylesheet">
 </head>
@@ -17,48 +18,17 @@
         </header>
 
         <div id="chat-box" class="chat-content">
-            <div class="msg ai">Bonjour ! Je suis BuroMaster AI. Comment puis-je vous aider aujourd'hui ?</div>
+            <div class="msg ai">Bonjour ! Je suis BuroMaster AI. 🤖 
+Je peux vous aider pour vos épreuves, exposés, CV et travaux de bureautique. Que souhaitez-vous faire ?</div>
         </div>
 
         <div class="input-area">
-            <input type="text" id="user-input" placeholder="Posez votre question..." onkeypress="handleEnter(event)">
+            <input type="text" id="user-input" placeholder="Décrivez votre besoin..." onkeypress="handleEnter(event)">
             <button onclick="sendMessage()">Envoyer</button>
         </div>
     </div>
 
-    <script>
-        const chatBox = document.getElementById('chat-box');
-
-        function handleEnter(e) {
-            if (e.key === 'Enter') sendMessage();
-        }
-
-        async function sendMessage() {
-            const input = document.getElementById('user-input');
-            const text = input.value.trim();
-            if (!text) return;
-
-            // Message utilisateur
-            appendMessage('user', text);
-            input.value = '';
-
-            // Simulation de réflexion
-            const loadingMsg = appendMessage('ai', 'En train de réfléchir...');
-
-            // Simulation de réponse (On peut connecter une vraie API ici plus tard)
-            setTimeout(() => {
-                loadingMsg.innerText = "Je suis BuroMaster AI. Actuellement, je suis en phase de configuration pour répondre précisément à vos besoins en bureautique et éducation !";
-            }, 1500);
-        }
-
-        function appendMessage(sender, text) {
-            const div = document.createElement('div');
-            div.className = `msg ${sender}`;
-            div.innerText = text;
-            chatBox.appendChild(div);
-            chatBox.scrollTop = chatBox.scrollHeight;
-            return div;
-        }
-    </script>
+    <!-- Liaison du fichier JavaScript -->
+    <script src="script.js"></script>
 </body>
 </html>
