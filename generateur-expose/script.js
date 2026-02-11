@@ -368,6 +368,8 @@ document.addEventListener("DOMContentLoaded", function () {
      * --- 10. CRÉATION PHYSIQUE DE LA PAGE ---
      * Structure HTML d'une feuille A4.
      */
+    let editorPreviewTimer = null;
+    
     function createNewPage(num, container) {
         const wrapper = document.createElement("div");
         wrapper.className = "page-wrapper";
