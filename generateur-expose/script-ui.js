@@ -121,6 +121,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     console.log("🏗️ UI Bloc 1 : Liaison terminée.");
 
+});
 /**
  * BUROMASTER UI - BLOC 2 (NAVIGATION & RENDU)
  * Rôle : Gérer le passage entre les étapes et forcer l'affichage sur la page A4.
