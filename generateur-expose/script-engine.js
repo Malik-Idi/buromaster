@@ -1,3 +1,6 @@
+console.log("%c🚀 ENGINE : Tentative de chargement...", "color: orange; font-weight: bold;");
+window.ENGINE_LOADED = false;
+
 /**
  * BUROMASTER ENGINE - BLOC 1 (SOCLE DE DONNÉES)
  * Version : 2.0 "Béton"
@@ -475,3 +478,6 @@ Object.assign(window.BuroMasterEngine, {
 (function() {
     console.log("🚀 BuroMaster Engine v2.0 opérationnel.");
 })();
+
+window.ENGINE_LOADED = true;
+console.log("%c✅ ENGINE : Chargé et prêt.", "color: green; font-weight: bold;");
