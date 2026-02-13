@@ -1,3 +1,5 @@
+console.log("%c🎨 UI : Tentative de chargement...", "color: cyan; font-weight: bold;");
+
 /**
  * BUROMASTER UI - BLOC 1 (LIAISON & ÉVÉNEMENTS)
  * Version : 2.0 "Béton Armé"
@@ -452,4 +454,9 @@ Object.assign(window, {
         console.log("🏗️ Site BuroMaster v2 entièrement déployé.");
     }, 200);
 })();
-                          
+
+  console.log("%c✅ UI : Entièrement opérationnel.", "color: blue; font-weight: bold;");
+if (!window.ENGINE_LOADED) {
+    alert("⚠️ ALERTE : Le script UI est chargé, MAIS il ne trouve pas le script ENGINE ! Vérifie l'ordre dans ton HTML.");
+}
+  
