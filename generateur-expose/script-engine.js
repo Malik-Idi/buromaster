@@ -93,6 +93,24 @@ window.BuroMasterEngine = {
         this.state.historyStack.push(snapshot);
         this.state.redoStack = []; // Reset du redo sur nouvelle action
     }
+        // À ajouter dans script-engine.js (Bloc 1)
+        undo: function() {
+            if (this.state.historyStack.length > 0) {
+                const current = JSON.parse(JSON.stringify({content: this.state.content, isLocked: this.state.isLocked}));
+                this.state.redoStack.push(current);
+                const previous = this.state.historyStack.pop();
+                 this.state.content = previous.content;
+                this.state.isLocked = previous.isLocked;
+            }
+        },
+        redo: function() {
+            if (this.state.redoStack.length > 0) {
+                this.saveToHistory();
+                const next = this.state.redoStack.pop();
+                this.state.content = next.content;
+                this.state.isLocked = next.isLocked;
+        }
+    }    
 };
 
 /**
