@@ -95,7 +95,7 @@ window.BuroMasterEngine = {
         }));
         this.state.historyStack.push(snapshot);
         this.state.redoStack = []; // Reset du redo sur nouvelle action
-    }
+    },
         // À ajouter dans script-engine.js (Bloc 1)
         undo: function() {
             if (this.state.historyStack.length > 0) {
