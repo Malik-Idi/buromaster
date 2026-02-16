@@ -5,41 +5,66 @@
 const BANQUE_ENTETES = {
     "benin": {
         "devoir_officiel": `
-            <div class="header-epreuve" style="border-bottom: 3px double black; padding-bottom: 10px;">
-                <div style="text-align: center; width: 100%;">
-                    <p style="font-weight: bold; margin: 0;">RÉPUBLIQUE DU BÉNIN</p>
-                    <p style="margin: 5px 0;">MINISTÈRE DE L'ENSEIGNEMENT SECONDAIRE, TECHNIQUE ET DE LA FORMATION PROFESSIONNELLE</p>
-                    <p style="font-style: italic; font-size: 0.8em;">Travail - Justice - Paix</p>
-                    <div style="display: flex; justify-content: space-between; margin-top: 15px; text-align: left;">
-                        <div>Établissement : ........................<br>Année : 2024-2025</div>
-                        <div>Classe : ............<br>Série : ............</div>
+            <div class="header-epreuve" style="border-bottom: 3px double black; padding-bottom: 10px; text-align:center; width:100%; display:block;">
+                <p style="font-weight: bold; margin: 0; font-size: 1.1em;">RÉPUBLIQUE DU BÉNIN</p>
+                <p style="margin: 5px 0; font-size: 0.85em;">MINISTÈRE DE L'ENSEIGNEMENT SECONDAIRE, TECHNIQUE ET DE LA FORMATION PROFESSIONNELLE</p>
+                <p style="font-style: italic; font-size: 0.75em; margin-bottom: 10px;">Travail - Justice - Paix</p>
+                
+                <div style="display: flex; justify-content: space-between; text-align: left; font-size: 0.9em; border-top: 1px solid #000; padding-top: 10px;">
+                    <div>
+                        <strong>DIRECTION DÉPARTEMENTALE :</strong> .....................<br>
+                        <strong>ÉTABLISSEMENT :</strong> ............................................<br>
+                        <strong>ANNÉE SCOLAIRE :</strong> 2024-2025
+                    </div>
+                    <div style="text-align: right;">
+                        <strong>CLASSE :</strong> ....................<br>
+                        <strong>SÉRIE :</strong> .....................<br>
+                        <strong>DURÉE :</strong> .....................
                     </div>
                 </div>
             </div>`,
-        "interro_simple": `
-            <div class="header-epreuve" style="border: 1px solid black; padding: 10px;">
-                <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <p><strong>Nom & Prénoms :</strong> ............................................................</p>
-                    <p><strong>Classe :</strong> .......</p>
+
+        "examen_blanc": `
+            <div class="header-epreuve" style="border: 2px solid black; padding: 15px; width:100%; display:block;">
+                <div style="text-align: center; border-bottom: 1px solid black; padding-bottom: 10px; margin-bottom: 10px;">
+                    <h2 style="margin: 0; text-transform: uppercase;">Examen Blanc Départemental</h2>
+                    <p style="margin: 5px 0;">Session de Mai 2025</p>
                 </div>
-                <p style="text-align: center; font-weight: bold; text-decoration: underline; margin-top: 10px;">INTERROGATION ÉCRITE N°....</p>
+                <div style="display: flex; justify-content: space-between; font-weight: bold;">
+                    <span>ÉPREUVE : ..............................</span>
+                    <span>COEF : .......</span>
+                </div>
+            </div>`,
+
+        "interro_simple": `
+            <div class="header-epreuve" style="border-left: 5px solid black; padding-left: 15px; margin-bottom: 20px; width:100%; display:block;">
+                <div style="display: flex; justify-content: space-between;">
+                    <div>
+                        <p><strong>NOM :</strong> ..........................................</p>
+                        <p><strong>PRÉNOMS :</strong> .................................</p>
+                    </div>
+                    <div style="text-align: right;">
+                        <p><strong>CLASSE :</strong> ..........</p>
+                        <p><strong>DATE :</strong> ..../..../2025</p>
+                    </div>
+                </div>
+                <h3 style="text-align: center; margin-top: 10px; text-decoration: underline;">INTERROGATION ÉCRITE</h3>
             </div>`
     },
     "togo": {
-        "standard": `<p style="text-align: center;">RÉPUBLIQUE TOGOLAISE...</p>`
+        "standard": `
+            <div class="header-epreuve" style="text-align: center; width:100%; display:block;">
+                <p>RÉPUBLIQUE TOGOLAISE</p>
+                <p>Travail - Liberté - Patrie</p>
+                <hr>
+            </div>`
     }
 };
 
-/**
- * Fonction pour injecter l'en-tête choisi
- * @param {string} pays - ex: 'benin'
- * @param {string} type - ex: 'devoir_officiel'
- */
 function appliquerEntete(pays, type) {
     const zone = document.getElementById('epreuve-zone');
     const htmlEntete = BANQUE_ENTETES[pays][type];
     
-    // On cherche si un en-tête existe déjà pour le remplacer, sinon on l'ajoute au début
     const ancienHeader = zone.querySelector('.header-epreuve');
     if (ancienHeader) {
         ancienHeader.outerHTML = htmlEntete;
