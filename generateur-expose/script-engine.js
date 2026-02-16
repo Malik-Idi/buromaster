@@ -144,64 +144,65 @@ Object.assign(window.BuroMasterEngine, {
 
         // 2. MOTEUR DE DÉCOUPAGE (WORD-BY-WORD PAGINATION)
     renderToA4: function(container, text, options = {}) {
-        if (!container) return;
+    if (!container) return;
+    container.innerHTML = "";
+    
+    const settings = {
+        font: options.font || "'Times New Roman', serif",
+        size: options.size || "12px",
+        title: options.title || null,
+        maxHeight: 940 
+    };
+
+    let currentPageNum = 1;
+    let currentArea = this.createPageElement(container, currentPageNum);
+
+    if (settings.title) {
+        const header = document.createElement("div");
+        header.className = "page-header-title";
+        header.style.fontFamily = settings.font;
+        header.textContent = settings.title;
+        currentArea.appendChild(header);
+    }
+
+    if (!text) return;
+
+    const paragraphs = text.split("\n");
+    
+    paragraphs.forEach((paraText) => {
+        // CHANGEMENT ICI : Utilisation de let pour pouvoir réassigner pDiv lors du saut de page
+        let pDiv = document.createElement("div");
+        pDiv.className = "text-paragraph";
+        pDiv.style.fontFamily = settings.font;
+        pDiv.style.fontSize = settings.size;
+        currentArea.appendChild(pDiv);
+
+        const words = paraText.split(" ");
         
-        container.innerHTML = "";
-        
-        const settings = {
-            font: options.font || "'Times New Roman', serif",
-            size: options.size || "12px",
-            title: options.title || null,
-            maxHeight: 940 
-        };
+        words.forEach((word) => {
+            const previousContent = pDiv.textContent;
+            pDiv.textContent += (pDiv.textContent ? " " : "") + word;
 
-        let currentPageNum = 1;
-        let currentArea = this.createPageElement(container, currentPageNum);
+            // Détection du débordement réel
+            if (currentArea.scrollHeight > settings.maxHeight) {
+                pDiv.textContent = previousContent; // On retire le mot de trop
 
-        if (settings.title) {
-            const header = document.createElement("div");
-            header.className = "page-header-title";
-            header.style.fontFamily = settings.font;
-            header.textContent = settings.title;
-            currentArea.appendChild(header);
-        }
+                currentPageNum++;
+                currentArea = this.createPageElement(container, currentPageNum);
 
-        if (!text) return;
-
-        const paragraphs = text.split("\n");
-        
-        paragraphs.forEach((paraText) => {
-            // CORRECTION 1 : On utilise "let" au lieu de "const" pour pouvoir changer de page
-            let pDiv = document.createElement("div"); 
-            pDiv.className = "text-paragraph";
-            pDiv.style.fontFamily = settings.font;
-            pDiv.style.fontSize = settings.size;
-            currentArea.appendChild(pDiv);
-
-            const words = paraText.split(" ");
-            
-            words.forEach((word) => {
-                const previousContent = pDiv.textContent;
-                pDiv.textContent += (pDiv.textContent ? " " : "") + word;
-
-                if (currentArea.scrollHeight > settings.maxHeight) {
-                    pDiv.textContent = previousContent;
-
-                    currentPageNum++;
-                    currentArea = this.createPageElement(container, currentPageNum);
-
-                    const nextP = document.createElement("div");
-                    nextP.className = "text-paragraph";
-                    nextP.style.fontFamily = settings.font;
-                    nextP.style.fontSize = settings.size;
-                    nextP.textContent = word;
-                    currentArea.appendChild(nextP);
-                    
-                    // CORRECTION 2 : On redirige la suite du texte vers la nouvelle page
-                    pDiv = nextP; 
-                }
-            });
+                // On crée le nouveau paragraphe sur la nouvelle page
+                const nextP = document.createElement("div");
+                nextP.className = "text-paragraph";
+                nextP.style.fontFamily = settings.font;
+                nextP.style.fontSize = settings.size;
+                nextP.textContent = word;
+                currentArea.appendChild(nextP);
+                
+                // LIGNE VITALE : On dit au script que maintenant, on écrit dans nextP
+                pDiv = nextP; 
+            }
         });
+    });
 
         console.log(`📄 Rendu terminé : ${currentPageNum} page(s) générée(s).`);
     },
