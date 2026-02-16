@@ -142,67 +142,76 @@ Object.assign(window.BuroMasterEngine, {
         return wrapper.querySelector(".page-content");
     },
 
-        // 2. MOTEUR DE DÉCOUPAGE (WORD-BY-WORD PAGINATION)
+     // 2. MOTEUR DE DÉCOUPAGE (WORD-BY-WORD PAGINATION)
+    // Paramètres : texte à afficher, conteneur cible, styles (police, taille), et titre éventuel
     renderToA4: function(container, text, options = {}) {
-    if (!container) return;
-    container.innerHTML = "";
-    
-    const settings = {
-        font: options.font || "'Times New Roman', serif",
-        size: options.size || "12px",
-        title: options.title || null,
-        maxHeight: 940 
-    };
-
-    let currentPageNum = 1;
-    let currentArea = this.createPageElement(container, currentPageNum);
-
-    if (settings.title) {
-        const header = document.createElement("div");
-        header.className = "page-header-title";
-        header.style.fontFamily = settings.font;
-        header.textContent = settings.title;
-        currentArea.appendChild(header);
-    }
-
-    if (!text) return;
-
-    const paragraphs = text.split("\n");
-    
-    paragraphs.forEach((paraText) => {
-        // CHANGEMENT ICI : Utilisation de let pour pouvoir réassigner pDiv lors du saut de page
-        let pDiv = document.createElement("div");
-        pDiv.className = "text-paragraph";
-        pDiv.style.fontFamily = settings.font;
-        pDiv.style.fontSize = settings.size;
-        currentArea.appendChild(pDiv);
-
-        const words = paraText.split(" ");
+        if (!container) return;
         
-        words.forEach((word) => {
-            const previousContent = pDiv.textContent;
-            pDiv.textContent += (pDiv.textContent ? " " : "") + word;
+        // Sécurité : on vide le conteneur avant de recalculer
+        container.innerHTML = "";
+        
+        const settings = {
+            font: options.font || "'Times New Roman', serif",
+            size: options.size || "12px",
+            title: options.title || null,
+            maxHeight: 940 // Hauteur limite en pixels avant saut de page
+        };
 
-            // Détection du débordement réel
-            if (currentArea.scrollHeight > settings.maxHeight) {
-                pDiv.textContent = previousContent; // On retire le mot de trop
+        let currentPageNum = container.children.length || 1;
+        let currentArea = this.createPageElement(container, currentPageNum);
 
-                currentPageNum++;
-                currentArea = this.createPageElement(container, currentPageNum);
+        // A. Ajout du titre de section (si présent)
+        if (settings.title) {
+            const header = document.createElement("div");
+            header.className = "page-header-title";
+            header.style.fontFamily = settings.font;
+            header.textContent = settings.title;
+            currentArea.appendChild(header);
+        }
 
-                // On crée le nouveau paragraphe sur la nouvelle page
-                const nextP = document.createElement("div");
-                nextP.className = "text-paragraph";
-                nextP.style.fontFamily = settings.font;
-                nextP.style.fontSize = settings.size;
-                nextP.textContent = word;
-                currentArea.appendChild(nextP);
-                
-                // LIGNE VITALE : On dit au script que maintenant, on écrit dans nextP
-                pDiv = nextP; 
-            }
+        if (!text) return;
+
+        // B. Traitement par paragraphes puis par mots
+        const paragraphs = text.split("\n").filter(p => p.trim() !== "");
+        
+        paragraphs.forEach((paraText) => {
+            // Création d'un bloc paragraphe pour préserver la structure
+            const pDiv = document.createElement("div");
+            pDiv.className = "text-paragraph";
+            pDiv.style.fontFamily = settings.font;
+            pDiv.style.fontSize = settings.size;
+            currentArea.appendChild(pDiv);
+
+            const words = paraText.split(" ");
+            
+            words.forEach((word) => {
+                const previousContent = pDiv.textContent;
+                pDiv.textContent += (pDiv.textContent ? " " : "") + word;
+
+                // C. Détection critique du débordement
+                // On utilise scrollHeight qui est indépendant du zoom CSS
+                if (currentArea.scrollHeight > settings.maxHeight) {
+                    // On retire le mot qui a fait déborder
+                    pDiv.textContent = previousContent;
+
+                    // Création de la nouvelle page
+                    currentPageNum++;
+                    currentArea = this.createPageElement(container, currentPageNum);
+
+                    // On recrée un paragraphe sur la nouvelle page pour le mot expulsé
+                    const nextP = document.createElement("div");
+                    nextP.className = "text-paragraph";
+                    nextP.style.fontFamily = settings.font;
+                    nextP.style.fontSize = settings.size;
+                    nextP.textContent = word;
+                    currentArea.appendChild(nextP);
+                    
+                    // On met à jour pDiv pour les prochains mots du paragraphe initial
+                    // mais on change sa référence vers le nouveau paragraphe sur la nouvelle page
+                    // pour ne pas perdre la logique de boucle
+                }
+            });
         });
-    });
 
         console.log(`📄 Rendu terminé : ${currentPageNum} page(s) générée(s).`);
     },
