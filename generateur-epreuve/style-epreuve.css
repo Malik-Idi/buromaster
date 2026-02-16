@@ -1,31 +1,176 @@
-body { background: #525659; margin: 0; font-family: 'Roboto', sans-serif; }
-
-.toolbar { 
-    background: #202124; padding: 15px; display: flex; 
-    justify-content: space-between; position: sticky; top: 0; z-index: 100;
+/* --- CONFIGURATION GÉNÉRALE --- */
+:root {
+    --primary-color: #38bdf8;       /* Bleu BuroMaster */
+    --bg-dark: #202124;            /* Fond Barre d'outils */
+    --bg-workspace: #525659;       /* Fond zone de travail */
+    --sidebar-bg: #ffffff;         /* Fond panneaux latéraux */
+    --text-main: #333333;
+    --border-color: #e0e0e0;
+    --shadow: 0 4px 12px rgba(0,0,0,0.15);
 }
 
-.back-link { color: #38bdf8; text-decoration: none; font-weight: bold; }
+* { box-sizing: border-box; }
 
-.action-btn { 
-    background: #38bdf8; border: none; padding: 8px 20px; 
-    border-radius: 5px; cursor: pointer; font-weight: bold; 
+body {
+    margin: 0;
+    font-family: 'Roboto', sans-serif;
+    background: var(--bg-workspace);
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden; /* Empêche le défilement de toute la page */
 }
 
-.paper-container { display: flex; justify-content: center; padding: 40px 0; }
-
-.a4-epreuve { 
-    width: 210mm; min-height: 297mm; background: white; 
-    padding: 20mm; box-shadow: 0 0 10px rgba(0,0,0,0.5);
-    color: black; outline: none;
+/* --- BARRE SUPÉRIEURE (TOOLBAR) --- */
+.toolbar {
+    background: var(--bg-dark);
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 20px;
+    color: white;
+    z-index: 1000;
 }
 
-.header-epreuve { display: flex; justify-content: space-between; border-bottom: 2px solid black; padding-bottom: 10px; }
+.brand { display: flex; align-items: center; gap: 15px; }
+.logo-text { font-weight: bold; font-size: 1.2rem; }
+.logo-text small { color: var(--primary-color); font-size: 0.8rem; }
 
+.doc-title {
+    background: rgba(255,255,255,0.1);
+    padding: 5px 15px;
+    border-radius: 4px;
+    min-width: 200px;
+    outline: none;
+    border: 1px solid transparent;
+}
+.doc-title:focus { border-color: var(--primary-color); }
+
+.btn {
+    border: none;
+    padding: 8px 16px;
+    border-radius: 5px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: 0.2s;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+.btn-primary { background: var(--primary-color); color: white; }
+.btn-secondary { background: #444; color: white; margin-right: 10px; }
+.btn:hover { opacity: 0.9; transform: translateY(-1px); }
+
+/* --- ESPACE DE TRAVAIL --- */
+.main-workspace {
+    display: flex;
+    flex: 1; /* Prend tout l'espace restant sous le header */
+    overflow: hidden;
+}
+
+/* --- PANNEAUX LATÉRAUX --- */
+.sidebar-left, .sidebar-right {
+    width: 260px;
+    background: var(--sidebar-bg);
+    border: 1px solid var(--border-color);
+    padding: 20px;
+    overflow-y: auto;
+    z-index: 10;
+}
+
+.tool-section { margin-bottom: 25px; }
+.tool-section h4 {
+    font-size: 0.75rem;
+    color: #888;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 10px;
+}
+
+.tool-btn {
+    width: 100%;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    padding: 10px;
+    margin-bottom: 8px;
+    border-radius: 6px;
+    text-align: left;
+    cursor: pointer;
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    transition: 0.2s;
+}
+.tool-btn:hover { background: #f0f9ff; border-color: var(--primary-color); color: var(--primary-color); }
+.tool-btn i { width: 20px; text-align: center; }
+
+/* --- BARÈME (SIDEBAR DROITE) --- */
+.score-summary {
+    text-align: center;
+    padding: 20px 0;
+}
+.score-circle {
+    width: 80px;
+    height: 80px;
+    border: 4px solid var(--primary-color);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 10px;
+    font-size: 1.5rem;
+    font-weight: bold;
+}
+
+/* --- ZONE DE LA FEUILLE (A4) --- */
+.paper-container {
+    flex: 1;
+    overflow-y: auto;
+    padding: 40px 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.a4-epreuve {
+    width: 210mm;
+    min-height: 297mm;
+    background: white;
+    padding: 20mm;
+    box-shadow: var(--shadow);
+    color: black;
+    outline: none;
+    position: relative;
+}
+
+/* --- ÉLÉMENTS DE L'ÉPREUVE --- */
+.header-epreuve {
+    display: flex;
+    justify-content: space-between;
+    border-bottom: 2px solid black;
+    padding-bottom: 15px;
+    font-size: 0.9rem;
+    line-height: 1.6;
+}
+
+.ex-title {
+    font-weight: bold;
+    text-decoration: underline;
+    margin-top: 30px;
+}
+
+/* --- GESTION DE L'IMPRESSION --- */
 @media print {
-    body { background: white; }
-    .toolbar { display: none; }
-    .paper-container { padding: 0; }
-    .a4-epreuve { box-shadow: none; width: 100%; margin: 0; }
+    body { background: white; overflow: visible; }
+    .toolbar, .sidebar-left, .sidebar-right { display: none; }
+    .main-workspace { display: block; }
+    .paper-container { padding: 0; overflow: visible; }
+    .a4-epreuve {
+        width: 100%;
+        box-shadow: none;
+        padding: 0;
+        margin: 0;
+    }
 }
-
