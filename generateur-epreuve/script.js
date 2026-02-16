@@ -140,3 +140,9 @@ function ouvrirBanqueImages() {
         insererElement(img);
     }
 }
+
+function genererEntete() {
+    const pays = document.getElementById('select-pays').value;
+    const type = document.getElementById('select-type').value;
+    appliquerEntete(pays, type);
+}
