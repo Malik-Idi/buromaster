@@ -31,34 +31,53 @@
     <div class="main-workspace">
         
         <!-- Panneau Latéral Gauche : Bibliothèque d'outils -->
-        <aside class="sidebar-left">
-            <div class="tool-section">
-                <h4><i class="fas fa-file-invoice"></i> STRUCTURE</h4>
-                <button title="En-tête Officielle Bénin" class="tool-btn"><i class="fas fa-landmark"></i> En-tête BJ</button>
-                <button title="Ajouter Exercice" class="tool-btn"><i class="fas fa-list-ol"></i> Bloc Exercice</button>
-                <button onclick="ouvrirBanqueImages()" class="tool-btn"><i class="fas fa-microscope"></i> Schémas Bio/Chimie</button>
-            </div>
+    <aside class="sidebar-left">
+    
+        <!-- NOUVEAU : Bloc Configuration déplacé ici pour être visible -->
+        <div class="tool-section">
+            <h4><i class="fas fa-flag"></i> CONFIGURATION</h4>
+            <select id="select-pays" class="tool-btn" style="width: 100%;">
+                <option value="benin">Bénin 🇧🇯</option>
+                <option value="togo">Togo 🇹🇬</option>
+            </select>
+    
+            <select id="select-type" class="tool-btn" style="width: 100%;">
+                <option value="devoir_officiel">Devoir Semestriel</option>
+                <option value="interro_simple">Interrogation</option>
+            </select>
+        
+            <button id="btn-appliquer-entete" onclick="genererEntete()" class="btn btn-primary" style="width: 100%; margin-top: 10px;">
+                <i class="fas fa-magic"></i> Appliquer l'En-tête
+            </button>
+        </div>
 
-            <div class="tool-section">
-                <h4><i class="fas fa-flask"></i> SCIENCES</h4>
-                <button title="Équation Math" class="tool-btn"><i class="fas fa-square-root-variable"></i> Équation</button>
-                <button title="Verrerie Chimie" class="tool-btn"><i class="fas fa-vial"></i> Chimie</button>
-                <button title="Géométrie" class="tool-btn"><i class="fas fa-draw-polygon"></i> Géo/Gebra</button>
-            </div>
+        <div class="tool-section">
+            <h4><i class="fas fa-file-invoice"></i> STRUCTURE</h4>
+            <!-- On ajoute les ID ici -->
+            <button id="btn-exercice" class="tool-btn"><i class="fas fa-list-ol"></i> Bloc Exercice</button>
+            <button id="btn-schema" onclick="ouvrirBanqueImages()" class="tool-btn"><i class="fas fa-microscope"></i> Schémas Bio/Chimie</button>
+        </div>
 
-            <div class="tool-section">
-                <h4><i class="fas fa-map-marked-alt"></i> LITTÉRAIRES</h4>
-                <button title="Fonds de cartes" class="tool-btn"><i class="fas fa-map"></i> Cartes Géo</button>
-                <button title="Dictée / Texte" class="tool-btn"><i class="fas fa-quote-left"></i> Bloc Texte</button>
-            </div>
+        <div class="tool-section">
+            <h4><i class="fas fa-flask"></i> SCIENCES</h4>
+            <button id="btn-maths" class="tool-btn"><i class="fas fa-square-root-variable"></i> Équation</button>
+            <button id="btn-chimie" class="tool-btn"><i class="fas fa-vial"></i> Chimie</button>
+            <button id="btn-geogebra" class="tool-btn"><i class="fas fa-draw-polygon"></i> Géo/Gebra</button>
+        </div>
 
-            <div class="tool-section">
-                <h4><i class="fas fa-table"></i> AUTRES</h4>
-                <button title="Insérer Tableau" class="tool-btn"><i class="fas fa-table-cells"></i> Tableau</button>
-                <button title="Image" class="tool-btn"><i class="fas fa-image"></i> Image</button>
-            </div>
-        </aside>
+        <div class="tool-section">
+            <h4><i class="fas fa-map-marked-alt"></i> LITTÉRAIRES</h4>
+            <button id="btn-cartes" class="tool-btn"><i class="fas fa-map"></i> Cartes Géo</button>
+            <button id="btn-texte" class="tool-btn"><i class="fas fa-quote-left"></i> Bloc Texte</button>
+        </div>
 
+        <div class="tool-section">
+            <h4><i class="fas fa-table"></i> AUTRES</h4>
+            <button id="btn-tableau" class="tool-btn"><i class="fas fa-table-cells"></i> Tableau</button>
+            <button id="btn-image" class="tool-btn"><i class="fas fa-image"></i> Image</button>
+        </div>
+    </aside>
+        
         <!-- Zone Centrale : La feuille A4 -->
         <div class="paper-container">
             <div class="a4-epreuve" id="epreuve-zone" contenteditable="true" spellcheck="false">
@@ -104,21 +123,6 @@
             <p class="help-text">Cliquez sur un exercice pour ajuster ses points.</p>
         </aside>
 
-    </div>
-    
-    <div class="tool-section">
-        <h4><i class="fas fa-flag"></i> CONFIGURATION</h4>
-        <select id="select-pays" class="tool-btn" style="width: 100%;">
-            <option value="benin">Bénin 🇧🇯</option>
-            <option value="togo">Togo 🇹🇬</option>
-        </select>
-    
-        <select id="select-type" class="tool-btn" style="width: 100%;">
-            <option value="devoir_officiel">Devoir Semestriel</option>
-            <option value="interro_simple">Interrogation</option>
-        </select>
-    
-        <button onclick="genererEntete()" class="btn btn-primary" style="width: 100%; margin-top: 10px;">Appliquer l'En-tête</button>
     </div>
 
 <script src="entetes.js"></script>    
