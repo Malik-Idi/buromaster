@@ -142,25 +142,22 @@ Object.assign(window.BuroMasterEngine, {
         return wrapper.querySelector(".page-content");
     },
 
-    // 2. MOTEUR DE DÉCOUPAGE (WORD-BY-WORD PAGINATION)
-    // Paramètres : texte à afficher, conteneur cible, styles (police, taille), et titre éventuel
+        // 2. MOTEUR DE DÉCOUPAGE (WORD-BY-WORD PAGINATION)
     renderToA4: function(container, text, options = {}) {
         if (!container) return;
         
-        // Sécurité : on vide le conteneur avant de recalculer
         container.innerHTML = "";
         
         const settings = {
             font: options.font || "'Times New Roman', serif",
             size: options.size || "12px",
             title: options.title || null,
-            maxHeight: 940 // Hauteur limite en pixels avant saut de page
+            maxHeight: 940 
         };
 
         let currentPageNum = 1;
         let currentArea = this.createPageElement(container, currentPageNum);
 
-        // A. Ajout du titre de section (si présent)
         if (settings.title) {
             const header = document.createElement("div");
             header.className = "page-header-title";
@@ -171,12 +168,11 @@ Object.assign(window.BuroMasterEngine, {
 
         if (!text) return;
 
-        // B. Traitement par paragraphes puis par mots
         const paragraphs = text.split("\n");
         
         paragraphs.forEach((paraText) => {
-            // Création d'un bloc paragraphe pour préserver la structure
-            const pDiv = document.createElement("div");
+            // CORRECTION 1 : On utilise "let" au lieu de "const" pour pouvoir changer de page
+            let pDiv = document.createElement("div"); 
             pDiv.className = "text-paragraph";
             pDiv.style.fontFamily = settings.font;
             pDiv.style.fontSize = settings.size;
@@ -188,17 +184,12 @@ Object.assign(window.BuroMasterEngine, {
                 const previousContent = pDiv.textContent;
                 pDiv.textContent += (pDiv.textContent ? " " : "") + word;
 
-                // C. Détection critique du débordement
-                // On utilise scrollHeight qui est indépendant du zoom CSS
                 if (currentArea.scrollHeight > settings.maxHeight) {
-                    // On retire le mot qui a fait déborder
                     pDiv.textContent = previousContent;
 
-                    // Création de la nouvelle page
                     currentPageNum++;
                     currentArea = this.createPageElement(container, currentPageNum);
 
-                    // On recrée un paragraphe sur la nouvelle page pour le mot expulsé
                     const nextP = document.createElement("div");
                     nextP.className = "text-paragraph";
                     nextP.style.fontFamily = settings.font;
@@ -206,15 +197,15 @@ Object.assign(window.BuroMasterEngine, {
                     nextP.textContent = word;
                     currentArea.appendChild(nextP);
                     
-                    // On met à jour pDiv pour les prochains mots du paragraphe initial
-                    // mais on change sa référence vers le nouveau paragraphe sur la nouvelle page
-                    // pour ne pas perdre la logique de boucle
+                    // CORRECTION 2 : On redirige la suite du texte vers la nouvelle page
+                    pDiv = nextP; 
                 }
             });
         });
 
         console.log(`📄 Rendu terminé : ${currentPageNum} page(s) générée(s).`);
     },
+
 
     // 3. ANALYSEUR DE STRUCTURE (PARSER)
     // Transforme le plan en liste de sections pour le développement
