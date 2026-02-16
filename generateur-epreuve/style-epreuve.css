@@ -163,7 +163,9 @@ select.tool-btn {
     border-bottom: 2px solid black;
     padding-bottom: 15px;
     font-size: 0.9rem;
-    line-height: 1.6;
+    line-height: 1.4;
+    margin-bottom: 20px; /* Ajout d'un espace sous l'en-tête */
+    min-height: 100px;    /* Sécurité pour l'affichage */
 }
 
 .ex-title {
@@ -183,5 +185,26 @@ select.tool-btn {
         box-shadow: none;
         padding: 0;
         margin: 0;
+    }
+}
+
+/* Pour eviter les bordures bizzarres */
+math-field {
+    border: 1px solid transparent;
+    padding: 2px;
+    border-radius: 4px;
+    font-size: 1.1em;
+}
+
+math-field:focus-within {
+    outline: none;
+    border: 1px dashed var(--primary-color);
+    background-color: #f0f9ff;
+}
+
+@media print {
+    math-field {
+        border: none !important;
+        background: transparent !important;
     }
 }
