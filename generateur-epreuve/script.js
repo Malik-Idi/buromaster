@@ -97,3 +97,46 @@ document.addEventListener('DOMContentLoaded', () => {
         if (btn.innerText.includes("Tableau")) btn.onclick = ajouterTableau;
     });
 });
+
+function mettreAJourBareme() {
+    const zoneEpreuve = document.getElementById('epreuve-zone');
+    const texte = zoneEpreuve.innerText;
+    
+    // Cette Regex cherche les nombres entre parenthèses suivis de 'pt' ou 'point'
+    const regexPoints = /\((\d+[.,]?\d*)\s*(pts?|points?)\)/gi;
+    let match;
+    let total = 0;
+
+    while ((match = regexPoints.exec(texte)) !== null) {
+        // On remplace la virgule par un point pour le calcul mathématique
+        let valeur = parseFloat(match[1].replace(',', '.'));
+        total += valeur;
+    }
+
+    // Mise à jour de l'affichage dans la sidebar droite
+    const afficheur = document.getElementById('total-score');
+    if(afficheur) {
+        afficheur.innerText = total.toString().replace('.', ',');
+        
+        // Petit effet visuel : si > 20, on met en rouge
+        afficheur.style.color = total > 20 ? "#ef4444" : "#38bdf8";
+    }
+}
+
+// On lance la mise à jour dès que le prof tape au clavier
+document.getElementById('epreuve-zone').addEventListener('input', mettreAJourBareme);
+
+function ouvrirBanqueImages() {
+    // Pour l'instant, on simule avec un prompt, mais on créera une belle fenêtre plus tard
+    const url = prompt("Collez l'URL d'une image ou d'un schéma (ex: schéma d'un circuit électrique) :");
+    if (url) {
+        const img = document.createElement('img');
+        img.src = url;
+        img.style.maxWidth = "200px"; // Taille raisonnable par défaut
+        img.style.display = "block";
+        img.style.margin = "10px auto";
+        img.style.cursor = "move";
+        
+        insererElement(img);
+    }
+}
