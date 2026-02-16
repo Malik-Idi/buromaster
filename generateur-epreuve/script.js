@@ -88,15 +88,21 @@ document.querySelector('.doc-title').addEventListener('input', function() {
 // 6. INITIALISATION DES BOUTONS DE LA SIDEBAR
 // On lie les fonctions aux boutons créés dans le HTML
 document.addEventListener('DOMContentLoaded', () => {
-    // On sélectionne les boutons par leur titre ou leur icône
-    const boutons = document.querySelectorAll('.tool-btn');
+    // Liaison par ID (plus robuste)
+    const btnMaths = document.getElementById('btn-maths');
+    const btnExercice = document.getElementById('btn-exercice');
+    const btnTableau = document.getElementById('btn-tableau');
+    const btnAppliquer = document.getElementById('btn-appliquer-entete');
+
+    if (btnMaths) btnMaths.onclick = ajouterEquation;
+    if (btnExercice) btnExercice.onclick = ajouterExercice;
+    if (btnTableau) btnTableau.onclick = ajouterTableau;
+    if (btnAppliquer) btnAppliquer.onclick = genererEntete;
     
-    boutons.forEach(btn => {
-        if (btn.innerText.includes("Équation")) btn.onclick = ajouterEquation;
-        if (btn.innerText.includes("Exercice")) btn.onclick = ajouterExercice;
-        if (btn.innerText.includes("Tableau")) btn.onclick = ajouterTableau;
-    });
+    // On lance un premier calcul du barème au cas où il y a déjà du texte
+    mettreAJourBareme();
 });
+
 
 function mettreAJourBareme() {
     const zoneEpreuve = document.getElementById('epreuve-zone');
@@ -108,9 +114,11 @@ function mettreAJourBareme() {
     let total = 0;
 
     while ((match = regexPoints.exec(texte)) !== null) {
-        // On remplace la virgule par un point pour le calcul mathématique
+        // match[1] contient uniquement le chiffre capturé par la parenthèse (\d+[.,]?\d*)
         let valeur = parseFloat(match[1].replace(',', '.'));
-        total += valeur;
+        if (!isNaN(valeur)) {
+            total += valeur;
+        }
     }
 
     // Mise à jour de l'affichage dans la sidebar droite
@@ -136,6 +144,11 @@ function ouvrirBanqueImages() {
         img.style.display = "block";
         img.style.margin = "10px auto";
         img.style.cursor = "move";
+        img.style.resize = "both";
+        img.style.overflow = "auto";
+        img.style.border = "1px dashed transparent";
+        img.onmouseover = () => img.style.borderColor = "#38bdf8"; // Indice visuel
+        img.onmouseout = () => img.style.borderColor = "transparent";
         
         insererElement(img);
     }
