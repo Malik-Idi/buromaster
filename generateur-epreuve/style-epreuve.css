@@ -136,6 +136,7 @@ select.tool-btn {
 }
 
 /* --- ZONE DE LA FEUILLE (A4) --- */
+/* Conteneur qui contient toutes les pages */
 .paper-container {
     flex: 1;
     overflow-y: auto;
@@ -143,18 +144,33 @@ select.tool-btn {
     display: flex;
     flex-direction: column;
     align-items: center;
+    gap: 20px; /* Espace entre les feuilles */
 }
 
-.a4-epreuve {
+/* Style d'une seule page A4 */
+.a4-page {
     width: 210mm;
-    min-height: 297mm;
+    height: 297mm; /* Hauteur fixe A4 */
     background: white;
     padding: 20mm;
     box-shadow: var(--shadow);
     color: black;
     outline: none;
     position: relative;
+    overflow: hidden; /* Empêche le texte de dépasser visuellement */
+    display: flex;
+    flex-direction: column;
 }
+
+@media print {
+    .paper-container { padding: 0; gap: 0; }
+    .a4-page { 
+        box-shadow: none; 
+        margin: 0; 
+        page-break-after: always; /* Force l'imprimante à changer de feuille */
+    }
+}
+
 
 /* --- ÉLÉMENTS DE L'ÉPREUVE --- */
 .header-epreuve {
