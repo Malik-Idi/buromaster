@@ -116,49 +116,51 @@
             <!-- SECTION MISE EN FORME -->
             <div class="tool-section">
                 <h4><i class="fas fa-font"></i> MISE EN FORME</h4>
+    
+                <!-- Grille 1 : Styles et Alignements (4 colonnes) -->
                 <div class="formatting-grid">
-                    <!-- Ligne 1 : Styles de base -->
-                    <button onclick="formater('bold')" title="Gras" class="format-btn"><i class="fas fa-bold"></i></button>
-                    <button onclick="formater('italic')" title="Italique" class="format-btn"><i class="fas fa-italic"></i></button>
-                    <button onclick="formater('underline')" title="Souligné" class="format-btn"><i class="fas fa-underline"></i></button>
-                    <button onclick="formater('strikethrough')" title="Barré" class="format-btn"><i class="fas fa-strikethrough"></i></button>
-            
-                    <!-- Ligne 2 : Scripting -->
+                    <button onclick="formater('bold')" title="Gras" class="format-btn text-icon">G</button>
+                    <button onclick="formater('italic')" title="Italique" class="format-btn text-icon" style="font-style: italic;">I</button>
+                    <button onclick="formater('underline')" title="Souligné" class="format-btn text-icon" style="text-decoration: underline;">S</button>
+                    <button onclick="formater('strikethrough')" title="Barré" class="format-btn text-icon" style="text-decoration: line-through;">ab</button>
+        
                     <button onclick="formater('subscript')" title="Indice" class="format-btn"><i class="fas fa-subscript"></i></button>
                     <button onclick="formater('superscript')" title="Exposant" class="format-btn"><i class="fas fa-superscript"></i></button>
                     <button onclick="formater('insertUnorderedList')" title="Puces" class="format-btn"><i class="fas fa-list-ul"></i></button>
                     <button onclick="formater('insertOrderedList')" title="Numérotation" class="format-btn"><i class="fas fa-list-ol"></i></button>
 
-                    <!-- Ligne 3 : Alignement -->
-                    <button onclick="formater('justifyLeft')" class="format-btn"><i class="fas fa-align-left"></i></button>
-                    <button onclick="formater('justifyCenter')" class="format-btn"><i class="fas fa-align-center"></i></button>
-                    <button onclick="formater('justifyRight')" class="format-btn"><i class="fas fa-align-right"></i></button>
-                    <button onclick="formater('justifyFull')" class="format-btn"><i class="fas fa-align-justify"></i></button>
+                    <button onclick="formater('justifyLeft')" title="Gauche" class="format-btn"><i class="fas fa-align-left"></i></button>
+                    <button onclick="formater('justifyCenter')" title="Centrer" class="format-btn"><i class="fas fa-align-center"></i></button>
+                    <button onclick="formater('justifyRight')" title="Droite" class="format-btn"><i class="fas fa-align-right"></i></button>
+                    <button onclick="formater('justifyFull')" title="Justifier" class="format-btn"><i class="fas fa-align-justify"></i></button>
+                </div>
 
-                    <!-- Dans ta grille de boutons (formatting-grid) -->
-                    <button onclick="effacerMiseEnForme()" title="Effacer tout le style" class="format-btn" style="color: #ef4444;">
-                        <i class="fas fa-remove-format"></i>
+                <!-- Grille 2 : Outils spéciaux (Retraits et Effacer) -->
+                <div class="special-tools-grid">
+                    <button onclick="effacerMiseEnForme()" title="Effacer tout le style" class="format-btn btn-danger">
+                        <i class="fas fa-eraser"></i>
                     </button>
+                    <button onclick="changerRetrait('diminuer')" title="Réduire retrait" class="format-btn">
+                        <i class="fas fa-outdent"></i>
+                    </button>
+                    <button onclick="changerRetrait('augmenter')" title="Augmenter retrait" class="format-btn">
+                        <i class="fas fa-indent"></i>
+                    </button>
+                </div>
 
-                    <!-- Ajoute une nouvelle ligne pour les Retraits -->
-                    <div class="paragraph-tools" style="margin-top: 10px; display: flex; gap: 5px;">
-                        <button onclick="changerRetrait('diminuer')" title="Réduire le retrait" class="format-btn flex-1"><i class="fas fa-outdent"></i></button>
-                        <button onclick="changerRetrait('augmenter')" title="Augmenter le retrait" class="format-btn flex-1"><i class="fas fa-indent"></i></button>
+                <!-- Trame de fond -->
+                <div class="background-tool">
+                    <div class="bg-label">
+                        <i class="fas fa-fill-drip"></i> <span>TRAME DE FOND</span>
                     </div>
-
-                    <!-- Ajoute l'outil de trame de fond de paragraphe -->
-                    <div class="tool-section" style="margin-top: 15px;">
-                        <h4><i class="fas fa-fill-drip"></i> TRAME DE FOND (BLOC)</h4>
-                        <div style="display: flex; align-items: center; gap: 10px;">
-                            <input type="color" onchange="changerTrameParagraphe(this.value)" value="#ffffff" title="Couleur de fond du paragraphe">
-                            <small>Couleur du bloc</small>
-                        </div>
+                    <div class="bg-control">
+                        <input type="color" onchange="changerTrameParagraphe(this.value)" value="#ffffff">
+                        <small>Couleur du bloc</small>
                     </div>
-
                 </div>
 
                 <!-- Couleurs et Tailles -->
-                <div class="color-tools">
+                <div class="color-size-row">
                     <input type="color" onchange="changerCouleur(this.value)" title="Couleur Texte">
                     <input type="color" onchange="changerFond(this.value)" title="Surligneur" value="#ffff00">
                     <select onchange="changerTaille(this.value)" class="size-select">
