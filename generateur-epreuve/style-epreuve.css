@@ -363,3 +363,29 @@ math-field:focus-within {
 
 /* Indicateur de sauvegarde dans le Header */
 .save-status { font-size: 0.7rem; color: #4ade80; /* Vert */ margin-right: 15px; display: flex; align-items: center; gap: 5px; }
+
+/* Style du numéro de page */
+.page-number {
+    position: absolute;
+    bottom: 15mm;
+    right: 20mm;
+    font-size: 0.8rem;
+    color: #888;
+    user-select: none; /* Empêche la sélection du texte */
+}
+
+/* On s'assure que chaque page est bien un rectangle A4 fixe */
+.a4-page {
+    position: relative; /* Pour positionner le numéro de page par rapport à la feuille */
+    width: 210mm;
+    height: 297mm;
+    background: white;
+    padding: 20mm;
+    margin-bottom: 20px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.2);
+    overflow: hidden; /* Coupe le texte qui dépasse */
+}
+
+@media print {
+    .page-number { display: block; } /* Garder les numéros à l'impression */
+}
