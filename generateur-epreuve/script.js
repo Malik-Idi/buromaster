@@ -136,24 +136,54 @@ function mettreAJourBareme() {
 // On lance la mise à jour dès que le prof tape au clavier
 document.getElementById('epreuve-zone').addEventListener('input', mettreAJourBareme);
 
+const BANQUE_IMAGES = {
+    "Physique-Chimie": [
+        { nom: "Circuit simple", url: "https://upload.wikimedia.org" },
+        { nom: "Bécher", url: "https://upload.wikimedia.org" },
+        { nom: "Éprouvette", url: "https://upload.wikimedia.org" }
+    ],
+    "Géographie": [
+        { nom: "Carte Bénin (Fond)", url: "https://upload.wikimedia.org" },
+        { nom: "Afrique de l'Ouest", url: "https://upload.wikimedia.org" }
+    ]
+};
+
 function ouvrirBanqueImages() {
-    // Pour l'instant, on simule avec un prompt, mais on créera une belle fenêtre plus tard
-    const url = prompt("Collez l'URL d'une image ou d'un schéma (ex: schéma d'un circuit électrique) :");
-    if (url) {
-        const img = document.createElement('img');
-        img.src = url;
-        img.style.maxWidth = "200px"; // Taille raisonnable par défaut
-        img.style.display = "block";
-        img.style.margin = "10px auto";
-        img.style.cursor = "move";
-        img.style.resize = "both";
-        img.style.overflow = "auto";
-        img.style.border = "1px dashed transparent";
-        img.onmouseover = () => img.style.borderColor = "#38bdf8"; // Indice visuel
-        img.onmouseout = () => img.style.borderColor = "transparent";
-        
-        insererElement(img);
+    // 1. Création de la fenêtre (Modale)
+    const modale = document.createElement('div');
+    modale.className = "modale-images";
+    
+    let contenu = `
+        <div class="modale-content">
+            <div class="modale-header">
+                <h3>Banque de schémas</h3>
+                <button onclick="this.closest('.modale-images').remove()">×</button>
+            </div>
+            <div class="modale-body">
+    `;
+
+    for (const [categorie, images] of Object.entries(BANQUE_IMAGES)) {
+        contenu += `<h4>${categorie}</h4><div class="images-grid">`;
+        images.forEach(img => {
+            contenu += `<img src="${img.url}" title="${img.nom}" onclick="insererImageBanque('${img.url}')">`;
+        });
+        contenu += `</div>`;
     }
+
+    contenu += `</div></div>`;
+    modale.innerHTML = contenu;
+    document.body.appendChild(modale);
+}
+
+function insererImageBanque(url) {
+    const img = document.createElement('img');
+    img.src = url;
+    img.style.maxWidth = "150px";
+    img.style.cursor = "move";
+    img.style.margin = "10px";
+    
+    insererElement(img);
+    document.querySelector('.modale-images').remove(); // Ferme la modale
 }
 
 function genererEntete() {
