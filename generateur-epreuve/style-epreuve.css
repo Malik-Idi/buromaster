@@ -344,3 +344,6 @@ math-field:focus-within {
 }
 
 .images-grid img:hover { border-color: var(--primary-color); transform: scale(1.05); }
+
+/* Indicateur de sauvegarde dans le Header */
+.save-status { font-size: 0.7rem; color: #4ade80; /* Vert */ margin-right: 15px; display: flex; align-items: center; gap: 5px; }
