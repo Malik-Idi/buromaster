@@ -134,6 +134,27 @@
                     <button onclick="formater('justifyCenter')" class="format-btn"><i class="fas fa-align-center"></i></button>
                     <button onclick="formater('justifyRight')" class="format-btn"><i class="fas fa-align-right"></i></button>
                     <button onclick="formater('justifyFull')" class="format-btn"><i class="fas fa-align-justify"></i></button>
+
+                    <!-- Dans ta grille de boutons (formatting-grid) -->
+                    <button onclick="effacerMiseEnForme()" title="Effacer tout le style" class="format-btn" style="color: #ef4444;">
+                        <i class="fas fa-remove-format"></i>
+                    </button>
+
+                    <!-- Ajoute une nouvelle ligne pour les Retraits -->
+                    <div class="paragraph-tools" style="margin-top: 10px; display: flex; gap: 5px;">
+                        <button onclick="changerRetrait('diminuer')" title="Réduire le retrait" class="format-btn flex-1"><i class="fas fa-outdent"></i></button>
+                        <button onclick="changerRetrait('augmenter')" title="Augmenter le retrait" class="format-btn flex-1"><i class="fas fa-indent"></i></button>
+                    </div>
+
+                    <!-- Ajoute l'outil de trame de fond de paragraphe -->
+                    <div class="tool-section" style="margin-top: 15px;">
+                        <h4><i class="fas fa-fill-drip"></i> TRAME DE FOND (BLOC)</h4>
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <input type="color" onchange="changerTrameParagraphe(this.value)" value="#ffffff" title="Couleur de fond du paragraphe">
+                            <small>Couleur du bloc</small>
+                        </div>
+                    </div>
+
                 </div>
 
                 <!-- Couleurs et Tailles -->
