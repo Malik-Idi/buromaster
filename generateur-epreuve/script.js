@@ -80,29 +80,31 @@ function ajouterTableau() {
     insererElement(table);
 }
 
-// 5. MISE À JOUR DU TITRE DU DOCUMENT
-document.querySelector('.doc-title').addEventListener('input', function() {
-    document.title = this.innerText + " | BuroMaster";
-});
+// 5. MISE À JOUR DU TITRE DU DOCUMENT (Plus sécurisé)
+const titreDoc = document.querySelector('.doc-title');
+if (titreDoc) {
+    titreDoc.addEventListener('input', function() {
+        document.title = this.innerText + " | BuroMaster";
+    });
+}
 
-// 6. INITIALISATION DES BOUTONS DE LA SIDEBAR
-// On lie les fonctions aux boutons créés dans le HTML
+// 6. INITIALISATION (Ajout de la liaison pour les images)
 document.addEventListener('DOMContentLoaded', () => {
-    // Liaison par ID (plus robuste)
-    const btnMaths = document.getElementById('btn-maths');
-    const btnExercice = document.getElementById('btn-exercice');
-    const btnTableau = document.getElementById('btn-tableau');
-    const btnAppliquer = document.getElementById('btn-appliquer-entete');
+    const actions = {
+        'btn-maths': ajouterEquation,
+        'btn-exercice': ajouterExercice,
+        'btn-tableau': ajouterTableau,
+        'btn-appliquer-entete': genererEntete,
+        'btn-schema': ouvrirBanqueImages // Ajouté pour lier le bouton SVT/Chimie
+    };
 
-    if (btnMaths) btnMaths.onclick = ajouterEquation;
-    if (btnExercice) btnExercice.onclick = ajouterExercice;
-    if (btnTableau) btnTableau.onclick = ajouterTableau;
-    if (btnAppliquer) btnAppliquer.onclick = genererEntete;
+    for (const [id, fonction] of Object.entries(actions)) {
+        const btn = document.getElementById(id);
+        if (btn) btn.onclick = fonction;
+    }
     
-    // On lance un premier calcul du barème au cas où il y a déjà du texte
     mettreAJourBareme();
 });
-
 
 function mettreAJourBareme() {
     const zoneEpreuve = document.getElementById('epreuve-zone');
