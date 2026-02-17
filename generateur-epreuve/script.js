@@ -191,3 +191,35 @@ function genererEntete() {
     const type = document.getElementById('select-type').value;
     appliquerEntete(pays, type);
 }
+
+// --- SYSTÈME HORS-LIGNE (AUTO-SAVE) ---
+
+// 1. Sauvegarder le contenu
+function sauvegarderLocalement() {
+    const contenu = document.getElementById('epreuve-zone').innerHTML;
+    const titre = document.querySelector('.doc-title').innerText;
+    
+    localStorage.setItem('buromaster_last_content', contenu);
+    localStorage.setItem('buromaster_last_title', titre);
+    
+    console.log("Sauvegardé localement à " + new Date().toLocaleTimeString());
+}
+
+// 2. Charger le contenu au démarrage
+function chargerSauvegardeLocale() {
+    const contenuSauvegarde = localStorage.getItem('buromaster_last_content');
+    const titreSauvegarde = localStorage.getItem('buromaster_last_title');
+
+    if (contenuSauvegarde) {
+        document.getElementById('epreuve-zone').innerHTML = contenuSauvegarde;
+    }
+    if (titreSauvegarde) {
+        document.querySelector('.doc-title').innerText = titreSauvegarde;
+    }
+}
+
+// 3. Activer la sauvegarde automatique toutes les 30 secondes ET à chaque modification
+document.getElementById('epreuve-zone').addEventListener('input', sauvegarderLocalement);
+
+// Lancer le chargement quand la page s'ouvre
+window.addEventListener('load', chargerSauvegardeLocale);
