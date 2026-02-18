@@ -3,7 +3,9 @@
  */
 
 function formater(commande, valeur = null) {
-    const zone = document.getElementById('epreuve-zone');
+    // MODIFICATION : On utilise obtenirPageActive() pour que le focus 
+    // reste sur la page où le prof travaille (Page 1, 2, 3...)
+    const zone = obtenirPageActive();
     if (zone) {
         zone.focus();
         document.execCommand(commande, false, valeur);
@@ -18,12 +20,15 @@ function changerTaille(taille) { formater('fontSize', taille); }
 // Nettoyer la mise en forme (Amélioré)
 function effacerMiseEnForme() {
     formater('removeFormat');
+    
     // On réinitialise aussi l'éventuelle couleur de fond de bloc
     const selection = window.getSelection();
     if (selection.rangeCount > 0) {
         let parent = selection.getRangeAt(0).commonAncestorContainer;
         while (parent && parent.nodeType !== 1) parent = parent.parentNode;
-        if (parent && parent.id !== 'epreuve-zone') {
+        
+        // MODIFICATION : Sécurité basée sur la classe au lieu de l'ID
+        if (parent && !parent.classList.contains('paper-container')) {
             parent.style.backgroundColor = "transparent";
             parent.style.padding = "0px";
         }
@@ -43,11 +48,13 @@ function changerTrameParagraphe(couleur) {
         while (parent && parent.nodeType !== 1) {
             parent = parent.parentNode;
         }
-        // Sécurité : on ne colore pas la zone principale 'epreuve-zone'
-        if (parent && parent.id !== 'epreuve-zone' && parent.tagName !== 'BODY') {
+        
+        // MODIFICATION : Sécurité renforcée pour ne pas colorer 
+        // le fond gris (paper-container) mais uniquement les blocs dans les pages
+        if (parent && !parent.classList.contains('paper-container') && parent.tagName !== 'BODY') {
             parent.style.backgroundColor = couleur;
             parent.style.padding = "10px";
-            parent.style.borderRadius = "4px"; // Optionnel : pour un look plus moderne
+            parent.style.borderRadius = "4px"; 
         }
     }
 }
