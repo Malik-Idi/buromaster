@@ -1,225 +1,158 @@
 /**
- * BUROMASTER STUDIO - Moteur de l'éditeur (Version Unifiée Multi-Pages)
+ * BUROMASTER STUDIO - Chef d'orchestre final
  */
 
-/**
- * TROUVER LA ZONE DE TEXTE ACTIVE
- * Cible désormais la div .page-content pour l'édition multi-pages
- */
-function obtenirPageActive() {
-    const selection = window.getSelection();
-    if (selection.rangeCount > 0) {
-        let node = selection.anchorNode;
-        // On remonte le DOM pour trouver spécifiquement la zone de contenu
-        while (node && (!node.classList || !node.classList.contains('page-content'))) {
-            node = node.parentNode;
-        }
-        if (node) return node;
-    }
-    // Si aucune sélection n'est active, on prend la zone de contenu de la dernière page
-    const toutesLesZones = document.querySelectorAll('.page-content');
-    return toutesLesZones[toutesLesZones.length - 1];
-}
-
-// 1. GESTION DE L'INSERTION AU CURSEUR
-function insererElement(element) {
-    const zoneActive = obtenirPageActive();
-    zoneActive.focus(); // Focus sur la page où se trouve le prof
-    
-    const selection = window.getSelection();
-    if (selection.rangeCount > 0) {
-        const range = selection.getRangeAt(0);
-        range.deleteContents();
-        range.insertNode(element);
-
-        range.setStartAfter(element);
-        range.collapse(true);
-        selection.removeAllRanges();
-        selection.addRange(range);
-    }
-}
-
-// 2. OUTILS MATHÉMATIQUES
-function ajouterEquation() {
-    const mfield = document.createElement('math-field');
-    mfield.style.display = "inline-block";
-    mfield.style.verticalAlign = "middle";
-    mfield.value = "x = ";
-    
-    insererElement(mfield);
-    setTimeout(() => mfield.focus(), 100);
-}
-
-// 3. OUTILS DE STRUCTURE
-function ajouterExercice() {
-    const bloc = document.createElement('div');
-    bloc.className = "exercice-container";
-    
-    const titre = document.createElement('p');
-    titre.innerHTML = "<strong>Exercice : .................... (........ points)</strong>";
-    titre.style.marginTop = "20px";
-    
-    const consigne = document.createElement('p');
-    consigne.innerText = "Saisissez votre consigne ici...";
-    
-    bloc.appendChild(titre);
-    bloc.appendChild(consigne);
-    
-    // On ajoute l'exercice à la page active
-    obtenirPageActive().appendChild(bloc);
-}
-
-// 4. OUTILS DIVERS
-function ajouterTableau() {
-    let lignes = prompt("Nombre de lignes ?", "3");
-    let colonnes = prompt("Nombre de colonnes ?", "3");
-    
-    let table = document.createElement('table');
-    table.style.width = "100%";
-    table.style.borderCollapse = "collapse";
-    table.border = "1";
-
-    for (let i = 0; i < lignes; i++) {
-        let tr = table.insertRow();
-        for (let j = 0; j < colonnes; j++) {
-            let td = tr.insertCell();
-            td.innerText = "...";
-            td.style.padding = "5px";
-            td.style.border = "1px solid black";
-        }
-    }
-    insererElement(table);
-}
-
-// 5. MISE À JOUR DU TITRE
-const titreDoc = document.querySelector('.doc-title');
-if (titreDoc) {
-    titreDoc.addEventListener('input', function() {
-        document.title = this.innerText + " | BuroMaster";
-    });
-}
-
-// 6. INITIALISATION DES BOUTONS
+// 1. LIAISON DES BOUTONS DE LA SIDEBAR GAUCHE (STRUCTURE & SCIENCES)
 document.addEventListener('DOMContentLoaded', () => {
     const actions = {
         'btn-maths': ajouterEquation,
         'btn-exercice': ajouterExercice,
         'btn-tableau': ajouterTableau,
         'btn-appliquer-entete': genererEntete,
-        'btn-schema': ouvrirBanqueImages
+        'btn-schema': ouvrirBanqueImages,
+        'btn-new-page': ajouterNouvellePage,
+        'btn-save': sauvegarderLocalement,
+        'btn-pdf': () => window.print(),
+        'btn-reset': reinitialiserTout
     };
 
     for (const [id, fonction] of Object.entries(actions)) {
         const btn = document.getElementById(id);
         if (btn) btn.onclick = fonction;
     }
+
+    // Lancement du barème et chargement initial
+    const container = document.getElementById('main-container');
+    if (container) {
+        container.addEventListener('input', () => {
+            mettreAJourBareme();
+            sauvegarderLocalement();
+        });
+    }
     
-    // Ecouteur global pour le barème (sur tout le container)
-    document.querySelector('.paper-container').addEventListener('input', mettreAJourBareme);
+    chargerSauvegardeLocale();
     mettreAJourBareme();
 });
 
-// --- BARÈME GLOBAL (TOUTES LES PAGES) ---
+// 2. OUTILS D'INSERTION (Utilisent obtenirPageActive() de editeur.js)
+function ajouterEquation() {
+    const mfield = document.createElement('math-field');
+    mfield.value = "x = ";
+    insererDansPage(mfield);
+    setTimeout(() => mfield.focus(), 100);
+}
+
+function ajouterExercice() {
+    const div = document.createElement('div');
+    div.className = "exercice-container";
+    div.innerHTML = "<p><strong>Exercice : .................... (........ points)</strong></p><p>Consigne...</p>";
+    insererDansPage(div);
+}
+
+function ajouterTableau() {
+    const lignes = prompt("Lignes ?", "3");
+    const colonnes = prompt("Colonnes ?", "3");
+    const table = document.createElement('table');
+    table.style.width = "100%";
+    table.style.borderCollapse = "collapse";
+    for (let i = 0; i < lignes; i++) {
+        let tr = table.insertRow();
+        for (let j = 0; j < colonnes; j++) {
+            let td = tr.insertCell();
+            td.style.border = "1px solid black";
+            td.innerText = "...";
+        }
+    }
+    insererDansPage(table);
+}
+
+function insererDansPage(element) {
+    const zone = obtenirPageActive();
+    zone.focus();
+    const sel = window.getSelection();
+    if (sel.rangeCount > 0) {
+        const range = sel.getRangeAt(0);
+        range.insertNode(element);
+        range.setStartAfter(element);
+        range.collapse(true);
+        sel.removeAllRanges();
+        sel.addRange(range);
+    }
+}
+
+// 3. BARÈME GLOBAL (Scruté sur toutes les pages)
 function mettreAJourBareme() {
-    // On récupère le texte de TOUTES les pages
     let texteComplet = "";
-    document.querySelectorAll('.a4-page').forEach(page => {
-        texteComplet += page.innerText + " ";
-    });
+    document.querySelectorAll('.page-content').forEach(p => texteComplet += p.innerText + " ");
     
-    const regexPoints = /\((\d+[.,]?\d*)\s*(pts?|points?)\)/gi;
-    let match;
-    let total = 0;
-
-    while ((match = regexPoints.exec(texteComplet)) !== null) {
-        let valeur = parseFloat(match[1].replace(',', '.'));
-        if (!isNaN(valeur)) total += valeur;
+    const regex = /\((\d+[.,]?\d*)\s*(pts?|points?)\)/gi;
+    let match, total = 0;
+    while ((match = regex.exec(texteComplet)) !== null) {
+        let val = parseFloat(match[1].replace(',', '.'));
+        if (!isNaN(val)) total += val;
     }
-
-    const afficheur = document.getElementById('total-score');
-    if(afficheur) {
-        afficheur.innerText = total.toString().replace('.', ',');
-        afficheur.style.color = total > 20 ? "#ef4444" : "#38bdf8";
+    const aff = document.getElementById('total-score');
+    if (aff) {
+        aff.innerText = total.toString().replace('.', ',');
+        aff.style.color = total > 20 ? "#ef4444" : "#38bdf8";
     }
 }
 
-// --- BANQUE D'IMAGES (URLs CORRIGÉES) ---
-const BANQUE_IMAGES = {
-    "Physique-Chimie": [
-        { nom: "Circuit simple", url: "https://upload.wikimedia.org" },
-        { nom: "Bécher", url: "https://upload.wikimedia.org" }
-    ],
-    "Géographie": [
-        { nom: "Carte Bénin", url: "https://upload.wikimedia.org" }
-    ]
-};
-
-function ouvrirBanqueImages() {
-    const modale = document.createElement('div');
-    modale.className = "modale-images";
-    let contenu = `<div class="modale-content"><div class="modale-header"><h3>Banque de schémas</h3><button onclick="this.closest('.modale-images').remove()">×</button></div><div class="modale-body">`;
-    for (const [categorie, images] of Object.entries(BANQUE_IMAGES)) {
-        contenu += `<h4>${categorie}</h4><div class="images-grid">`;
-        images.forEach(img => { contenu += `<img src="${img.url}" title="${img.nom}" onclick="insererImageBanque('${img.url}')">`; });
-        contenu += `</div>`;
-    }
-    contenu += `</div></div>`;
-    modale.innerHTML = contenu;
-    document.body.appendChild(modale);
-}
-
-function insererImageBanque(url) {
-    const img = document.createElement('img');
-    img.src = url;
-    img.style.maxWidth = "150px";
-    img.style.margin = "10px";
-    insererElement(img);
-    document.querySelector('.modale-images').remove();
-}
-
-function genererEntete() {
-    const pays = document.getElementById('select-pays').value;
-    const type = document.getElementById('select-type').value;
-    appliquerEntete(pays, type);
-}
-
-// --- SYSTÈME HORS-LIGNE MULTI-PAGES ---
+// 4. SAUVEGARDE ET RESET
 function sauvegarderLocalement() {
-    // Sauvegarde tout le contenu du container (toutes les pages)
-    const container = document.querySelector('.paper-container');
+    const container = document.getElementById('main-container');
     const titre = document.querySelector('.doc-title').innerText;
-    
-    localStorage.setItem('buromaster_full_doc', container.innerHTML);
-    localStorage.setItem('buromaster_last_title', titre);
+    localStorage.setItem('buromaster_v2_content', container.innerHTML);
+    localStorage.setItem('buromaster_v2_title', titre);
 }
 
 function chargerSauvegardeLocale() {
-    const docSauvegarde = localStorage.getItem('buromaster_full_doc');
-    const titreSauvegarde = localStorage.getItem('buromaster_last_title');
-
-    if (docSauvegarde) {
-        document.querySelector('.paper-container').innerHTML = docSauvegarde;
-    }
-    if (titreSauvegarde) {
-        document.querySelector('.doc-title').innerText = titreSauvegarde;
-    }
+    const content = localStorage.getItem('buromaster_v2_content');
+    const title = localStorage.getItem('buromaster_v2_title');
+    if (content) document.getElementById('main-container').innerHTML = content;
+    if (title) document.querySelector('.doc-title').innerText = title;
 }
 
 function reinitialiserTout() {
-    // 1. Demander la confirmation (Le message strict que tu as demandé)
-    const confirmation = confirm("Cette action est irréversible, vous perdrez tout votre travail actuel. Vous êtes sûr de vouloir continuer ?");
-
-    if (confirmation) {
-        // 2. Vider la mémoire du navigateur (LocalStorage)
-        localStorage.removeItem('buromaster_full_doc');
-        localStorage.removeItem('buromaster_last_title');
-        
-        // 3. Recharger la page immédiatement pour repartir de zéro
+    if (confirm("Action irréversible : effacer toute l'épreuve ?")) {
+        localStorage.clear();
         window.location.reload();
     }
 }
 
+// 5. BANQUE D'IMAGES (URLs RÉPARÉES)
+const BANQUE_IMAGES = {
+    "Sciences": [
+        { nom: "Bécher", url: "https://upload.wikimedia.org" },
+        { nom: "Circuit", url: "https://upload.wikimedia.org" }
+    ],
+    "Géo": [
+        { nom: "Bénin", url: "https://upload.wikimedia.org" }
+    ]
+};
 
-// On écoute tout le container pour la sauvegarde
-document.querySelector('.paper-container').addEventListener('input', sauvegarderLocalement);
-window.addEventListener('load', chargerSauvegardeLocale);
+function ouvrirBanqueImages() {
+    const mod = document.createElement('div');
+    mod.className = "modale-images";
+    let html = `<div class="modale-content"><h3>Banque de schémas</h3><div class="images-grid">`;
+    Object.values(BANQUE_IMAGES).flat().forEach(img => {
+        html += `<img src="${img.url}" title="${img.nom}" style="width:100px; cursor:pointer;" onclick="insererImage('${img.url}')">`;
+    });
+    html += `</div><button onclick="this.parentElement.parentElement.remove()">Fermer</button></div>`;
+    mod.innerHTML = html;
+    document.body.appendChild(mod);
+}
+
+function insererImage(url) {
+    const img = document.createElement('img');
+    img.src = url;
+    img.style.maxWidth = "200px";
+    insererDansPage(img);
+    document.querySelector('.modale-images').remove();
+}
+
+function genererEntete() {
+    const p = document.getElementById('select-pays').value;
+    const t = document.getElementById('select-type').value;
+    appliquerEntete(p, t);
+}
