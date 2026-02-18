@@ -203,6 +203,21 @@ function chargerSauvegardeLocale() {
     }
 }
 
+function reinitialiserTout() {
+    // 1. Demander la confirmation (Le message strict que tu as demandé)
+    const confirmation = confirm("Cette action est irréversible, vous perdrez tout votre travail actuel. Vous êtes sûr de vouloir continuer ?");
+
+    if (confirmation) {
+        // 2. Vider la mémoire du navigateur (LocalStorage)
+        localStorage.removeItem('buromaster_full_doc');
+        localStorage.removeItem('buromaster_last_title');
+        
+        // 3. Recharger la page immédiatement pour repartir de zéro
+        window.location.reload();
+    }
+}
+
+
 // On écoute tout le container pour la sauvegarde
 document.querySelector('.paper-container').addEventListener('input', sauvegarderLocalement);
 window.addEventListener('load', chargerSauvegardeLocale);
