@@ -61,14 +61,22 @@ const BANQUE_ENTETES = {
     }
 };
 
+// --- FONCTION CORRIGÉE POUR LE MULTI-PAGES ---
 function appliquerEntete(pays, type) {
-    const zone = document.getElementById('epreuve-zone');
+    // MODIFICATION : On utilise obtenirPageActive() au lieu d'un ID fixe
+    const zone = obtenirPageActive(); 
+    
+    if (!zone) return; // Sécurité si aucune page n'est trouvée
+
     const htmlEntete = BANQUE_ENTETES[pays][type];
     
+    // On cherche si un en-tête existe déjà SUR LA PAGE ACTUELLE pour le remplacer
     const ancienHeader = zone.querySelector('.header-epreuve');
+    
     if (ancienHeader) {
         ancienHeader.outerHTML = htmlEntete;
     } else {
+        // Insertion au début de la page active
         zone.insertAdjacentHTML('afterbegin', htmlEntete);
     }
 }
