@@ -1,20 +1,35 @@
 /**
- * BUROMASTER STUDIO - Moteur de l'éditeur
+ * BUROMASTER STUDIO - Moteur de l'éditeur (Version Unifiée Multi-Pages)
  */
 
+// --- FONCTION CERVEAU : TROUVER LA PAGE ACTIVE ---
+// Remplace l'ID fixe 'epreuve-zone' pour que les outils sachent où agir
+function obtenirPageActive() {
+    const selection = window.getSelection();
+    if (selection.rangeCount > 0) {
+        let node = selection.anchorNode;
+        // On remonte le DOM pour trouver la page A4 parente
+        while (node && (!node.classList || !node.classList.contains('a4-page'))) {
+            node = node.parentNode;
+        }
+        if (node) return node;
+    }
+    // Si aucun focus, on prend la dernière page créée par défaut
+    const pages = document.querySelectorAll('.a4-page');
+    return pages[pages.length - 1];
+}
+
 // 1. GESTION DE L'INSERTION AU CURSEUR
-// Cette fonction permet d'insérer n'importe quel élément là où se trouve le curseur
 function insererElement(element) {
-    const zone = document.getElementById('epreuve-zone');
-    zone.focus(); // On force le focus sur la zone de texte
+    const zoneActive = obtenirPageActive();
+    zoneActive.focus(); // Focus sur la page où se trouve le prof
     
     const selection = window.getSelection();
     if (selection.rangeCount > 0) {
         const range = selection.getRangeAt(0);
-        range.deleteContents(); // Supprime le texte sélectionné s'il y en a
+        range.deleteContents();
         range.insertNode(element);
 
-        // On place le curseur juste après l'élément inséré
         range.setStartAfter(element);
         range.collapse(true);
         selection.removeAllRanges();
@@ -25,17 +40,11 @@ function insererElement(element) {
 // 2. OUTILS MATHÉMATIQUES
 function ajouterEquation() {
     const mfield = document.createElement('math-field');
-    
-    // Style inline pour que ça s'intègre au texte
     mfield.style.display = "inline-block";
     mfield.style.verticalAlign = "middle";
-    
-    // Valeur par défaut (facultatif)
     mfield.value = "x = ";
     
     insererElement(mfield);
-
-    // Petit délai pour donner le focus au clavier mathématique
     setTimeout(() => mfield.focus(), 100);
 }
 
@@ -44,7 +53,6 @@ function ajouterExercice() {
     const bloc = document.createElement('div');
     bloc.className = "exercice-container";
     
-    // On crée un titre d'exercice propre
     const titre = document.createElement('p');
     titre.innerHTML = "<strong>Exercice : .................... (........ points)</strong>";
     titre.style.marginTop = "20px";
@@ -55,7 +63,8 @@ function ajouterExercice() {
     bloc.appendChild(titre);
     bloc.appendChild(consigne);
     
-    document.getElementById('epreuve-zone').appendChild(bloc);
+    // On ajoute l'exercice à la page active
+    obtenirPageActive().appendChild(bloc);
 }
 
 // 4. OUTILS DIVERS
@@ -80,7 +89,7 @@ function ajouterTableau() {
     insererElement(table);
 }
 
-// 5. MISE À JOUR DU TITRE DU DOCUMENT (Plus sécurisé)
+// 5. MISE À JOUR DU TITRE
 const titreDoc = document.querySelector('.doc-title');
 if (titreDoc) {
     titreDoc.addEventListener('input', function() {
@@ -88,14 +97,14 @@ if (titreDoc) {
     });
 }
 
-// 6. INITIALISATION (Ajout de la liaison pour les images)
+// 6. INITIALISATION DES BOUTONS
 document.addEventListener('DOMContentLoaded', () => {
     const actions = {
         'btn-maths': ajouterEquation,
         'btn-exercice': ajouterExercice,
         'btn-tableau': ajouterTableau,
         'btn-appliquer-entete': genererEntete,
-        'btn-schema': ouvrirBanqueImages // Ajouté pour lier le bouton SVT/Chimie
+        'btn-schema': ouvrirBanqueImages
     };
 
     for (const [id, fonction] of Object.entries(actions)) {
@@ -103,73 +112,55 @@ document.addEventListener('DOMContentLoaded', () => {
         if (btn) btn.onclick = fonction;
     }
     
+    // Ecouteur global pour le barème (sur tout le container)
+    document.querySelector('.paper-container').addEventListener('input', mettreAJourBareme);
     mettreAJourBareme();
 });
 
+// --- BARÈME GLOBAL (TOUTES LES PAGES) ---
 function mettreAJourBareme() {
-    const zoneEpreuve = document.getElementById('epreuve-zone');
-    const texte = zoneEpreuve.innerText;
+    // On récupère le texte de TOUTES les pages
+    let texteComplet = "";
+    document.querySelectorAll('.a4-page').forEach(page => {
+        texteComplet += page.innerText + " ";
+    });
     
-    // Cette Regex cherche les nombres entre parenthèses suivis de 'pt' ou 'point'
     const regexPoints = /\((\d+[.,]?\d*)\s*(pts?|points?)\)/gi;
     let match;
     let total = 0;
 
-    while ((match = regexPoints.exec(texte)) !== null) {
-        // match[1] contient uniquement le chiffre capturé par la parenthèse (\d+[.,]?\d*)
+    while ((match = regexPoints.exec(texteComplet)) !== null) {
         let valeur = parseFloat(match[1].replace(',', '.'));
-        if (!isNaN(valeur)) {
-            total += valeur;
-        }
+        if (!isNaN(valeur)) total += valeur;
     }
 
-    // Mise à jour de l'affichage dans la sidebar droite
     const afficheur = document.getElementById('total-score');
     if(afficheur) {
         afficheur.innerText = total.toString().replace('.', ',');
-        
-        // Petit effet visuel : si > 20, on met en rouge
         afficheur.style.color = total > 20 ? "#ef4444" : "#38bdf8";
     }
 }
 
-// On lance la mise à jour dès que le prof tape au clavier
-document.getElementById('epreuve-zone').addEventListener('input', mettreAJourBareme);
-
+// --- BANQUE D'IMAGES (URLs CORRIGÉES) ---
 const BANQUE_IMAGES = {
     "Physique-Chimie": [
         { nom: "Circuit simple", url: "https://upload.wikimedia.org" },
-        { nom: "Bécher", url: "https://upload.wikimedia.org" },
-        { nom: "Éprouvette", url: "https://upload.wikimedia.org" }
+        { nom: "Bécher", url: "https://upload.wikimedia.org" }
     ],
     "Géographie": [
-        { nom: "Carte Bénin (Fond)", url: "https://upload.wikimedia.org" },
-        { nom: "Afrique de l'Ouest", url: "https://upload.wikimedia.org" }
+        { nom: "Carte Bénin", url: "https://upload.wikimedia.org" }
     ]
 };
 
 function ouvrirBanqueImages() {
-    // 1. Création de la fenêtre (Modale)
     const modale = document.createElement('div');
     modale.className = "modale-images";
-    
-    let contenu = `
-        <div class="modale-content">
-            <div class="modale-header">
-                <h3>Banque de schémas</h3>
-                <button onclick="this.closest('.modale-images').remove()">×</button>
-            </div>
-            <div class="modale-body">
-    `;
-
+    let contenu = `<div class="modale-content"><div class="modale-header"><h3>Banque de schémas</h3><button onclick="this.closest('.modale-images').remove()">×</button></div><div class="modale-body">`;
     for (const [categorie, images] of Object.entries(BANQUE_IMAGES)) {
         contenu += `<h4>${categorie}</h4><div class="images-grid">`;
-        images.forEach(img => {
-            contenu += `<img src="${img.url}" title="${img.nom}" onclick="insererImageBanque('${img.url}')">`;
-        });
+        images.forEach(img => { contenu += `<img src="${img.url}" title="${img.nom}" onclick="insererImageBanque('${img.url}')">`; });
         contenu += `</div>`;
     }
-
     contenu += `</div></div>`;
     modale.innerHTML = contenu;
     document.body.appendChild(modale);
@@ -179,11 +170,9 @@ function insererImageBanque(url) {
     const img = document.createElement('img');
     img.src = url;
     img.style.maxWidth = "150px";
-    img.style.cursor = "move";
     img.style.margin = "10px";
-    
     insererElement(img);
-    document.querySelector('.modale-images').remove(); // Ferme la modale
+    document.querySelector('.modale-images').remove();
 }
 
 function genererEntete() {
@@ -192,34 +181,28 @@ function genererEntete() {
     appliquerEntete(pays, type);
 }
 
-// --- SYSTÈME HORS-LIGNE (AUTO-SAVE) ---
-
-// 1. Sauvegarder le contenu
+// --- SYSTÈME HORS-LIGNE MULTI-PAGES ---
 function sauvegarderLocalement() {
-    const contenu = document.getElementById('epreuve-zone').innerHTML;
+    // Sauvegarde tout le contenu du container (toutes les pages)
+    const container = document.querySelector('.paper-container');
     const titre = document.querySelector('.doc-title').innerText;
     
-    localStorage.setItem('buromaster_last_content', contenu);
+    localStorage.setItem('buromaster_full_doc', container.innerHTML);
     localStorage.setItem('buromaster_last_title', titre);
-    
-    console.log("Sauvegardé localement à " + new Date().toLocaleTimeString());
 }
 
-// 2. Charger le contenu au démarrage
 function chargerSauvegardeLocale() {
-    const contenuSauvegarde = localStorage.getItem('buromaster_last_content');
+    const docSauvegarde = localStorage.getItem('buromaster_full_doc');
     const titreSauvegarde = localStorage.getItem('buromaster_last_title');
 
-    if (contenuSauvegarde) {
-        document.getElementById('epreuve-zone').innerHTML = contenuSauvegarde;
+    if (docSauvegarde) {
+        document.querySelector('.paper-container').innerHTML = docSauvegarde;
     }
     if (titreSauvegarde) {
         document.querySelector('.doc-title').innerText = titreSauvegarde;
     }
 }
 
-// 3. Activer la sauvegarde automatique toutes les 30 secondes ET à chaque modification
-document.getElementById('epreuve-zone').addEventListener('input', sauvegarderLocalement);
-
-// Lancer le chargement quand la page s'ouvre
+// On écoute tout le container pour la sauvegarde
+document.querySelector('.paper-container').addEventListener('input', sauvegarderLocalement);
 window.addEventListener('load', chargerSauvegardeLocale);
