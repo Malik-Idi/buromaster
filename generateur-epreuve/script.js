@@ -2,21 +2,23 @@
  * BUROMASTER STUDIO - Moteur de l'éditeur (Version Unifiée Multi-Pages)
  */
 
-// --- FONCTION CERVEAU : TROUVER LA PAGE ACTIVE ---
-// Remplace l'ID fixe 'epreuve-zone' pour que les outils sachent où agir
+/**
+ * TROUVER LA ZONE DE TEXTE ACTIVE
+ * Cible désormais la div .page-content pour l'édition multi-pages
+ */
 function obtenirPageActive() {
     const selection = window.getSelection();
     if (selection.rangeCount > 0) {
         let node = selection.anchorNode;
-        // On remonte le DOM pour trouver la page A4 parente
-        while (node && (!node.classList || !node.classList.contains('a4-page'))) {
+        // On remonte le DOM pour trouver spécifiquement la zone de contenu
+        while (node && (!node.classList || !node.classList.contains('page-content'))) {
             node = node.parentNode;
         }
         if (node) return node;
     }
-    // Si aucun focus, on prend la dernière page créée par défaut
-    const pages = document.querySelectorAll('.a4-page');
-    return pages[pages.length - 1];
+    // Si aucune sélection n'est active, on prend la zone de contenu de la dernière page
+    const toutesLesZones = document.querySelectorAll('.page-content');
+    return toutesLesZones[toutesLesZones.length - 1];
 }
 
 // 1. GESTION DE L'INSERTION AU CURSEUR
