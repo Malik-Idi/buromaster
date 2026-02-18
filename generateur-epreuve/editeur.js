@@ -1,10 +1,27 @@
 /**
- * BUROMASTER - Module de mise en forme de texte et paragraphes
+ * BUROMASTER - Module d'Édition et Mise en Forme
+ * Gère le texte, les alignements et les interactions
  */
 
+// --- FONCTION CERVEAU : TROUVER LA ZONE DE TEXTE ACTIVE ---
+function obtenirPageActive() {
+    const selection = window.getSelection();
+    if (selection && selection.rangeCount > 0) {
+        let node = selection.anchorNode;
+        while (node && node !== document.body) {
+            if (node.classList && node.classList.contains('page-content')) {
+                return node;
+            }
+            node = node.parentNode;
+        }
+    }
+    // Fallback : On prend la dernière page si aucune n'est ciblée
+    const pages = document.querySelectorAll('.page-content');
+    return pages[pages.length - 1];
+}
+
+// --- FONCTION DE MISE EN FORME (DÉLÉGATION) ---
 function formater(commande, valeur = null) {
-    // MODIFICATION : On utilise obtenirPageActive() pour que le focus 
-    // reste sur la page où le prof travaille (Page 1, 2, 3...)
     const zone = obtenirPageActive();
     if (zone) {
         zone.focus();
@@ -12,49 +29,79 @@ function formater(commande, valeur = null) {
     }
 }
 
-// --- MISE EN FORME DU TEXTE ---
-function changerCouleur(couleur) { formater('foreColor', couleur); }
-function changerFond(couleur) { formater('hiliteColor', couleur); }
-function changerTaille(taille) { formater('fontSize', taille); }
+// --- LIAISON DES BOUTONS DE LA SIDEBAR DROITE ---
+document.addEventListener('DOMContentLoaded', () => {
+    // Styles de texte
+    const mapping = {
+        'fmt-bold': 'bold',
+        'fmt-italic': 'italic',
+        'fmt-underline': 'underline',
+        'fmt-strike': 'strikethrough',
+        'fmt-left': 'justifyLeft',
+        'fmt-center': 'justifyCenter',
+        'fmt-right': 'justifyRight',
+        'fmt-full': 'justifyFull',
+        'fmt-ul': 'insertUnorderedList',
+        'fmt-ol': 'insertOrderedList'
+    };
 
-// Nettoyer la mise en forme (Amélioré)
-function effacerMiseEnForme() {
-    formater('removeFormat');
-    
-    // On réinitialise aussi l'éventuelle couleur de fond de bloc
-    const selection = window.getSelection();
-    if (selection.rangeCount > 0) {
-        let parent = selection.getRangeAt(0).commonAncestorContainer;
-        while (parent && parent.nodeType !== 1) parent = parent.parentNode;
+    for (const [id, cmd] of Object.entries(mapping)) {
+        const btn = document.getElementById(id);
+        if (btn) btn.onclick = () => formater(cmd);
+    }
+
+    // Effacer la mise en forme
+    const btnClear = document.getElementById('fmt-clear');
+    if (btnClear) {
+        btnClear.onclick = () => {
+            formater('removeFormat');
+            const zone = obtenirPageActive();
+            if (zone) {
+                zone.style.backgroundColor = "transparent";
+                zone.style.padding = "20mm"; // Reset padding standard
+            }
+        };
+    }
+
+    // Retraits
+    const btnIndent = document.getElementById('fmt-indent');
+    const btnOutdent = document.getElementById('fmt-outdent');
+    if (btnIndent) btnIndent.onclick = () => formater('indent');
+    if (btnOutdent) btnOutdent.onclick = () => formater('outdent');
+
+    // Couleurs
+    const textColor = document.getElementById('text-color-picker');
+    const bgColor = document.getElementById('bg-color-picker');
+    if (textColor) textColor.onchange = (e) => formater('foreColor', e.target.value);
+    if (bgColor) bgColor.onchange = (e) => {
+        const zone = obtenirPageActive();
+        if (zone) zone.style.backgroundColor = e.target.value;
+    };
+});
+
+// --- LOGIQUE DE SUPPRESSION DE PAGE (REVERSE FLOW) ---
+document.addEventListener('keydown', (e) => {
+    const zone = obtenirPageActive();
+    // Si on appuie sur Retour arrière dans une page vide (sauf la première)
+    if (e.key === "Backspace" && zone) {
+        const pages = document.querySelectorAll('.a4-page');
+        const pageContainer = zone.closest('.a4-page');
         
-        // MODIFICATION : Sécurité basée sur la classe au lieu de l'ID
-        if (parent && !parent.classList.contains('paper-container')) {
-            parent.style.backgroundColor = "transparent";
-            parent.style.padding = "0px";
+        if (zone.innerHTML.trim() === "" && pages.length > 1 && pageContainer !== pages[0]) {
+            e.preventDefault();
+            const pagePrecedente = pageContainer.previousElementSibling;
+            if (pagePrecedente) {
+                const zonePrecedente = pagePrecedente.querySelector('.page-content');
+                pageContainer.remove();
+                zonePrecedente.focus();
+                // Placer le curseur à la fin de la page précédente
+                const range = document.createRange();
+                range.selectNodeContents(zonePrecedente);
+                range.collapse(false);
+                const sel = window.getSelection();
+                sel.removeAllRanges();
+                sel.addRange(range);
+            }
         }
     }
-}
-
-// --- MISE EN FORME DES PARAGRAPHES ---
-function changerRetrait(direction) {
-    formater(direction === 'augmenter' ? 'indent' : 'outdent');
-}
-
-// Trame de fond du paragraphe (Sécurisé)
-function changerTrameParagraphe(couleur) {
-    const selection = window.getSelection();
-    if (selection.rangeCount > 0) {
-        let parent = selection.getRangeAt(0).commonAncestorContainer;
-        while (parent && parent.nodeType !== 1) {
-            parent = parent.parentNode;
-        }
-        
-        // MODIFICATION : Sécurité renforcée pour ne pas colorer 
-        // le fond gris (paper-container) mais uniquement les blocs dans les pages
-        if (parent && !parent.classList.contains('paper-container') && parent.tagName !== 'BODY') {
-            parent.style.backgroundColor = couleur;
-            parent.style.padding = "10px";
-            parent.style.borderRadius = "4px"; 
-        }
-    }
-}
+});
