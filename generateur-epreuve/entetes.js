@@ -1,5 +1,6 @@
 /**
  * BUROMASTER - Module de gestion des En-têtes (Afrique de l'Ouest)
+ * Version 2.0 compatible avec la structure .page-content
  */
 
 const BANQUE_ENTETES = {
@@ -61,22 +62,28 @@ const BANQUE_ENTETES = {
     }
 };
 
-// --- FONCTION CORRIGÉE POUR LE MULTI-PAGES ---
+/**
+ * Fonction pour injecter l'en-tête choisi sur la page active
+ */
 function appliquerEntete(pays, type) {
-    // MODIFICATION : On utilise obtenirPageActive() au lieu d'un ID fixe
-    const zone = obtenirPageActive(); 
+    // MODIFICATION : On utilise obtenirPageActive() (définie dans editeur.js)
+    const zone = obtenirPageActive();
     
-    if (!zone) return; // Sécurité si aucune page n'est trouvée
+    if (!zone) {
+        console.error("Aucune zone de texte active trouvée.");
+        return;
+    }
 
     const htmlEntete = BANQUE_ENTETES[pays][type];
-    
+    if (!htmlEntete) return;
+
     // On cherche si un en-tête existe déjà SUR LA PAGE ACTUELLE pour le remplacer
     const ancienHeader = zone.querySelector('.header-epreuve');
     
     if (ancienHeader) {
         ancienHeader.outerHTML = htmlEntete;
     } else {
-        // Insertion au début de la page active
+        // On l'insère tout au début du contenu de la page
         zone.insertAdjacentHTML('afterbegin', htmlEntete);
     }
 }
