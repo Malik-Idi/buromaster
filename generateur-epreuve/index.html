@@ -4,14 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>BuroMaster Studio | Concepteur d'Épreuves</title>
-    <!-- Polices et Icones (CORRIGÉ) -->
+    <!-- Polices et Icones (LIAISONS RÉTABLIES) -->
     <link href="https://fonts.googleapis.com" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com">
     <link rel="stylesheet" href="style-epreuve.css">
-    <!-- Moteur Mathématique (CORRIGÉ) -->
+    <!-- Moteur Mathématique (LIAISON RÉTABLIE) -->
     <script defer src="https://unpkg.com"></script>
 </head>
-
 <body>
 
     <!-- Barre supérieure (Header) -->
@@ -34,9 +33,9 @@
     <div class="main-workspace">
         
         <!-- Panneau Latéral Gauche : Bibliothèque d'outils -->
-    <aside class="sidebar-left">
+        <aside class="sidebar-left">
     
-        <!-- NOUVEAU : Bloc Configuration déplacé ici pour être visible -->
+        <!-- Bloc Configuration -->
         <div class="tool-section">
             <h4><i class="fas fa-flag"></i> CONFIGURATION</h4>
             <select id="select-pays" class="tool-btn" style="width: 100%;">
@@ -46,11 +45,10 @@
     
             <select id="select-type" class="tool-btn" style="width: 100%;">
                 <option value="devoir_officiel">Devoir Semestriel</option>
-                <option value="examen_blanc">Examen Blanc / Fin d'année</option> <!-- Ajoute cette ligne -->
+                <option value="examen_blanc">Examen Blanc / Fin d'année</option>
                 <option value="interro_simple">Interrogation Courte</option>
             </select>
 
-        
             <button id="btn-appliquer-entete" onclick="genererEntete()" class="btn btn-primary" style="width: 100%; margin-top: 10px;">
                 <i class="fas fa-magic"></i> Appliquer l'En-tête
             </button>
@@ -58,7 +56,6 @@
 
         <div class="tool-section">
             <h4><i class="fas fa-file-invoice"></i> STRUCTURE</h4>
-            <!-- On ajoute les ID ici -->
             <button id="btn-exercice" class="tool-btn"><i class="fas fa-list-ol"></i> Bloc Exercice</button>
             <button id="btn-schema" onclick="ouvrirBanqueImages()" class="tool-btn"><i class="fas fa-microscope"></i> Schémas Bio/Chimie</button>
             <button onclick="ajouterNouvellePage()" class="tool-btn"><i class="fas fa-plus-circle"></i> Nouvelle Page</button>
@@ -82,11 +79,12 @@
             <button id="btn-tableau" class="tool-btn"><i class="fas fa-table-cells"></i> Tableau</button>
             <button id="btn-image" class="tool-btn"><i class="fas fa-image"></i> Image</button>
         </div>
-    </aside>
+        </aside>
         
         <!-- Zone Centrale : La feuille A4 -->
         <div class="paper-container">
-            <div class="a4-page" id="epreuve-zone" contenteditable="true">
+            <!-- MODIFICATION : ID 'epreuve-zone' supprimé pour la compatibilité multi-pages -->
+            <div class="a4-page" contenteditable="true">
                 
                 <!-- En-tête Dynamique -->
                 <div class="header-epreuve">
@@ -103,7 +101,7 @@
                 </div>
 
                 <div class="title-box">
-                    <h2>ÉPREUVE DE : ...................................</h2>
+                    <h2 style="text-align: center;">ÉPREUVE DE : ...................................</h2>
                 </div>
 
                 <!-- Corps de l'épreuve -->
@@ -117,11 +115,9 @@
 
         <!-- Panneau Latéral Droit : Propriétés & Barème -->
         <aside class="sidebar-right">
-            <!-- SECTION MISE EN FORME -->
             <div class="tool-section">
                 <h4><i class="fas fa-font"></i> MISE EN FORME</h4>
     
-                <!-- Grille 1 : Styles et Alignements (4 colonnes) -->
                 <div class="formatting-grid">
                     <button onclick="formater('bold')" title="Gras" class="format-btn text-icon">G</button>
                     <button onclick="formater('italic')" title="Italique" class="format-btn text-icon" style="font-style: italic;">I</button>
@@ -139,7 +135,6 @@
                     <button onclick="formater('justifyFull')" title="Justifier" class="format-btn"><i class="fas fa-align-justify"></i></button>
                 </div>
 
-                <!-- Grille 2 : Outils spéciaux (Retraits et Effacer) -->
                 <div class="special-tools-grid">
                     <button onclick="effacerMiseEnForme()" title="Effacer tout le style" class="format-btn btn-danger">
                         <i class="fas fa-eraser"></i>
@@ -152,7 +147,6 @@
                     </button>
                 </div>
 
-                <!-- Trame de fond -->
                 <div class="background-tool">
                     <div class="bg-label">
                         <i class="fas fa-fill-drip"></i> <span>TRAME DE FOND</span>
@@ -163,7 +157,6 @@
                     </div>
                 </div>
 
-                <!-- Couleurs et Tailles -->
                 <div class="color-size-row">
                     <input type="color" onchange="changerCouleur(this.value)" title="Couleur Texte">
                     <input type="color" onchange="changerFond(this.value)" title="Surligneur" value="#ffff00">
@@ -180,7 +173,6 @@
 
             <hr>
 
-            <!-- SECTION BARÈME (Reste en dessous) -->
             <h4><i class="fas fa-calculator"></i> BARÈME</h4>
             <div class="score-summary">
                 <div class="score-circle">
@@ -192,10 +184,11 @@
 
     </div>
 
-<script src="entetes.js"></script> 
-<script src="editeur.js"></script>  
-<script src="pagination.js"></script>
-<script src="script.js"></script>
+    <!-- Scripts (ORDRE CRITIQUE RESPECTÉ) -->
+    <script src="entetes.js"></script> 
+    <script src="editeur.js"></script>  
+    <script src="pagination.js"></script>
+    <script src="script.js"></script>
     
 </body>
 </html>
