@@ -32,36 +32,24 @@ function ajouterNouvellePage() {
     return zoneTexte; // On retourne la zone pour y injecter le texte
 }
 
+let timerPagination; 
+
 function surveillerDepassement(event) {
     if (event.inputType === "deleteContentBackward" || isProcessingPage) return;
 
-    const contentArea = event.target.closest('.page-content');
-    if (!contentArea) return;
+    clearTimeout(timerPagination);
 
-    // Seuil de sécurité : 960px (~255mm) pour laisser de la place au footer
-    if (contentArea.scrollHeight > 960) {
-        const lastChild = contentArea.lastElementChild;
-        
-        // On crée la nouvelle page
-        const nouvelleZone = ajouterNouvellePage();
-        
-        // --- LE TRANSFERT : On déplace le dernier élément vers la nouvelle page ---
-        if (lastChild) {
-            nouvelleZone.appendChild(lastChild);
+    // 100ms pour une réactivité maximale
+    timerPagination = setTimeout(() => {
+        const contentArea = event.target.closest('.page-content');
+        if (!contentArea) return;
+
+        // Sécurité : On ne déclenche QUE si le contenu dépasse réellement 
+        // la zone visible de la feuille A4 (clientHeight)
+        if (contentArea.scrollHeight > contentArea.clientHeight) { 
+            ajouterNouvellePage();
         }
-
-        // On place le curseur à la fin du texte transféré
-        setTimeout(() => {
-            const selection = window.getSelection();
-            const range = document.createRange();
-            range.selectNodeContents(nouvelleZone);
-            range.collapse(false); // false = à la fin
-            selection.removeAllRanges();
-            selection.addRange(range);
-            nouvelleZone.focus();
-            isProcessingPage = false;
-        }, 50);
-    }
+    }, 100); 
 }
 
 // Initialisation globale
