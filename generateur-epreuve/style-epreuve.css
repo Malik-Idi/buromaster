@@ -50,38 +50,34 @@ body {
     display: block; /* Indispensable pour la stabilité */
 }
 
+/* Style-epreuve.css */
 .a4-page {
-    position: relative;
     width: 210mm;
-    height: 297mm;
-    min-height: 297mm;
-    max-height: 297mm;
+    height: 297mm; /* Hauteur A4 fixe */
+    padding: 20mm;
     background: white;
-    margin: 0 auto 30px auto;
-    box-shadow: 0 0 15px rgba(0,0,0,0.3);
+    margin: 10px auto;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
     display: flex;
     flex-direction: column;
-    overflow: hidden; /* Déclenche le scrollHeight JS */
+    overflow: hidden; /* Empêche le texte de dépasser visuellement */
+    position: relative;
+    box-sizing: border-box;
 }
 
-/* Zone réelle où le prof écrit */
 .page-content {
-    flex: 1;
-    padding: 20mm;
+    flex-grow: 1; /* Prend tout l'espace entre le haut et le footer */
     outline: none;
-    color: black;
-    line-height: 1.5;
+    word-wrap: break-word;
+    overflow: hidden; /* Important pour le calcul du scrollHeight */
 }
 
 .page-footer {
-    height: 15mm;
-    padding: 0 20mm;
-    display: flex;
-    align-items: center;
-    justify-content: flex-end;
-    font-size: 0.8rem;
+    height: 10mm;
+    text-align: center;
+    font-size: 12px;
     color: #888;
-    border-top: 1px solid #f0f0f0;
+    border-top: 1px solid #eee;
 }
 
 /* --- ÉLÉMENTS DE L'ÉPREUVE --- */
