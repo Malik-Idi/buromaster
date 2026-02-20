@@ -4,72 +4,79 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>BuroMaster Studio | Concepteur d'Épreuves</title>
-    <!-- LIAISONS RÉTABLIES : Liens complets et sécurisés -->
+    
+    <!-- POLICES ET ICONES (Liaisons Pro) -->
     <link href="https://fonts.googleapis.com" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com">
+    
+    <!-- CSS PRINCIPAL -->
     <link rel="stylesheet" href="style-epreuve.css">
-    <!-- Moteur Mathématique : Lien exact -->
+    
+    <!-- MOTEUR MATHÉMATIQUE (MathLive : le plus stable pour éditeur WYSIWYG) -->
     <script defer src="https://unpkg.com"></script>
 </head>
 <body>
 
     <header class="toolbar">
         <div class="brand">
-            <a href="../" class="back-link"><i class="fas fa-arrow-left"></i></a>
+            <a href="../" class="back-link"><i class="fas fa-chevron-left"></i></a>
             <span class="logo-text">BuroMaster <small>Studio</small></span>
         </div>
-        <div class="doc-title" contenteditable="true">Sans titre - Nouvelle Épreuve</div>
+        <div class="doc-title-container">
+            <i class="fas fa-pen-nib"></i>
+            <div id="doc-title" class="doc-title" contenteditable="true">Sans titre - Nouvelle Épreuve</div>
+        </div>
         <div class="controls">
-            <span class="save-status" id="status-save"><i class="fas fa-check-circle"></i> Travail sauvegardé</span>
-            <button id="btn-save" class="btn btn-secondary"><i class="fas fa-save"></i> Sauvegarder</button>
-            <button id="btn-pdf" class="btn btn-primary"><i class="fas fa-file-pdf"></i> PDF</button>
+            <span class="save-status" id="status-save"><i class="fas fa-cloud-check"></i> Sauvegardé</span>
+            <button id="btn-save" class="btn btn-secondary"><i class="fas fa-save"></i></button>
+            <button id="btn-pdf" class="btn btn-primary"><i class="fas fa-file-pdf"></i> EXPORTER PDF</button>
         </div>
     </header>
 
     <div class="main-workspace">
+        <!-- BARRE CONFIGURATION (GAUCHE) -->
         <aside class="sidebar-left">
             <div class="tool-section">
-                <h4><i class="fas fa-flag"></i> CONFIGURATION</h4>
-                <select id="select-pays" class="tool-btn" style="width: 100%;">
+                <h4><i class="fas fa-sliders"></i> CONFIGURATION</h4>
+                <select id="select-pays" class="tool-select">
                     <option value="benin">Bénin 🇧🇯</option>
                     <option value="togo">Togo 🇹🇬</option>
                 </select>
-                <select id="select-type" class="tool-btn" style="width: 100%;">
+                <select id="select-type" class="tool-select">
                     <option value="devoir_officiel">Devoir Semestriel</option>
                     <option value="examen_blanc">Examen Blanc</option>
                     <option value="interro_simple">Interrogation Courte</option>
                 </select>
-                <button id="btn-appliquer-entete" class="btn btn-primary" style="width: 100%; margin-top: 10px;">
-                    <i class="fas fa-magic"></i> Appliquer l'En-tête
+                <button id="btn-appliquer-entete" class="btn btn-magic">
+                    <i class="fas fa-wand-magic-sparkles"></i> Appliquer l'En-tête
                 </button>
             </div>
 
             <div class="tool-section">
-                <h4><i class="fas fa-file-invoice"></i> STRUCTURE</h4>
-                <button id="btn-exercice" class="tool-btn"><i class="fas fa-list-ol"></i> Bloc Exercice</button>
-                <button id="btn-schema" class="tool-btn"><i class="fas fa-microscope"></i> Schémas Bio/Chimie</button>
-                <button id="btn-new-page" class="tool-btn"><i class="fas fa-plus-circle"></i> Nouvelle Page</button>
+                <h4><i class="fas fa-layer-group"></i> STRUCTURE</h4>
+                <button id="btn-exercice" class="tool-btn"><i class="fas fa-plus"></i> Nouveau Bloc Exercice</button>
+                <button id="btn-new-page" class="tool-btn"><i class="fas fa-file-circle-plus"></i> Ajouter Page Manuelle</button>
             </div>
 
             <div class="tool-section">
-                <h4><i class="fas fa-flask"></i> SCIENCES</h4>
-                <button id="btn-maths" class="tool-btn"><i class="fas fa-square-root-variable"></i> Équation</button>
-                <button id="btn-tableau" class="tool-btn"><i class="fas fa-table-cells"></i> Tableau</button>
+                <h4><i class="fas fa-atom"></i> COMPOSANTS SCIENCES</h4>
+                <button id="btn-maths" class="tool-btn"><i class="fas fa-square-root-variable"></i> Insérer Équation</button>
+                <button id="btn-tableau" class="tool-btn"><i class="fas fa-table"></i> Insérer Tableau</button>
             </div>
 
-            <!-- Bouton Reset déplacé en bas pour sécurité (UX) -->
-            <div class="tool-section" style="margin-top: 50px; border-top: 1px solid #eee; padding-top: 10px;">
-                <button id="btn-reset" class="btn btn-danger" style="width: 100%; background: #ef4444; color: white;">
-                    <i class="fas fa-trash-alt"></i> Réinitialiser (Reset)
+            <div class="tool-section danger-zone">
+                <button id="btn-reset" class="btn btn-danger">
+                    <i class="fas fa-trash-can"></i> RÉINITIALISER TOUT
                 </button>
             </div>
         </aside>
 
-        <div class="paper-container" id="main-container">
-            <!-- UNIFICATION : Structure de page unique -->
+        <!-- ZONE DE TRAVAIL A4 -->
+        <main class="paper-container" id="main-container">
             <div class="a4-page">
                 <div class="page-content" contenteditable="true" spellcheck="true">
-                    <div class="header-epreuve">
+                    <!-- Template par défaut stable -->
+                    <div class="header-epreuve" contenteditable="false">
                         <div class="header-left">
                             <p>ÉTABLISSEMENT : ........................</p>
                             <p>ANNÉE SCOLAIRE : 2024-2025</p>
@@ -83,55 +90,74 @@
                         <h2 style="text-align: center;">ÉPREUVE DE : ...........................</h2>
                     </div>
                     <div class="content-body">
-                        <p class="ex-title">Exercice 1 (........ points)</p>
-                        <p>Tapez votre texte ici...</p>
+                        <p class="ex-title"><strong>Exercice 1 (........ points)</strong></p>
+                        <p>Commencez à rédiger votre épreuve ici...</p>
                     </div>
                 </div>
                 <div class="page-footer">BuroMaster | Page 1</div>
             </div>
-        </div>
+        </main>
 
+        <!-- BARRE ÉDITION (DROITE) -->
         <aside class="sidebar-right">
             <div class="tool-section">
                 <h4><i class="fas fa-font"></i> MISE EN FORME</h4>
                 <div class="formatting-grid">
-                    <button id="fmt-bold" title="Gras" class="format-btn text-icon">G</button>
-                    <button id="fmt-italic" title="Italique" class="format-btn text-icon" style="font-style: italic;">I</button>
-                    <button id="fmt-underline" title="Souligné" class="format-btn text-icon" style="text-decoration: underline;">S</button>
-                    <button id="fmt-strike" title="Barré" class="format-btn text-icon" style="text-decoration: line-through;">ab</button>
+                    <button id="fmt-bold" class="format-btn" title="Gras"><strong>G</strong></button>
+                    <button id="fmt-italic" class="format-btn" title="Italique"><em>I</em></button>
+                    <button id="fmt-underline" class="format-btn" title="Souligné"><u>S</u></button>
+                    <button id="fmt-strike" class="format-btn" title="Barré"><strike>ab</strike></button>
+                </div>
+                
+                <div class="formatting-grid">
+                    <button id="fmt-left" class="format-btn"><i class="fas fa-align-left"></i></button>
+                    <button id="fmt-center" class="format-btn"><i class="fas fa-align-center"></i></button>
+                    <button id="fmt-right" class="format-btn"><i class="fas fa-align-right"></i></button>
+                    <button id="fmt-full" class="format-btn"><i class="fas fa-align-justify"></i></button>
                 </div>
 
-                <div class="special-tools-grid">
-                    <button id="fmt-clear" title="Effacer" class="format-btn btn-danger"><i class="fas fa-eraser"></i></button>
-                    <button id="fmt-outdent" title="Moins" class="format-btn"><i class="fas fa-outdent"></i></button>
-                    <button id="fmt-indent" title="Plus" class="format-btn"><i class="fas fa-indent"></i></button>
-                </div>
-
-                <div class="background-tool">
-                    <div class="bg-label"><i class="fas fa-fill-drip"></i> TRAME DE FOND</div>
-                    <input type="color" id="bg-color-picker" value="#ffffff" style="width: 100%; cursor: pointer;">
+                <div class="formatting-grid">
+                    <button id="fmt-ul" class="format-btn"><i class="fas fa-list-ul"></i></button>
+                    <button id="fmt-ol" class="format-btn"><i class="fas fa-list-ol"></i></button>
+                    <button id="fmt-indent" class="format-btn"><i class="fas fa-indent"></i></button>
+                    <button id="fmt-outdent" class="format-btn"><i class="fas fa-outdent"></i></button>
                 </div>
 
                 <div class="color-size-row">
-                    <input type="color" id="text-color-picker" title="Couleur Texte">
-                    <select id="select-size" class="size-select">
-                        <option value="3">Normal</option>
-                        <option value="5">Titre</option>
-                    </select>
+                    <div class="input-group">
+                        <label>Texte</label>
+                        <input type="color" id="text-color-picker" value="#000000">
+                    </div>
+                    <div class="input-group">
+                        <label>Fond</label>
+                        <input type="color" id="bg-color-picker" value="#ffffff">
+                    </div>
                 </div>
+
+                <select id="select-size" class="tool-select">
+                    <option value="3">Taille Normale</option>
+                    <option value="4">Sous-titre</option>
+                    <option value="6">Grand Titre</option>
+                </select>
+
+                <button id="fmt-clear" class="btn btn-clear-format">
+                    <i class="fas fa-eraser"></i> Effacer Mise en forme
+                </button>
             </div>
-            <hr>
-            <h4><i class="fas fa-calculator"></i> BARÈME</h4>
-            <div class="score-summary">
-                <div class="score-circle"><span id="total-score">00</span>/20</div>
+
+            <div class="tool-section score-section">
+                <h4><i class="fas fa-calculator"></i> BARÈME TOTAL</h4>
+                <div class="score-summary">
+                    <div class="score-circle"><span id="total-score">00</span>/20</div>
+                </div>
             </div>
         </aside>
     </div>
 
-    <!-- SCRIPTS UNIFIÉS -->
+    <!-- CHARGEMENT DES SCRIPTS DANS L'ORDRE LOGIQUE -->
+    <script src="pagination.js"></script>
     <script src="entetes.js"></script> 
     <script src="editeur.js"></script>  
-    <script src="pagination.js"></script>
     <script src="script.js"></script>
 </body>
 </html>
