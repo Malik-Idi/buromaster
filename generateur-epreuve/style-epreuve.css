@@ -1,139 +1,195 @@
-/* --- CONFIGURATION GÉNÉRALE --- */
+/* --- CONFIGURATION GÉNÉRALE & VARIABLES --- */
 :root {
-    --primary-color: #38bdf8;
-    --bg-dark: #202124;
-    --bg-workspace: #525659;
+    --primary-color: #0ea5e9;
+    --primary-hover: #0284c7;
+    --bg-dark: #1e293b;
+    --bg-workspace: #475569;
     --sidebar-bg: #ffffff;
-    --border-color: #e0e0e0;
-    --shadow: 0 4px 12px rgba(0,0,0,0.15);
+    --border-color: #e2e8f0;
+    --text-main: #334155;
+    --shadow-page: 0 10px 25px -5px rgba(0, 0, 0, 0.3), 0 8px 10px -6px rgba(0, 0, 0, 0.3);
+    
+    /* Mesures A4 Strictes */
+    --a4-width: 210mm;
+    --a4-height: 297mm;
+    --a4-padding: 20mm;
 }
 
-* { box-sizing: border-box; }
+* { 
+    box-sizing: border-box; 
+    -webkit-font-smoothing: antialiased;
+}
 
 body {
     margin: 0;
-    font-family: 'Roboto', sans-serif;
+    font-family: 'Inter', 'Roboto', sans-serif;
     background: var(--bg-workspace);
     height: 100vh;
+    color: var(--text-main);
     display: flex;
     flex-direction: column;
     overflow: hidden;
 }
 
-/* --- TOOLBAR & SIDEBARS --- */
+/* --- WORKSPACE LAYOUT --- */
 .toolbar {
     background: var(--bg-dark);
     height: 60px;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 0 20px;
+    padding: 0 24px;
     color: white;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     z-index: 1000;
 }
 
-.main-workspace { display: flex; flex: 1; overflow: hidden; }
+.main-workspace { 
+    display: flex; 
+    flex: 1; 
+    overflow: hidden; 
+}
 
 .sidebar-left, .sidebar-right {
-    width: 260px;
+    width: 280px;
     background: var(--sidebar-bg);
-    border: 1px solid var(--border-color);
+    border-right: 1px solid var(--border-color);
     padding: 20px;
     overflow-y: auto;
-}
-
-/* --- ZONE DE LA FEUILLE (L'UNIFICATION) --- */
-.paper-container {
-    flex: 1;
-    overflow-y: auto;
-    padding: 40px 0;
-    display: block; /* Indispensable pour la stabilité */
-}
-
-/* Style-epreuve.css */
-.a4-page {
-    width: 210mm;
-    height: 297mm; /* Hauteur A4 fixe */
-    padding: 20mm;
-    background: white;
-    margin: 10px auto;
-    box-shadow: 0 0 10px rgba(0,0,0,0.1);
     display: flex;
     flex-direction: column;
-    overflow: hidden; /* Empêche le texte de dépasser visuellement */
-    position: relative;
-    box-sizing: border-box;
+    gap: 20px;
 }
 
+.sidebar-right {
+    border-right: none;
+    border-left: 1px solid var(--border-color);
+}
+
+/* --- LE MOTEUR DE LA FEUILLE (ZONE CRITIQUE) --- */
+.paper-container {
+    flex: 1;
+    overflow-y: overlay; /* Scrollbar moderne */
+    padding: 40px 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    scroll-behavior: smooth;
+}
+
+.a4-page {
+    width: var(--a4-width);
+    height: var(--a4-height);
+    min-height: var(--a4-height);
+    max-height: var(--a4-height);
+    padding: var(--a4-padding);
+    background: white;
+    margin-bottom: 30px;
+    box-shadow: var(--shadow-page);
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    overflow: hidden; /* Obligatoire pour le JS scrollHeight */
+    cursor: text;
+}
+
+/* Zone d'écriture */
 .page-content {
-    flex-grow: 1; /* Prend tout l'espace entre le haut et le footer */
+    flex: 1;
     outline: none;
     word-wrap: break-word;
-    overflow: hidden; /* Important pour le calcul du scrollHeight */
+    line-height: 1.5;
+    font-size: 11pt; /* Taille standard épreuve */
+    overflow: hidden; /* Empêche le scroll interne qui casserait le JS */
+}
+
+/* --- SÉCURITÉ ÉLÉMENTS INTERNES --- */
+.page-content img {
+    max-width: 100%;
+    max-height: 150mm; /* Empêche une image de manger toute la page */
+    height: auto;
+    display: block;
+    margin: 10px auto;
+}
+
+.page-content table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 10px 0;
+}
+
+.page-content table td, .page-content table th {
+    border: 1px solid #000;
+    padding: 5px;
 }
 
 .page-footer {
     height: 10mm;
-    text-align: center;
-    font-size: 12px;
-    color: #888;
-    border-top: 1px solid #eee;
-}
-
-/* --- ÉLÉMENTS DE L'ÉPREUVE --- */
-.header-epreuve {
     display: flex;
-    justify-content: space-between;
-    border-bottom: 2px solid black;
-    padding-bottom: 10px;
-    margin-bottom: 20px;
+    align-items: center;
+    justify-content: center;
+    font-size: 10pt;
+    color: #64748b;
+    border-top: 1px solid #e2e8f0;
+    margin-top: 10px;
+    pointer-events: none; /* Le footer n'intercepte pas les clics */
 }
 
-/* --- GRILLES D'OUTILS (SIDEBAR DROITE) --- */
-.formatting-grid {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 5px;
-    margin-bottom: 10px;
-}
-
-.special-tools-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
-    gap: 5px;
-    margin-bottom: 10px;
+/* --- INTERFACE UTILISATEUR (BOUTONS) --- */
+.tool-section h4 {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #94a3b8;
+    margin-bottom: 12px;
 }
 
 .format-btn {
-    background: #f1f5f9;
-    border: 1px solid #cbd5e1;
-    padding: 10px 5px;
-    border-radius: 4px;
+    background: #f8fafc;
+    border: 1px solid var(--border-color);
+    padding: 8px;
+    border-radius: 6px;
     cursor: pointer;
-    text-align: center;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
-.format-btn:hover { background: var(--primary-color); color: white; }
+.format-btn:hover {
+    background: var(--primary-color);
+    color: white;
+    border-color: var(--primary-color);
+}
 
-.text-icon { font-weight: bold; font-family: serif; font-size: 1.1rem; }
+.btn-primary {
+    background: var(--primary-color);
+    color: white;
+    border: none;
+    padding: 10px 16px;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+}
 
-/* --- IMPRESSION --- */
+/* --- MODE IMPRESSION (BLINDÉ) --- */
 @media print {
-    body { background: white; }
-    .toolbar, .sidebar-left, .sidebar-right { display: none !important; }
-    .paper-container { padding: 0; margin: 0; overflow: visible; }
-    .a4-page {
-        box-shadow: none;
+    @page {
+        size: A4;
         margin: 0;
+    }
+    body { background: white; overflow: visible; }
+    .toolbar, .sidebar-left, .sidebar-right { display: none !important; }
+    .paper-container { 
+        padding: 0; 
+        margin: 0; 
+        overflow: visible; 
+        display: block;
+    }
+    .a4-page {
+        margin: 0 !important;
+        box-shadow: none !important;
         page-break-after: always;
+        border: none;
     }
 }
-
-/* --- AUTRES --- */
-.modale-images {
-    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-    background: rgba(0,0,0,0.7);
-    display: flex; align-items: center; justify-content: center; z-index: 2000;
-}
-.modale-content { background: white; padding: 20px; border-radius: 8px; width: 500px; }
-.save-status { color: #4ade80; font-size: 0.8rem; margin-right: 15px; }
