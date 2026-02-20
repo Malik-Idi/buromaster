@@ -77,30 +77,33 @@ body {
     scroll-behavior: smooth;
 }
 
+/* --- LA FEUILLE (CONTENANT RIGIDE) --- */
 .a4-page {
     width: var(--a4-width);
     height: var(--a4-height);
     min-height: var(--a4-height);
     max-height: var(--a4-height);
-    padding: var(--a4-padding);
+    padding: 0; /* CRUCIAL : On met à 0 pour ne pas fausser le calcul JS */
     background: white;
-    margin-bottom: 30px;
+    margin: 20px auto;
     box-shadow: var(--shadow-page);
     display: flex;
     flex-direction: column;
     position: relative;
-    overflow: hidden; /* Obligatoire pour le JS scrollHeight */
+    overflow: hidden; /* Empêche le débordement visuel */
     cursor: text;
 }
 
-/* Zone d'écriture */
+/* --- LA ZONE D'ÉCRITURE (MOTEUR DE FLUX) --- */
 .page-content {
     flex: 1;
+    padding: var(--a4-padding); /* LE PADDING EST ICI MAINTENANT */
     outline: none;
     word-wrap: break-word;
-    line-height: 1.5;
-    font-size: 11pt; /* Taille standard épreuve */
-    overflow: hidden; /* Empêche le scroll interne qui casserait le JS */
+    line-height: 1.6;
+    font-size: 11pt;
+    overflow: hidden; /* INDISPENSABLE pour que scrollHeight fonctionne */
+    display: block;
 }
 
 /* --- SÉCURITÉ ÉLÉMENTS INTERNES --- */
