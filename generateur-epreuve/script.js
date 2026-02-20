@@ -1,158 +1,172 @@
 /**
- * BUROMASTER STUDIO - Chef d'orchestre final
+ * BUROMASTER STUDIO - Chef d'orchestre Final (Version Elite)
+ * Centralise les actions, le barème et la persistance.
  */
 
-// 1. LIAISON DES BOUTONS DE LA SIDEBAR GAUCHE (STRUCTURE & SCIENCES)
 document.addEventListener('DOMContentLoaded', () => {
+    // 1. INITIALISATION DES BOUTONS (SIDEBAR GAUCHE & HEADER)
     const actions = {
-        'btn-maths': ajouterEquation,
-        'btn-exercice': ajouterExercice,
-        'btn-tableau': ajouterTableau,
-        'btn-appliquer-entete': genererEntete,
-        'btn-schema': ouvrirBanqueImages,
-        'btn-new-page': ajouterNouvellePage,
-        'btn-save': sauvegarderLocalement,
-        'btn-pdf': () => window.print(),
-        'btn-reset': reinitialiserTout
+        'btn-maths': () => EditeurComposants.insererEquation(),
+        'btn-exercice': () => EditeurComposants.insererExercice(),
+        'btn-tableau': () => EditeurComposants.insererTableau(),
+        'btn-appliquer-entete': () => {
+            const p = document.getElementById('select-pays').value;
+            const t = document.getElementById('select-type').value;
+            appliquerEntete(p, t);
+        },
+        'btn-new-page': () => creerNouvellePage().focus(),
+        'btn-save': () => sauvegarderSession(),
+        'btn-pdf': () => preparerEtImprimer(),
+        'btn-reset': () => reinitialiserEditeur(),
+        'btn-schema': () => ouvrirBanqueImages()
     };
 
-    for (const [id, fonction] of Object.entries(actions)) {
-        const btn = document.getElementById(id);
-        if (btn) btn.onclick = fonction;
-    }
+    // Liaison sécurisée
+    Object.entries(actions).forEach(([id, fn]) => {
+        const el = document.getElementById(id);
+        if (el) el.onclick = (e) => { e.preventDefault(); fn(); };
+    });
 
-    // Lancement du barème et chargement initial
+    // 2. SURVEILLANCE GLOBALE (BARÈME & AUTO-SAVE)
     const container = document.getElementById('main-container');
     if (container) {
         container.addEventListener('input', () => {
             mettreAJourBareme();
-            sauvegarderLocalement();
+            // Auto-sauvegarde légère toutes les 2 secondes pendant la frappe
+            debouncedSave();
         });
     }
-    
-    chargerSauvegardeLocale();
+
+    // 3. CHARGEMENT INITIAL
+    chargerSession();
     mettreAJourBareme();
 });
 
-// 2. OUTILS D'INSERTION (Utilisent obtenirPageActive() de editeur.js)
-function ajouterEquation() {
-    const mfield = document.createElement('math-field');
-    mfield.value = "x = ";
-    insererDansPage(mfield);
-    setTimeout(() => mfield.focus(), 100);
-}
-
-function ajouterExercice() {
-    const div = document.createElement('div');
-    div.className = "exercice-container";
-    div.innerHTML = "<p><strong>Exercice : .................... (........ points)</strong></p><p>Consigne...</p>";
-    insererDansPage(div);
-}
-
-function ajouterTableau() {
-    const lignes = prompt("Lignes ?", "3");
-    const colonnes = prompt("Colonnes ?", "3");
-    const table = document.createElement('table');
-    table.style.width = "100%";
-    table.style.borderCollapse = "collapse";
-    for (let i = 0; i < lignes; i++) {
-        let tr = table.insertRow();
-        for (let j = 0; j < colonnes; j++) {
-            let td = tr.insertCell();
-            td.style.border = "1px solid black";
-            td.innerText = "...";
-        }
-    }
-    insererDansPage(table);
-}
-
-function insererDansPage(element) {
-    const zone = obtenirPageActive();
-    zone.focus();
-    const sel = window.getSelection();
-    if (sel.rangeCount > 0) {
-        const range = sel.getRangeAt(0);
-        range.insertNode(element);
-        range.setStartAfter(element);
-        range.collapse(true);
-        sel.removeAllRanges();
-        sel.addRange(range);
-    }
-}
-
-// 3. BARÈME GLOBAL (Scruté sur toutes les pages)
+/**
+ * CALCULE LE BARÈME (Regex optimisée pour formats : (2pts), (0.5 pt), (1,25 points))
+ */
 function mettreAJourBareme() {
-    let texteComplet = "";
-    document.querySelectorAll('.page-content').forEach(p => texteComplet += p.innerText + " ");
-    
-    const regex = /\((\d+[.,]?\d*)\s*(pts?|points?)\)/gi;
-    let match, total = 0;
-    while ((match = regex.exec(texteComplet)) !== null) {
-        let val = parseFloat(match[1].replace(',', '.'));
-        if (!isNaN(val)) total += val;
+    const pages = document.querySelectorAll('.page-content');
+    let texteGlobal = "";
+    pages.forEach(p => texteGlobal += p.innerText);
+
+    const regexPoint = /\((\d+[.,]?\d*)\s*(pts?|points?)\)/gi;
+    let match;
+    let total = 0;
+
+    while ((match = regexPoint.exec(texteGlobal)) !== null) {
+        let valeur = parseFloat(match[1].replace(',', '.'));
+        if (!isNaN(valeur)) total += valeur;
     }
-    const aff = document.getElementById('total-score');
-    if (aff) {
-        aff.innerText = total.toString().replace('.', ',');
-        aff.style.color = total > 20 ? "#ef4444" : "#38bdf8";
+
+    const affichage = document.getElementById('total-score');
+    if (affichage) {
+        affichage.innerText = total.toString().replace('.', ',');
+        // Alerte visuelle si > 20
+        affichage.style.color = total > 20 ? "#ef4444" : "#0ea5e9";
     }
 }
 
-// 4. SAUVEGARDE ET RESET
-function sauvegarderLocalement() {
+/**
+ * SYSTÈME DE SAUVEGARDE SÉCURISÉ (LocalStorage)
+ */
+function sauvegarderSession() {
     const container = document.getElementById('main-container');
-    const titre = document.querySelector('.doc-title').innerText;
-    localStorage.setItem('buromaster_v2_content', container.innerHTML);
-    localStorage.setItem('buromaster_v2_title', titre);
-}
+    const titre = document.getElementById('doc-title').innerText;
+    
+    const donnees = {
+        titre: titre,
+        html: container.innerHTML,
+        timestamp: new Date().getTime()
+    };
 
-function chargerSauvegardeLocale() {
-    const content = localStorage.getItem('buromaster_v2_content');
-    const title = localStorage.getItem('buromaster_v2_title');
-    if (content) document.getElementById('main-container').innerHTML = content;
-    if (title) document.querySelector('.doc-title').innerText = title;
-}
-
-function reinitialiserTout() {
-    if (confirm("Action irréversible : effacer toute l'épreuve ?")) {
-        localStorage.clear();
-        window.location.reload();
+    localStorage.setItem('buromaster_v3_data', JSON.stringify(donnees));
+    
+    // Feedback visuel
+    const status = document.getElementById('status-save');
+    if (status) {
+        status.innerHTML = '<i class="fas fa-check-double"></i> Document synchronisé';
+        setTimeout(() => {
+            status.innerHTML = '<i class="fas fa-cloud-check"></i> Sauvegardé';
+        }, 3000);
     }
 }
 
-// 5. BANQUE D'IMAGES (URLs RÉPARÉES)
-const BANQUE_IMAGES = {
-    "Sciences": [
-        { nom: "Bécher", url: "https://upload.wikimedia.org" },
-        { nom: "Circuit", url: "https://upload.wikimedia.org" }
-    ],
-    "Géo": [
-        { nom: "Bénin", url: "https://upload.wikimedia.org" }
-    ]
-};
+function chargerSession() {
+    const rawData = localStorage.getItem('buromaster_v3_data');
+    if (rawData) {
+        const donnees = JSON.parse(rawData);
+        if (donnees.html) document.getElementById('main-container').innerHTML = donnees.html;
+        if (donnees.titre) document.getElementById('doc-title').innerText = donnees.titre;
+    }
+}
+
+/**
+ * GESTION DE L'IMPRESSION (PDF)
+ */
+function preparerEtImprimer() {
+    const titre = document.getElementById('doc-title').innerText;
+    document.title = titre; // Le nom du fichier PDF sera le titre de l'épreuve
+    window.print();
+}
+
+/**
+ * RÉINITIALISATION
+ */
+function reinitialiserEditeur() {
+    if (confirm("⚠️ ATTENTION : Voulez-vous supprimer toute l'épreuve actuelle ?")) {
+        localStorage.removeItem('buromaster_v3_data');
+        location.reload();
+    }
+}
+
+/**
+ * UTILITAIRE : DEBOUNCE (Évite de sauvegarder à chaque lettre tapée)
+ */
+let saveTimeout;
+function debouncedSave() {
+    clearTimeout(saveTimeout);
+    saveTimeout = setTimeout(sauvegarderSession, 2000);
+}
+
+/**
+ * BANQUE D'IMAGES (Vecteurs et schémas)
+ */
+const BANQUE_SCHEMAS = [
+    { nom: "Bécher", url: "https://cdn-icons-png.flaticon.com" },
+    { nom: "Atome", url: "https://cdn-icons-png.flaticon.com" },
+    { nom: "Bénin", url: "https://cdn-icons-png.flaticon.com" }
+];
 
 function ouvrirBanqueImages() {
-    const mod = document.createElement('div');
-    mod.className = "modale-images";
-    let html = `<div class="modale-content"><h3>Banque de schémas</h3><div class="images-grid">`;
-    Object.values(BANQUE_IMAGES).flat().forEach(img => {
-        html += `<img src="${img.url}" title="${img.nom}" style="width:100px; cursor:pointer;" onclick="insererImage('${img.url}')">`;
-    });
-    html += `</div><button onclick="this.parentElement.parentElement.remove()">Fermer</button></div>`;
-    mod.innerHTML = html;
-    document.body.appendChild(mod);
+    let modale = document.createElement('div');
+    modale.className = "modale-images";
+    modale.style = "position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); display:flex; align-items:center; justify-content:center; z-index:9999;";
+    
+    let content = `
+        <div style="background:white; padding:25px; border-radius:12px; width:80%; max-width:600px; max-height:80vh; overflow-y:auto;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+                <h3 style="margin:0;">📁 Banque de schémas</h3>
+                <button onclick="this.closest('.modale-images').remove()" style="cursor:pointer; border:none; background:none; font-size:1.5rem;">&times;</button>
+            </div>
+            <div style="display:grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap:15px;">
+                ${BANQUE_SCHEMAS.map(img => `
+                    <div style="text-align:center; cursor:pointer;" onclick="insererSchema('${img.url}')">
+                        <img src="${img.url}" style="width:100%; border:1px solid #eee; border-radius:8px; padding:10px;">
+                        <small style="display:block; margin-top:5px;">${img.nom}</small>
+                    </div>
+                `).join('')}
+            </div>
+        </div>`;
+    
+    modale.innerHTML = content;
+    document.body.appendChild(modale);
 }
 
-function insererImage(url) {
-    const img = document.createElement('img');
-    img.src = url;
-    img.style.maxWidth = "200px";
-    insererDansPage(img);
+window.insererSchema = function(url) {
+    const imgHTML = `<img src="${url}" style="width:150px; height:auto; display:block; margin:10px auto;">`;
+    const zone = obtenirPageActive();
+    zone.focus();
+    document.execCommand('insertHTML', false, imgHTML);
     document.querySelector('.modale-images').remove();
-}
-
-function genererEntete() {
-    const p = document.getElementById('select-pays').value;
-    const t = document.getElementById('select-type').value;
-    appliquerEntete(p, t);
-}
+};
