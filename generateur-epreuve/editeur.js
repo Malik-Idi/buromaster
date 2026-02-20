@@ -1,38 +1,88 @@
 /**
- * BUROMASTER - Module d'Édition et Mise en Forme
- * Gère le texte, les alignements et les interactions
+ * BUROMASTER - Module d'Édition Avancé (Version Blindée)
+ * Gère la mise en forme, les composants complexes et les interactions
  */
 
-// --- FONCTION CERVEAU : TROUVER LA ZONE DE TEXTE ACTIVE ---
+// --- 1. MOTEUR DE SÉLECTION ---
+
 function obtenirPageActive() {
     const selection = window.getSelection();
     if (selection && selection.rangeCount > 0) {
         let node = selection.anchorNode;
         while (node && node !== document.body) {
-            if (node.classList && node.classList.contains('page-content')) {
+            if (node.nodeType === 1 && node.classList.contains('page-content')) {
                 return node;
             }
             node = node.parentNode;
         }
     }
-    // Fallback : On prend la dernière page si aucune n'est ciblée
-    const pages = document.querySelectorAll('.page-content');
-    return pages[pages.length - 1];
+    return document.querySelector('.page-content:last-of-type');
 }
 
-// --- FONCTION DE MISE EN FORME (DÉLÉGATION) ---
-function formater(commande, valeur = null) {
+// Fonction pour appliquer une commande de manière robuste
+function executer(commande, valeur = null) {
     const zone = obtenirPageActive();
     if (zone) {
         zone.focus();
         document.execCommand(commande, false, valeur);
+        
+        // Déclencher manuellement l'input pour que pagination.js réagisse
+        const event = new Event('input', { bubbles: true });
+        zone.dispatchEvent(event);
     }
 }
 
-// --- LIAISON DES BOUTONS DE LA SIDEBAR DROITE ---
+// --- 2. GESTION DES COMPOSANTS COMPLEXES (Professeurs) ---
+
+const EditeurComposants = {
+    // Insérer un bloc d'exercice proprement
+    insererExercice() {
+        const zone = obtenirPageActive();
+        const nbEx = zone.querySelectorAll('.ex-title').length + 1;
+        const html = `
+            <div class="exercice-container" style="margin-top: 15px;">
+                <p class="ex-title"><strong>Exercice ${nbEx} (........ points)</strong></p>
+                <p>Énoncez l'exercice ici...</p>
+            </div><p><br></p>`;
+        executer('insertHTML', html);
+    },
+
+    // Insérer un tableau scolaire standard
+    insererTableau() {
+        const rows = prompt("Nombre de lignes ?", "3");
+        const cols = prompt("Nombre de colonnes ?", "3");
+        if (!rows || !cols) return;
+
+        let tableHTML = '<table style="width:100%; border-collapse:collapse; margin:10px 0;">';
+        for (let i = 0; i < rows; i++) {
+            tableHTML += '<tr>';
+            for (let j = 0; j < cols; j++) {
+                tableHTML += '<td style="border:1px solid black; padding:5px; height:20px;"></td>';
+            }
+            tableHTML += '</tr>';
+        }
+        tableHTML += '</table><p><br></p>';
+        executer('insertHTML', tableHTML);
+    },
+
+    // Insérer une équation MathLive
+    insererEquation() {
+        const latex = prompt("Entrez votre formule (LaTeX) :", "x = \\frac{-b \\pm \\sqrt{b^2-4ac}}{2a}");
+        if (latex) {
+            const mathHTML = `<span contenteditable="false" style="display:inline-block; padding:0 5px;">
+                <math-field read-only style="border:none; background:transparent;">${latex}</math-field>
+            </span>&nbsp;`;
+            executer('insertHTML', mathHTML);
+        }
+    }
+};
+
+// --- 3. INITIALISATION ET BINDING ---
+
 document.addEventListener('DOMContentLoaded', () => {
-    // Styles de texte
-    const mapping = {
+    
+    // --- Mapping des commandes standards ---
+    const boutonsMiseEnForme = {
         'fmt-bold': 'bold',
         'fmt-italic': 'italic',
         'fmt-underline': 'underline',
@@ -42,66 +92,61 @@ document.addEventListener('DOMContentLoaded', () => {
         'fmt-right': 'justifyRight',
         'fmt-full': 'justifyFull',
         'fmt-ul': 'insertUnorderedList',
-        'fmt-ol': 'insertOrderedList'
+        'fmt-ol': 'insertOrderedList',
+        'fmt-indent': 'indent',
+        'fmt-outdent': 'outdent'
     };
 
-    for (const [id, cmd] of Object.entries(mapping)) {
+    // Liaison automatique des IDs aux commandes
+    Object.entries(boutonsMiseEnForme).forEach(([id, cmd]) => {
         const btn = document.getElementById(id);
-        if (btn) btn.onclick = () => formater(cmd);
+        if (btn) {
+            btn.addEventListener('click', (e) => {
+                e.preventDefault();
+                executer(cmd);
+            });
+        }
+    });
+
+    // --- Gestion des Couleurs et Tailles ---
+    const textColor = document.getElementById('text-color-picker');
+    if (textColor) {
+        textColor.addEventListener('input', (e) => executer('foreColor', e.target.value));
     }
 
-    // Effacer la mise en forme
+    const selectSize = document.getElementById('select-size');
+    if (selectSize) {
+        selectSize.addEventListener('change', (e) => {
+            // Note: execCommand fontSize utilise des valeurs de 1 à 7
+            executer('fontSize', e.target.value);
+        });
+    }
+
+    // --- Gestion Spéciale : Gomme / Nettoyage ---
     const btnClear = document.getElementById('fmt-clear');
     if (btnClear) {
-        btnClear.onclick = () => {
-            formater('removeFormat');
-            const zone = obtenirPageActive();
-            if (zone) {
-                zone.style.backgroundColor = "transparent";
-                zone.style.padding = "20mm"; // Reset padding standard
-            }
-        };
+        btnClear.addEventListener('click', (e) => {
+            e.preventDefault();
+            executer('removeFormat');
+        });
     }
 
-    // Retraits
-    const btnIndent = document.getElementById('fmt-indent');
-    const btnOutdent = document.getElementById('fmt-outdent');
-    if (btnIndent) btnIndent.onclick = () => formater('indent');
-    if (btnOutdent) btnOutdent.onclick = () => formater('outdent');
+    // --- Liaison des boutons de structure (Gauche) ---
+    const btnExo = document.getElementById('btn-exercice');
+    if (btnExo) btnExo.onclick = () => EditeurComposants.insererExercice();
 
-    // Couleurs
-    const textColor = document.getElementById('text-color-picker');
-    const bgColor = document.getElementById('bg-color-picker');
-    if (textColor) textColor.onchange = (e) => formater('foreColor', e.target.value);
-    if (bgColor) bgColor.onchange = (e) => {
-        const zone = obtenirPageActive();
-        if (zone) zone.style.backgroundColor = e.target.value;
-    };
-});
+    const btnTableau = document.getElementById('btn-tableau');
+    if (btnTableau) btnTableau.onclick = () => EditeurComposants.insererTableau();
 
-// --- LOGIQUE DE SUPPRESSION DE PAGE (REVERSE FLOW) ---
-document.addEventListener('keydown', (e) => {
-    const zone = obtenirPageActive();
-    // Si on appuie sur Retour arrière dans une page vide (sauf la première)
-    if (e.key === "Backspace" && zone) {
-        const pages = document.querySelectorAll('.a4-page');
-        const pageContainer = zone.closest('.a4-page');
-        
-        if (zone.innerHTML.trim() === "" && pages.length > 1 && pageContainer !== pages[0]) {
-            e.preventDefault();
-            const pagePrecedente = pageContainer.previousElementSibling;
-            if (pagePrecedente) {
-                const zonePrecedente = pagePrecedente.querySelector('.page-content');
-                pageContainer.remove();
-                zonePrecedente.focus();
-                // Placer le curseur à la fin de la page précédente
-                const range = document.createRange();
-                range.selectNodeContents(zonePrecedente);
-                range.collapse(false);
-                const sel = window.getSelection();
-                sel.removeAllRanges();
-                sel.addRange(range);
+    const btnMaths = document.getElementById('btn-maths');
+    if (btnMaths) btnMaths.onclick = () => EditeurComposants.insererEquation();
+
+    const btnReset = document.getElementById('btn-reset');
+    if (btnReset) {
+        btnReset.onclick = () => {
+            if (confirm("⚠️ VOULEZ-VOUS TOUT EFFACER ? Cette action est irréversible.")) {
+                location.reload();
             }
-        }
+        };
     }
 });
