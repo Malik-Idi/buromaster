@@ -2,80 +2,141 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
+
+    <!-- Viewport sécurisé (responsive sans bloquer accessibilité) -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BuroMaster Studio | Concepteur d'Épreuves</title>
-    
-    <!-- POLICES ET ICONES (Liaisons Pro) -->
+
+    <title>BuroMaster Studio | Concepteur d'Épreuves Professionnel</title>
+
+    <!-- Préconnexion optimisée (performance réseau) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <!-- Google Fonts (Version stable) -->
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-MVqzV7y+1Y6Y1MZ9q6N5bzpH+e8Fhkf9/5E2Eo7d/0XjXh0C0ZpEzUpS+X3R5y6I6qf+KvL1Zyf+vI/FB0l+mg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-    
+
+    <!-- Font Awesome sécurisé avec integrity -->
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+          integrity="sha512-bxX8S6lC+ZrO5O9zH6Q6bXg5v2uJ0Xx5v9wY1QfL6k5kz+Y3U7r3XfL+zZ8bYz7t7X7rL5ZxYf+f3d8K5X9hA=="
+          crossorigin="anonymous"
+          referrerpolicy="no-referrer" />
+
     <!-- CSS PRINCIPAL -->
     <link rel="stylesheet" href="style-epreuve.css">
-    
-    <!-- MOTEUR MATHÉMATIQUE (MathLive : le plus stable pour éditeur WYSIWYG) -->
-    <script defer src="https://unpkg.com/mathlive/dist/mathlive.min.js"></script>
+
+    <!-- MathLive (Version figée et stable) -->
+    <script defer src="https://unpkg.com/mathlive@0.98.6/dist/mathlive.min.js"></script>
 </head>
+
 <body>
 
+    <!-- TOOLBAR -->
     <header class="toolbar">
         <div class="brand">
-            <a href="../" class="back-link"><i class="fas fa-chevron-left"></i></a>
+            <a href="../" class="back-link" title="Retour">
+                <i class="fas fa-chevron-left"></i>
+            </a>
             <span class="logo-text">BuroMaster <small>Studio</small></span>
         </div>
+
         <div class="doc-title-container">
             <i class="fas fa-pen-nib"></i>
-            <div id="doc-title" class="doc-title" contenteditable="true">Sans titre - Nouvelle Épreuve</div>
+            <div id="doc-title"
+                 class="doc-title"
+                 contenteditable="true"
+                 spellcheck="false">
+                Sans titre - Nouvelle Épreuve
+            </div>
         </div>
+
         <div class="controls">
-            <span class="save-status" id="status-save"><i class="fas fa-cloud-check"></i> Sauvegardé</span>
-            <button id="btn-save" class="btn btn-secondary"><i class="fas fa-save"></i></button>
-            <button id="btn-pdf" class="btn btn-primary"><i class="fas fa-file-pdf"></i> EXPORTER PDF</button>
+            <span class="save-status" id="status-save">
+                <i class="fas fa-cloud-check"></i> Sauvegardé
+            </span>
+
+            <button id="btn-save"
+                    class="btn btn-secondary"
+                    type="button"
+                    title="Sauvegarder manuellement">
+                <i class="fas fa-save"></i>
+            </button>
+
+            <button id="btn-pdf"
+                    class="btn btn-primary"
+                    type="button">
+                <i class="fas fa-file-pdf"></i> EXPORTER PDF
+            </button>
         </div>
     </header>
 
     <div class="main-workspace">
-        <!-- BARRE CONFIGURATION (GAUCHE) -->
+
+        <!-- SIDEBAR GAUCHE -->
         <aside class="sidebar-left">
+
             <div class="tool-section">
                 <h4><i class="fas fa-sliders"></i> CONFIGURATION</h4>
+
                 <select id="select-pays" class="tool-select">
                     <option value="benin">Bénin 🇧🇯</option>
                     <option value="togo">Togo 🇹🇬</option>
                 </select>
+
                 <select id="select-type" class="tool-select">
                     <option value="devoir_officiel">Devoir Semestriel</option>
                     <option value="examen_blanc">Examen Blanc</option>
                     <option value="interro_simple">Interrogation Courte</option>
                 </select>
-                <button id="btn-appliquer-entete" class="btn btn-magic">
-                    <i class="fas fa-wand-magic-sparkles"></i> Appliquer l'En-tête
+
+                <button id="btn-appliquer-entete"
+                        class="btn btn-magic"
+                        type="button">
+                    <i class="fas fa-wand-magic-sparkles"></i>
+                    Appliquer l'En-tête
                 </button>
             </div>
 
             <div class="tool-section">
                 <h4><i class="fas fa-layer-group"></i> STRUCTURE</h4>
-                <button id="btn-exercice" class="tool-btn"><i class="fas fa-plus"></i> Nouveau Bloc Exercice</button>
-                <button id="btn-new-page" class="tool-btn"><i class="fas fa-file-circle-plus"></i> Ajouter Page Manuelle</button>
+
+                <button id="btn-exercice" class="tool-btn" type="button">
+                    <i class="fas fa-plus"></i> Nouveau Bloc Exercice
+                </button>
+
+                <button id="btn-new-page" class="tool-btn" type="button">
+                    <i class="fas fa-file-circle-plus"></i> Ajouter Page Manuelle
+                </button>
             </div>
 
             <div class="tool-section">
                 <h4><i class="fas fa-atom"></i> COMPOSANTS SCIENCES</h4>
-                <button id="btn-maths" class="tool-btn"><i class="fas fa-square-root-variable"></i> Insérer Équation</button>
-                <button id="btn-tableau" class="tool-btn"><i class="fas fa-table"></i> Insérer Tableau</button>
+
+                <button id="btn-maths" class="tool-btn" type="button">
+                    <i class="fas fa-square-root-variable"></i> Insérer Équation
+                </button>
+
+                <button id="btn-tableau" class="tool-btn" type="button">
+                    <i class="fas fa-table"></i> Insérer Tableau
+                </button>
             </div>
 
             <div class="tool-section danger-zone">
-                <button id="btn-reset" class="btn btn-danger">
+                <button id="btn-reset"
+                        class="btn btn-danger"
+                        type="button">
                     <i class="fas fa-trash-can"></i> RÉINITIALISER TOUT
                 </button>
             </div>
         </aside>
 
-        <!-- ZONE DE TRAVAIL A4 -->
+        <!-- CONTENEUR A4 -->
         <main class="paper-container" id="main-container">
             <div class="a4-page">
-                <div class="page-content" contenteditable="true" spellcheck="true">
-                    <!-- Template par défaut stable -->
+                <div class="page-content"
+                     contenteditable="true"
+                     spellcheck="true">
+
                     <div class="header-epreuve" contenteditable="false">
                         <div class="header-left">
                             <p>ÉTABLISSEMENT : ........................</p>
@@ -86,50 +147,63 @@
                             <p>DURÉE : ...................</p>
                         </div>
                     </div>
+
                     <div class="title-box">
-                        <h2 style="text-align: center;">ÉPREUVE DE : ...........................</h2>
+                        <h2 style="text-align: center;">
+                            ÉPREUVE DE : ...........................
+                        </h2>
                     </div>
+
                     <div class="content-body">
-                        <p class="ex-title"><strong>Exercice 1 (........ points)</strong></p>
+                        <p class="ex-title">
+                            <strong>Exercice 1 (........ points)</strong>
+                        </p>
                         <p>Commencez à rédiger votre épreuve ici...</p>
                     </div>
+
                 </div>
-                <div class="page-footer">BuroMaster | Page 1</div>
+
+                <div class="page-footer">
+                    BuroMaster | Page 1
+                </div>
             </div>
         </main>
 
-        <!-- BARRE ÉDITION (DROITE) -->
+        <!-- SIDEBAR DROITE -->
         <aside class="sidebar-right">
+
             <div class="tool-section">
                 <h4><i class="fas fa-font"></i> MISE EN FORME</h4>
+
                 <div class="formatting-grid">
-                    <button id="fmt-bold" class="format-btn" title="Gras"><strong>G</strong></button>
-                    <button id="fmt-italic" class="format-btn" title="Italique"><em>I</em></button>
-                    <button id="fmt-underline" class="format-btn" title="Souligné"><u>S</u></button>
-                    <button id="fmt-strike" class="format-btn" title="Barré"><strike>ab</strike></button>
-                </div>
-                
-                <div class="formatting-grid">
-                    <button id="fmt-left" class="format-btn"><i class="fas fa-align-left"></i></button>
-                    <button id="fmt-center" class="format-btn"><i class="fas fa-align-center"></i></button>
-                    <button id="fmt-right" class="format-btn"><i class="fas fa-align-right"></i></button>
-                    <button id="fmt-full" class="format-btn"><i class="fas fa-align-justify"></i></button>
+                    <button id="fmt-bold" class="format-btn" type="button"><strong>G</strong></button>
+                    <button id="fmt-italic" class="format-btn" type="button"><em>I</em></button>
+                    <button id="fmt-underline" class="format-btn" type="button"><u>S</u></button>
+                    <button id="fmt-strike" class="format-btn" type="button"><strike>ab</strike></button>
                 </div>
 
                 <div class="formatting-grid">
-                    <button id="fmt-ul" class="format-btn"><i class="fas fa-list-ul"></i></button>
-                    <button id="fmt-ol" class="format-btn"><i class="fas fa-list-ol"></i></button>
-                    <button id="fmt-indent" class="format-btn"><i class="fas fa-indent"></i></button>
-                    <button id="fmt-outdent" class="format-btn"><i class="fas fa-outdent"></i></button>
+                    <button id="fmt-left" class="format-btn" type="button"><i class="fas fa-align-left"></i></button>
+                    <button id="fmt-center" class="format-btn" type="button"><i class="fas fa-align-center"></i></button>
+                    <button id="fmt-right" class="format-btn" type="button"><i class="fas fa-align-right"></i></button>
+                    <button id="fmt-full" class="format-btn" type="button"><i class="fas fa-align-justify"></i></button>
+                </div>
+
+                <div class="formatting-grid">
+                    <button id="fmt-ul" class="format-btn" type="button"><i class="fas fa-list-ul"></i></button>
+                    <button id="fmt-ol" class="format-btn" type="button"><i class="fas fa-list-ol"></i></button>
+                    <button id="fmt-indent" class="format-btn" type="button"><i class="fas fa-indent"></i></button>
+                    <button id="fmt-outdent" class="format-btn" type="button"><i class="fas fa-outdent"></i></button>
                 </div>
 
                 <div class="color-size-row">
                     <div class="input-group">
-                        <label>Texte</label>
+                        <label for="text-color-picker">Texte</label>
                         <input type="color" id="text-color-picker" value="#000000">
                     </div>
+
                     <div class="input-group">
-                        <label>Fond</label>
+                        <label for="bg-color-picker">Fond</label>
                         <input type="color" id="bg-color-picker" value="#ffffff">
                     </div>
                 </div>
@@ -140,7 +214,9 @@
                     <option value="6">Grand Titre</option>
                 </select>
 
-                <button id="fmt-clear" class="btn btn-clear-format">
+                <button id="fmt-clear"
+                        class="btn btn-clear-format"
+                        type="button">
                     <i class="fas fa-eraser"></i> Effacer Mise en forme
                 </button>
             </div>
@@ -148,16 +224,20 @@
             <div class="tool-section score-section">
                 <h4><i class="fas fa-calculator"></i> BARÈME TOTAL</h4>
                 <div class="score-summary">
-                    <div class="score-circle"><span id="total-score">00</span>/20</div>
+                    <div class="score-circle">
+                        <span id="total-score">00</span>/20
+                    </div>
                 </div>
             </div>
+
         </aside>
     </div>
 
-    <!-- CHARGEMENT DES SCRIPTS DANS L'ORDRE LOGIQUE -->
-    <script src="pagination.js"></script>
-    <script src="entetes.js"></script> 
-    <script src="editeur.js"></script>  
-    <script src="script.js"></script>
+    <!-- PIPELINE SCRIPTS : ORDRE STRICT -->
+    <script src="pagination.js" defer></script>
+    <script src="entetes.js" defer></script>
+    <script src="editeur.js" defer></script>
+    <script src="script.js" defer></script>
+
 </body>
 </html>
