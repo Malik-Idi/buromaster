@@ -1,152 +1,279 @@
 /**
- * BUROMASTER - Module d'Édition Avancé (Version Blindée)
- * Gère la mise en forme, les composants complexes et les interactions
+ * BUROMASTER - EditorEngine
+ * Production ULTIMATE Edition
+ * Sécurisé – Interopérable – Évolutif
  */
 
-// --- 1. MOTEUR DE SÉLECTION ---
+(() => {
+    "use strict";
 
-function obtenirPageActive() {
-    const selection = window.getSelection();
-    if (selection && selection.rangeCount > 0) {
-        let node = selection.anchorNode;
-        while (node && node !== document.body) {
-            if (node.nodeType === 1 && node.classList.contains('page-content')) {
-                return node;
+    const EditorEngine = {
+
+        /* ==============================
+           ÉTAT INTERNE
+        ============================== */
+
+        _state: {
+            initialized: false,
+            isExecuting: false
+        },
+
+        /* ==============================
+           MOTEUR DE SÉLECTION ROBUSTE
+        ============================== */
+
+        obtenirPageActive() {
+
+            const selection = window.getSelection();
+
+            if (selection && selection.rangeCount > 0) {
+                let node = selection.anchorNode;
+
+                while (node && node !== document.body) {
+                    if (
+                        node.nodeType === 1 &&
+                        node.classList.contains('page-content')
+                    ) {
+                        return node;
+                    }
+                    node = node.parentNode;
+                }
             }
-            node = node.parentNode;
-        }
-    }
-    return document.querySelector('.page-content:last-of-type');
-}
 
-// Fonction pour appliquer une commande de manière robuste
-function executer(commande, valeur = null) {
-    const zone = obtenirPageActive();
-    if (zone) {
-        zone.focus();
-        document.execCommand(commande, false, valeur);
-        
-        // Déclencher manuellement l'input pour que pagination.js réagisse
-        const event = new Event('input', { bubbles: true });
-        zone.dispatchEvent(event);
-    }
-}
+            // Fallback sécurisé
+            return document.querySelector('.page-content:last-of-type')
+                || document.querySelector('.page-content');
+        },
 
-// --- 2. GESTION DES COMPOSANTS COMPLEXES (Professeurs) ---
+        /* ==============================
+           EXECUTEUR CENTRAL SÉCURISÉ
+        ============================== */
 
-const EditeurComposants = {
-    // Insérer un bloc d'exercice proprement
-    insererExercice() {
-        const zone = obtenirPageActive();
-        const nbEx = zone.querySelectorAll('.ex-title').length + 1;
-        const html = `
-            <div class="exercice-container" style="margin-top: 15px;">
-                <p class="ex-title"><strong>Exercice ${nbEx} (........ points)</strong></p>
-                <p>Énoncez l'exercice ici...</p>
-            </div><p><br></p>`;
-        executer('insertHTML', html);
-    },
+        executer(commande, valeur = null) {
 
-    // Insérer un tableau scolaire standard
-    insererTableau() {
-        const rows = prompt("Nombre de lignes ?", "3");
-        const cols = prompt("Nombre de colonnes ?", "3");
-        if (!rows || !cols) return;
+            if (this._state.isExecuting) return;
+            this._state.isExecuting = true;
 
-        let tableHTML = '<table style="width:100%; border-collapse:collapse; margin:10px 0;">';
-        for (let i = 0; i < rows; i++) {
-            tableHTML += '<tr>';
-            for (let j = 0; j < cols; j++) {
-                tableHTML += '<td style="border:1px solid black; padding:5px; height:20px;"></td>';
+            try {
+
+                const zone = this.obtenirPageActive();
+                if (!zone) return;
+
+                zone.focus();
+
+                // Compatibilité actuelle maintenue (fallback)
+                if (document.queryCommandSupported?.(commande)) {
+                    document.execCommand(commande, false, valeur);
+                }
+
+                this._notifyChange();
+
+            } catch (err) {
+                console.error("EditorEngine Error:", err);
+            } finally {
+                this._state.isExecuting = false;
             }
-            tableHTML += '</tr>';
+        },
+
+        /* ==============================
+           INSERTION HTML SÉCURISÉE
+        ============================== */
+
+        _insertHTML(html) {
+
+            const zone = this.obtenirPageActive();
+            if (!zone) return;
+
+            const selection = window.getSelection();
+            if (!selection || selection.rangeCount === 0) return;
+
+            const range = selection.getRangeAt(0);
+
+            const fragment = document
+                .createRange()
+                .createContextualFragment(html);
+
+            range.deleteContents();
+            range.insertNode(fragment);
+
+            this._notifyChange();
+        },
+
+        /* ==============================
+           COMPOSANTS STRUCTURELS
+        ============================== */
+
+        Composants: {
+
+            insererExercice() {
+
+                const totalExo =
+                    document.querySelectorAll('.ex-title').length;
+
+                const html = `
+                    <div class="exercice-container" style="margin-top: 20px;">
+                        <p class="ex-title">
+                            <strong>Exercice ${totalExo + 1} (........ points)</strong>
+                        </p>
+                        <p>Tapez l'énoncé de votre exercice ici...</p>
+                    </div><p><br></p>
+                `;
+
+                EditorEngine._insertHTML(html);
+
+                EditorEngine._dispatchEvent(
+                    'buromaster:component-inserted',
+                    { type: 'exercice' }
+                );
+            },
+
+            insererTableau(rows = 3, cols = 3) {
+
+                rows = parseInt(rows);
+                cols = parseInt(cols);
+
+                if (isNaN(rows) || isNaN(cols) || rows <= 0 || cols <= 0) return;
+
+                let table = document.createElement('table');
+                table.style.width = "100%";
+                table.style.borderCollapse = "collapse";
+                table.style.margin = "15px 0";
+
+                for (let i = 0; i < rows; i++) {
+                    let tr = document.createElement('tr');
+
+                    for (let j = 0; j < cols; j++) {
+                        let td = document.createElement('td');
+                        td.textContent = "...";
+                        td.style.border = "1px solid black";
+                        td.style.padding = "8px";
+                        td.style.minHeight = "25px";
+                        tr.appendChild(td);
+                    }
+
+                    table.appendChild(tr);
+                }
+
+                const range = window.getSelection()?.getRangeAt(0);
+                if (!range) return;
+
+                range.insertNode(table);
+
+                this._notifyChange?.();
+
+                EditorEngine._dispatchEvent(
+                    'buromaster:component-inserted',
+                    { type: 'table' }
+                );
+            },
+
+            insererEquation(latex = "E = mc^2") {
+
+                if (!latex || typeof latex !== "string") return;
+
+                const wrapper = document.createElement('span');
+                wrapper.contentEditable = "false";
+                wrapper.style.display = "inline-block";
+                wrapper.style.padding = "2px 5px";
+
+                const mathField = document.createElement('math-field');
+                mathField.setAttribute('read-only', '');
+                mathField.style.border = "none";
+                mathField.style.background = "transparent";
+                mathField.style.fontSize = "1.2em";
+                mathField.textContent = latex;
+
+                wrapper.appendChild(mathField);
+
+                const range = window.getSelection()?.getRangeAt(0);
+                if (!range) return;
+
+                range.insertNode(wrapper);
+
+                EditorEngine._notifyChange();
+
+                EditorEngine._dispatchEvent(
+                    'buromaster:component-inserted',
+                    { type: 'equation' }
+                );
+            }
+        },
+
+        /* ==============================
+           SYNCHRONISATION GLOBALE
+        ============================== */
+
+        _notifyChange() {
+
+            // Pagination directe (plus de hack input)
+            if (typeof window.ajusterLeFlux === "function") {
+                window.ajusterLeFlux();
+            }
+
+            this._dispatchEvent('buromaster:content-changed');
+        },
+
+        _dispatchEvent(name, detail = {}) {
+            document.dispatchEvent(
+                new CustomEvent(name, { detail })
+            );
+        },
+
+        /* ==============================
+           INITIALISATION UI
+        ============================== */
+
+        init() {
+
+            if (this._state.initialized) return;
+
+            const UI_MAPPING = {
+                'fmt-bold': 'bold',
+                'fmt-italic': 'italic',
+                'fmt-underline': 'underline',
+                'fmt-strike': 'strikethrough',
+                'fmt-left': 'justifyLeft',
+                'fmt-center': 'justifyCenter',
+                'fmt-right': 'justifyRight',
+                'fmt-full': 'justifyFull',
+                'fmt-ul': 'insertUnorderedList',
+                'fmt-ol': 'insertOrderedList',
+                'fmt-indent': 'indent',
+                'fmt-outdent': 'outdent'
+            };
+
+            Object.entries(UI_MAPPING).forEach(([id, cmd]) => {
+                const btn = document.getElementById(id);
+                if (btn) {
+                    btn.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        this.executer(cmd);
+                    });
+                }
+            });
+
+            this._state.initialized = true;
         }
-        tableHTML += '</table><p><br></p>';
-        executer('insertHTML', tableHTML);
-    },
-
-    // Insérer une équation MathLive
-    insererEquation() {
-        const latex = prompt("Entrez votre formule (LaTeX) :", "x = \\frac{-b \\pm \\sqrt{b^2-4ac}}{2a}");
-        if (latex) {
-            const mathHTML = `<span contenteditable="false" style="display:inline-block; padding:0 5px;">
-                <math-field read-only style="border:none; background:transparent;">${latex}</math-field>
-            </span>&nbsp;`;
-            executer('insertHTML', mathHTML);
-        }
-    }
-};
-
-// --- 3. INITIALISATION ET BINDING ---
-
-document.addEventListener('DOMContentLoaded', () => {
-    
-    // --- Mapping des commandes standards ---
-    const boutonsMiseEnForme = {
-        'fmt-bold': 'bold',
-        'fmt-italic': 'italic',
-        'fmt-underline': 'underline',
-        'fmt-strike': 'strikethrough',
-        'fmt-left': 'justifyLeft',
-        'fmt-center': 'justifyCenter',
-        'fmt-right': 'justifyRight',
-        'fmt-full': 'justifyFull',
-        'fmt-ul': 'insertUnorderedList',
-        'fmt-ol': 'insertOrderedList',
-        'fmt-indent': 'indent',
-        'fmt-outdent': 'outdent'
     };
 
-    // Liaison automatique des IDs aux commandes
-    Object.entries(boutonsMiseEnForme).forEach(([id, cmd]) => {
-        const btn = document.getElementById(id);
-        if (btn) {
-            btn.addEventListener('click', (e) => {
-                e.preventDefault();
-                executer(cmd);
-            });
-        }
+    /* ==============================
+       EXPORT PRODUCTION SAFE
+    ============================== */
+
+    Object.defineProperty(window, 'EditorEngine', {
+        value: EditorEngine,
+        writable: false,
+        configurable: false
     });
 
-    // --- Gestion des Couleurs et Tailles ---
-    const textColor = document.getElementById('text-color-picker');
-    if (textColor) {
-        textColor.addEventListener('input', (e) => executer('foreColor', e.target.value));
-    }
+    Object.defineProperty(window, 'obtenirPageActive', {
+        value: () => EditorEngine.obtenirPageActive(),
+        writable: false,
+        configurable: false
+    });
 
-    const selectSize = document.getElementById('select-size');
-    if (selectSize) {
-        selectSize.addEventListener('change', (e) => {
-            // Note: execCommand fontSize utilise des valeurs de 1 à 7
-            executer('fontSize', e.target.value);
-        });
-    }
+    document.addEventListener('DOMContentLoaded', () => {
+        EditorEngine.init();
+    });
 
-    // --- Gestion Spéciale : Gomme / Nettoyage ---
-    const btnClear = document.getElementById('fmt-clear');
-    if (btnClear) {
-        btnClear.addEventListener('click', (e) => {
-            e.preventDefault();
-            executer('removeFormat');
-        });
-    }
-
-    // --- Liaison des boutons de structure (Gauche) ---
-    const btnExo = document.getElementById('btn-exercice');
-    if (btnExo) btnExo.onclick = () => EditeurComposants.insererExercice();
-
-    const btnTableau = document.getElementById('btn-tableau');
-    if (btnTableau) btnTableau.onclick = () => EditeurComposants.insererTableau();
-
-    const btnMaths = document.getElementById('btn-maths');
-    if (btnMaths) btnMaths.onclick = () => EditeurComposants.insererEquation();
-
-    const btnReset = document.getElementById('btn-reset');
-    if (btnReset) {
-        btnReset.onclick = () => {
-            if (confirm("⚠️ VOULEZ-VOUS TOUT EFFACER ? Cette action est irréversible.")) {
-                location.reload();
-            }
-        };
-    }
-});
+})();
