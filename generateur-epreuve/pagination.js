@@ -1,113 +1,273 @@
 /**
- * BUROMASTER - Moteur de Pagination Holistique (V4)
- * Gère : Flux Avant, Flux Arrière, Renumérotation et Sécurité Images
+ * BUROMASTER - PaginationEngine
+ * Production ULTIMATE Edition
+ * Architecture robuste – Interopérable – Sécurisée
  */
 
-let isPaginating = false;
+(() => {
+    "use strict";
 
-/**
- * 1. SYNC DES NUMÉROS DE PAGE
- */
-function renumeroterPages() {
-    const pages = document.querySelectorAll('.a4-page');
-    pages.forEach((page, index) => {
-        const footer = page.querySelector('.page-footer');
-        if (footer) footer.innerText = `BuroMaster | Page ${index + 1}`;
-    });
-}
+    const PaginationEngine = {
 
-/**
- * 2. CRÉATION DE PAGE
- */
-function creerNouvellePage() {
-    const container = document.getElementById('main-container');
-    const nouvellePage = document.createElement('div');
-    nouvellePage.className = "a4-page";
-    
-    const zoneTexte = document.createElement('div');
-    zoneTexte.className = "page-content";
-    zoneTexte.contentEditable = "true";
-    zoneTexte.setAttribute('spellcheck', 'true');
+        /* ==============================
+           ÉTAT INTERNE ULTRA SÉCURISÉ
+        ============================== */
 
-    const footer = document.createElement('div');
-    footer.className = "page-footer";
-    footer.contentEditable = "false";
+        _state: {
+            isPaginating: false,
+            observer: null,
+            initialized: false
+        },
 
-    nouvellePage.appendChild(zoneTexte);
-    nouvellePage.appendChild(footer);
-    container.appendChild(nouvellePage);
+        config: Object.freeze({
+            pageSelector: '.a4-page',
+            contentSelector: '.page-content',
+            footerSelector: '.page-footer',
+            containerId: 'main-container',
+            maxLoopSecurity: 40
+        }),
 
-    renumeroterPages();
-    return zoneTexte;
-}
+        /* ==============================
+           INITIALISATION ROBUSTE
+        ============================== */
 
-/**
- * 3. MOTEUR DE FLUX (AVANT ET ARRIÈRE)
- */
-function ajusterLeFlux(event) {
-    if (isPaginating) return;
-    isPaginating = true;
+        init() {
+            if (this._state.initialized) return;
 
-    const activeZone = event ? event.target.closest('.page-content') : document.querySelector('.page-content');
-    if (!activeZone) { isPaginating = false; return; }
+            const container = document.getElementById(this.config.containerId);
+            if (!container) return;
 
-    // --- SÉCURITÉ A : DÉPASSEMENT (Vers l'avant) ---
-    let safetyForward = 0;
-    while (activeZone.scrollHeight > activeZone.clientHeight && safetyForward < 20) {
-        safetyForward++;
-        const dernierEl = activeZone.lastElementChild;
-        if (!dernierEl) break;
+            this._bindEvents(container);
+            this._initObserver(container);
+            this.renumeroterPages();
 
-        const pageSuivante = activeZone.closest('.a4-page').nextElementSibling;
-        const zoneSuivante = pageSuivante ? pageSuivante.querySelector('.page-content') : creerNouvellePage();
-        
-        zoneSuivante.prepend(dernierEl);
-    }
+            this._state.initialized = true;
+        },
 
-    // --- SÉCURITÉ B : ASPIRATION (Vers l'arrière / Reverse Flow) ---
-    // Si la page actuelle a de la place, on regarde si la page suivante a du contenu à remonter
-    const pageSuivante = activeZone.closest('.a4-page').nextElementSibling;
-    if (pageSuivante) {
-        const zoneSuivante = pageSuivante.querySelector('.page-content');
-        let safetyBackward = 0;
-        
-        while (zoneSuivante.firstElementChild && safetyBackward < 20) {
-            const premierElSuivant = zoneSuivante.firstElementChild;
-            activeZone.appendChild(premierElSuivant);
+        /* ==============================
+           LIAISONS INFALLIBLES
+        ============================== */
 
-            // Si ça dépasse après l'ajout, on le rend à la page suivante et on arrête
-            if (activeZone.scrollHeight > activeZone.clientHeight) {
-                zoneSuivante.prepend(premierElSuivant);
-                break;
+        _bindEvents(container) {
+
+            container.addEventListener('input', (e) => {
+                this.ajusterLeFlux(e);
+            }, { passive: true });
+
+            container.addEventListener('keydown', (e) => {
+                if (e.key === "Backspace" || e.key === "Delete") {
+                    requestAnimationFrame(() => this.ajusterLeFlux());
+                }
+            });
+
+            window.addEventListener('resize', () => {
+                this._debounce(() => this.ajusterLeFlux(), 100);
+            });
+        },
+
+        _initObserver(container) {
+
+            if (!window.MutationObserver) return;
+
+            this._state.observer = new MutationObserver((mutations) => {
+                for (const mutation of mutations) {
+                    if (mutation.type === "childList") {
+                        this.notifierChangement();
+                        break;
+                    }
+                }
+            });
+
+            this._state.observer.observe(container, {
+                childList: true,
+                subtree: true
+            });
+        },
+
+        /* ==============================
+           CRÉATION PAGE BLINDÉE
+        ============================== */
+
+        creerNouvellePage() {
+
+            const container = document.getElementById(this.config.containerId);
+            if (!container) return null;
+
+            const page = document.createElement('div');
+            page.className = 'a4-page';
+
+            const content = document.createElement('div');
+            content.className = 'page-content';
+            content.contentEditable = "true";
+            content.setAttribute('spellcheck', 'true');
+
+            const footer = document.createElement('div');
+            footer.className = 'page-footer';
+            footer.contentEditable = "false";
+
+            page.appendChild(content);
+            page.appendChild(footer);
+            container.appendChild(page);
+
+            this.renumeroterPages();
+
+            this._dispatchEvent('buromaster:page-created', { page });
+
+            return content;
+        },
+
+        /* ==============================
+           RENOMINATION SÉCURISÉE
+        ============================== */
+
+        renumeroterPages() {
+
+            const pages = document.querySelectorAll(this.config.pageSelector);
+
+            pages.forEach((page, index) => {
+                const footer = page.querySelector(this.config.footerSelector);
+                if (footer) {
+                    footer.textContent = `BuroMaster | Page ${index + 1}`;
+                }
+            });
+
+            this.notifierChangement();
+        },
+
+        /* ==============================
+           MOTEUR PHYSIQUE ULTIMATE
+        ============================== */
+
+        ajusterLeFlux(event = null) {
+
+            if (this._state.isPaginating) return;
+            this._state.isPaginating = true;
+
+            try {
+
+                const activeZone = this._getActiveZone(event);
+                if (!activeZone) return;
+
+                this._handleForwardOverflow(activeZone);
+                this._handleBackwardPull(activeZone);
+
+            } catch (err) {
+                console.error("PaginationEngine error:", err);
+            } finally {
+                this._state.isPaginating = false;
             }
-            safetyBackward++;
+        },
+
+        _getActiveZone(event) {
+            if (event && event.target) {
+                return event.target.closest(this.config.contentSelector);
+            }
+            return document.querySelector(this.config.contentSelector);
+        },
+
+        _handleForwardOverflow(zone) {
+
+            let safety = 0;
+
+            while (zone.scrollHeight > zone.clientHeight && safety < this.config.maxLoopSecurity) {
+
+                const lastElement = zone.lastElementChild;
+                if (!lastElement) break;
+
+                const currentPage = zone.closest(this.config.pageSelector);
+                if (!currentPage) break;
+
+                let nextPage = currentPage.nextElementSibling;
+                let nextZone = nextPage
+                    ? nextPage.querySelector(this.config.contentSelector)
+                    : this.creerNouvellePage();
+
+                if (!nextZone) break;
+
+                nextZone.prepend(lastElement);
+                safety++;
+            }
+        },
+
+        _handleBackwardPull(zone) {
+
+            const currentPage = zone.closest(this.config.pageSelector);
+            if (!currentPage) return;
+
+            const nextPage = currentPage.nextElementSibling;
+            if (!nextPage) return;
+
+            const nextZone = nextPage.querySelector(this.config.contentSelector);
+            if (!nextZone) return;
+
+            let safety = 0;
+
+            while (nextZone.firstElementChild && safety < this.config.maxLoopSecurity) {
+
+                const firstNext = nextZone.firstElementChild;
+                zone.appendChild(firstNext);
+
+                if (zone.scrollHeight > zone.clientHeight) {
+                    nextZone.prepend(firstNext);
+                    break;
+                }
+
+                safety++;
+            }
+
+            if (nextZone.innerHTML.trim() === "") {
+                nextPage.remove();
+                this.renumeroterPages();
+                this._dispatchEvent('buromaster:page-removed');
+            }
+        },
+
+        /* ==============================
+           COMMUNICATION INTER-MODULE
+        ============================== */
+
+        notifierChangement() {
+            this._dispatchEvent('buromaster:dom-changed');
+        },
+
+        _dispatchEvent(name, detail = {}) {
+            document.dispatchEvent(new CustomEvent(name, { detail }));
+        },
+
+        /* ==============================
+           UTILITAIRE INTERNE
+        ============================== */
+
+        _debounce(fn, delay) {
+            clearTimeout(this._debounceTimer);
+            this._debounceTimer = setTimeout(fn, delay);
         }
+    };
 
-        // Si la page suivante est devenue totalement vide après l'aspiration
-        if (zoneSuivante.innerHTML.trim() === "" || zoneSuivante.innerHTML === "<br>") {
-            pageSuivante.remove();
-            renumeroterPages();
-        }
-    }
+    /* ==============================
+       EXPORT PRODUCTION SAFE
+    ============================== */
 
-    isPaginating = false;
-}
+    Object.defineProperty(window, 'PaginationEngine', {
+        value: PaginationEngine,
+        writable: false,
+        configurable: false
+    });
 
-/**
- * 4. GESTION DU CURSEUR ET SUPPRESSION
- */
-function gererTouches(e) {
-    if (e.key === "Backspace") {
-        setTimeout(() => ajusterLeFlux(), 10);
-    }
-}
+    Object.defineProperty(window, 'creerNouvellePage', {
+        value: () => PaginationEngine.creerNouvellePage(),
+        writable: false,
+        configurable: false
+    });
 
-// Initialisation
-document.addEventListener('DOMContentLoaded', () => {
-    const container = document.getElementById('main-container');
-    if (container) {
-        container.addEventListener('input', (e) => ajusterLeFlux(e));
-        container.addEventListener('keydown', gererTouches);
-    }
-    renumeroterPages();
-});
+    Object.defineProperty(window, 'ajusterLeFlux', {
+        value: (e) => PaginationEngine.ajusterLeFlux(e),
+        writable: false,
+        configurable: false
+    });
+
+    document.addEventListener('DOMContentLoaded', () => {
+        PaginationEngine.init();
+    });
+
+})();
