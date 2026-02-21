@@ -1,194 +1,360 @@
-/* --- CONFIGURATION GÉNÉRALE & VARIABLES --- */
+/* ============================================================
+   BUROMASTER STUDIO - CSS Premium Production
+   Version : V4.1 Ultimate | Intégration JS Premium
+   ============================================================ */
+
 :root {
+    /* Variables Design System */
     --primary-color: #0ea5e9;
     --primary-hover: #0284c7;
+    --danger-color: #ef4444;
     --bg-dark: #1e293b;
     --bg-workspace: #475569;
     --sidebar-bg: #ffffff;
     --border-color: #e2e8f0;
     --text-main: #334155;
-    --shadow-page: 0 10px 25px -5px rgba(0, 0, 0, 0.3), 0 8px 10px -6px rgba(0, 0, 0, 0.3);
+    --text-secondary: #64748b;
+    --shadow-page: 0 10px 25px -5px rgba(0,0,0,0.3), 0 8px 10px -6px rgba(0,0,0,0.3);
     
-    /* Mesures A4 Strictes */
+    /* Dimensions A4 et padding synchronisé avec pagination.js */
     --a4-width: 210mm;
     --a4-height: 297mm;
     --a4-padding: 20mm;
 }
 
-* { 
-    box-sizing: border-box; 
+/* ============================================================
+   1. RESET & BASE
+   ============================================================ */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: 'Roboto', 'Inter', sans-serif;
     -webkit-font-smoothing: antialiased;
 }
 
 body {
-    margin: 0;
-    font-family: 'Inter', 'Roboto', sans-serif;
-    background: var(--bg-workspace);
-    height: 100vh;
-    color: var(--text-main);
     display: flex;
     flex-direction: column;
+    min-height: 100vh;
+    background: var(--bg-workspace);
+    color: var(--text-main);
     overflow: hidden;
 }
 
-/* --- WORKSPACE LAYOUT --- */
+/* ============================================================
+   2. TOOLBAR
+   ============================================================ */
 .toolbar {
-    background: var(--bg-dark);
-    height: 60px;
     display: flex;
     align-items: center;
     justify-content: space-between;
+    background: var(--bg-dark);
+    color: #fff;
+    height: 60px;
     padding: 0 24px;
-    color: white;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     z-index: 1000;
+    flex-shrink: 0;
 }
 
-.main-workspace { 
-    display: flex; 
-    flex: 1; 
-    overflow: hidden; 
+.toolbar .brand {
+    display: flex;
+    align-items: center;
+    gap: 8px;
 }
 
+.toolbar .back-link {
+    color: #fff;
+    font-size: 1rem;
+    text-decoration: none;
+}
+
+.toolbar .logo-text small {
+    font-weight: 400;
+    font-size: 0.7em;
+    color: #94a3b8;
+}
+
+.doc-title-container {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: 1;
+    margin: 0 20px;
+}
+
+.doc-title {
+    flex: 1;
+    min-width: 200px;
+    padding: 4px 8px;
+    border-radius: 4px;
+    background: rgba(255,255,255,0.05);
+    outline: none;
+    cursor: text;
+    font-weight: 500;
+}
+
+.controls {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.controls .btn {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    cursor: pointer;
+    border: none;
+    border-radius: 6px;
+    padding: 6px 10px;
+    font-weight: 500;
+    transition: background 0.2s;
+}
+
+.btn-primary {
+    background: var(--primary-color);
+    color: #fff;
+}
+
+.btn-primary:hover { background: var(--primary-hover); }
+
+.btn-secondary {
+    background: #f8fafc;
+    color: var(--text-main);
+    border: 1px solid var(--border-color);
+}
+
+.btn-secondary:hover {
+    background: var(--primary-color);
+    color: #fff;
+}
+
+.save-status {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+/* ============================================================
+   3. WORKSPACE
+   ============================================================ */
+.main-workspace {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+    width: 100%;
+}
+
+/* SIDE BARS */
 .sidebar-left, .sidebar-right {
     width: 280px;
     background: var(--sidebar-bg);
-    border-right: 1px solid var(--border-color);
+    border: 1px solid var(--border-color);
     padding: 20px;
     overflow-y: auto;
     display: flex;
     flex-direction: column;
     gap: 20px;
-}
-
-.sidebar-right {
-    border-right: none;
-    border-left: 1px solid var(--border-color);
-}
-
-/* --- LE MOTEUR DE LA FEUILLE (ZONE CRITIQUE) --- */
-.paper-container {
-    flex: 1;
-    overflow-y: overlay; /* Scrollbar moderne */
-    padding: 40px 0;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
+    flex-shrink: 0;
     scroll-behavior: smooth;
 }
 
-/* --- LA FEUILLE (CONTENANT RIGIDE) --- */
+.sidebar-left .tool-section, .sidebar-right .tool-section {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.tool-section h4 {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    color: var(--text-secondary);
+    border-bottom: 1px solid #f1f5f9;
+    padding-bottom: 4px;
+}
+
+/* TOOL BUTTONS */
+.tool-btn, .format-btn, .btn-clear-format {
+    background: #f8fafc;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    padding: 8px;
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s;
+    font-size: 0.85rem;
+}
+
+.tool-btn:hover, .format-btn:hover, .btn-clear-format:hover {
+    background: var(--primary-color);
+    color: #fff;
+}
+
+/* Formatting grids */
+.formatting-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 6px;
+}
+
+.color-size-row {
+    display: flex;
+    gap: 10px;
+    margin-top: 8px;
+}
+
+.color-size-row .input-group {
+    display: flex;
+    flex-direction: column;
+    font-size: 0.75rem;
+    gap: 4px;
+}
+
+/* ============================================================
+   4. PAPER CONTAINER
+   ============================================================ */
+.paper-container {
+    flex: 1;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 40px 0;
+    background: #525659;
+    scroll-behavior: smooth;
+}
+
+/* A4 PAGE */
 .a4-page {
     width: var(--a4-width);
     height: var(--a4-height);
     min-height: var(--a4-height);
     max-height: var(--a4-height);
-    padding: 0; /* CRUCIAL : On met à 0 pour ne pas fausser le calcul JS */
-    background: white;
-    margin: 20px auto;
+    background: #fff;
+    margin: 15px auto;
     box-shadow: var(--shadow-page);
     display: flex;
     flex-direction: column;
+    overflow: hidden;
     position: relative;
-    overflow: hidden; /* Empêche le débordement visuel */
     cursor: text;
 }
 
-/* --- LA ZONE D'ÉCRITURE (MOTEUR DE FLUX) --- */
+/* PAGE CONTENT */
 .page-content {
     flex: 1;
-    padding: var(--a4-padding); /* LE PADDING EST ICI MAINTENANT */
+    padding: var(--a4-padding);
     outline: none;
     word-wrap: break-word;
     line-height: 1.6;
     font-size: 11pt;
-    overflow: hidden; /* INDISPENSABLE pour que scrollHeight fonctionne */
+    overflow: hidden; /* strict overflow pour JS */
     display: block;
 }
 
-/* --- SÉCURITÉ ÉLÉMENTS INTERNES --- */
 .page-content img {
     max-width: 100%;
-    max-height: 150mm; /* Empêche une image de manger toute la page */
     height: auto;
+    max-height: 150mm;
     display: block;
     margin: 10px auto;
+    border-radius: 4px;
 }
 
 .page-content table {
     width: 100%;
     border-collapse: collapse;
     margin: 10px 0;
+    page-break-inside: avoid;
 }
 
-.page-content table td, .page-content table th {
+.page-content table td {
     border: 1px solid #000;
-    padding: 5px;
+    padding: 8px;
+    vertical-align: top;
 }
 
+/* ============================================================
+   5. COMPOSANTS MÉTIERS
+   ============================================================ */
+.exercice-container {
+    margin-top: 15px;
+    border-left: 3px solid var(--primary-color);
+    padding-left: 10px;
+}
+
+.ex-title {
+    background: #f8fafc;
+    padding: 4px 8px;
+    margin-bottom: 8px;
+    font-weight: 500;
+}
+
+/* HEADER EPREUVE */
+.header-epreuve {
+    border-bottom: 1px solid #000;
+    padding: 6px 0;
+    margin-bottom: 12px;
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.85rem;
+}
+
+.header-epreuve p {
+    margin: 2px 0;
+}
+
+/* FOOTER */
 .page-footer {
-    height: 10mm;
+    height: 12mm;
     display: flex;
     align-items: center;
     justify-content: center;
     font-size: 10pt;
-    color: #64748b;
-    border-top: 1px solid #e2e8f0;
-    margin-top: 10px;
-    pointer-events: none; /* Le footer n'intercepte pas les clics */
-}
-
-/* --- INTERFACE UTILISATEUR (BOUTONS) --- */
-.tool-section h4 {
-    font-size: 0.75rem;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
     color: #94a3b8;
-    margin-bottom: 12px;
+    border-top: 1px solid #f1f5f9;
+    pointer-events: none;
 }
 
-.format-btn {
-    background: #f8fafc;
-    border: 1px solid var(--border-color);
-    padding: 8px;
-    border-radius: 6px;
-    cursor: pointer;
-    transition: all 0.2s;
+/* ============================================================
+   6. SCORE / BARÈME
+   ============================================================ */
+.score-summary {
     display: flex;
-    align-items: center;
     justify-content: center;
+    align-items: center;
 }
 
-.format-btn:hover {
-    background: var(--primary-color);
-    color: white;
-    border-color: var(--primary-color);
-}
-
-.btn-primary {
-    background: var(--primary-color);
-    color: white;
-    border: none;
-    padding: 10px 16px;
-    border-radius: 6px;
+.score-circle {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    border: 2px solid var(--primary-color);
+    display: flex;
+    justify-content: center;
+    align-items: center;
     font-weight: 600;
-    cursor: pointer;
+    color: var(--primary-color);
+    transition: all 0.3s ease;
 }
 
-/* --- MODE IMPRESSION (BLINDÉ) --- */
+/* Dynamique via JS */
+#total-score[data-exceed="true"] {
+    border-color: var(--danger-color);
+    color: var(--danger-color);
+}
+
+/* ============================================================
+   7. IMPRESSION PDF
+   ============================================================ */
 @media print {
-    @page {
-        size: A4;
-        margin: 0;
-    }
-    body { background: white; overflow: visible; }
-    .toolbar, .sidebar-left, .sidebar-right { display: none !important; }
-    .paper-container { 
-        padding: 0; 
-        margin: 0; 
-        overflow: visible; 
-        display: block;
-    }
+    @page { size: A4; margin: 0; }
+    body { background: #fff; overflow: visible; }
+    .toolbar, .sidebar-left, .sidebar-right, #status-save { display: none !important; }
+    .paper-container { padding: 0; margin: 0; overflow: visible; display: block; }
     .a4-page {
         margin: 0 !important;
         box-shadow: none !important;
