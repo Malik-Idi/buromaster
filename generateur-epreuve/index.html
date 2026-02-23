@@ -3,29 +3,29 @@
 <head>
     <meta charset="UTF-8">
 
-    <!-- Viewport sécurisé (responsive sans bloquer accessibilité) -->
+    <!-- Viewport sécurisé -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <title>BuroMaster Studio | Concepteur d'Épreuves Professionnel</title>
 
-    <!-- Préconnexion optimisée (performance réseau) -->
+    <!-- Préconnexion optimisée -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 
-    <!-- Google Fonts (Version stable) -->
+    <!-- Google Fonts stable -->
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
 
-    <!-- Font Awesome sécurisé avec integrity -->
+    <!-- Font Awesome sécurisé -->
     <link rel="stylesheet"
           href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
           integrity="sha512-bxX8S6lC+ZrO5O9zH6Q6bXg5v2uJ0Xx5v9wY1QfL6k5kz+Y3U7r3XfL+zZ8bYz7t7X7rL5ZxYf+f3d8K5X9hA=="
           crossorigin="anonymous"
           referrerpolicy="no-referrer" />
 
-    <!-- CSS PRINCIPAL -->
+    <!-- CSS Premium -->
     <link rel="stylesheet" href="style-epreuve.css">
 
-    <!-- MathLive (Version figée et stable) -->
+    <!-- MathLive stable -->
     <script defer src="https://unpkg.com/mathlive@0.98.6/dist/mathlive.min.js"></script>
 </head>
 
@@ -42,10 +42,7 @@
 
         <div class="doc-title-container">
             <i class="fas fa-pen-nib"></i>
-            <div id="doc-title"
-                 class="doc-title"
-                 contenteditable="true"
-                 spellcheck="false">
+            <div id="doc-title" class="doc-title" contenteditable="true" spellcheck="false">
                 Sans titre - Nouvelle Épreuve
             </div>
         </div>
@@ -55,16 +52,11 @@
                 <i class="fas fa-cloud-check"></i> Sauvegardé
             </span>
 
-            <button id="btn-save"
-                    class="btn btn-secondary"
-                    type="button"
-                    title="Sauvegarder manuellement">
+            <button id="btn-save" class="btn btn-secondary" type="button" title="Sauvegarder manuellement">
                 <i class="fas fa-save"></i>
             </button>
 
-            <button id="btn-pdf"
-                    class="btn btn-primary"
-                    type="button">
+            <button id="btn-pdf" class="btn btn-primary" type="button">
                 <i class="fas fa-file-pdf"></i> EXPORTER PDF
             </button>
         </div>
@@ -87,13 +79,13 @@
                     <option value="devoir_officiel">Devoir Semestriel</option>
                     <option value="examen_blanc">Examen Blanc</option>
                     <option value="interro_simple">Interrogation Courte</option>
+                    <option value="moderne_pro">Moderne Pro</option>
+                    <option value="classique_cadre">Classique Cadre</option>
+                    <option value="benin_minimal">Bénin Minimal</option>
                 </select>
 
-                <button id="btn-appliquer-entete"
-                        class="btn btn-magic"
-                        type="button">
-                    <i class="fas fa-wand-magic-sparkles"></i>
-                    Appliquer l'En-tête
+                <button id="btn-appliquer-entete" class="btn btn-magic" type="button">
+                    <i class="fas fa-wand-magic-sparkles"></i> Appliquer l'En-tête
                 </button>
             </div>
 
@@ -119,12 +111,14 @@
                 <button id="btn-tableau" class="tool-btn" type="button">
                     <i class="fas fa-table"></i> Insérer Tableau
                 </button>
+
+                <button id="btn-schema" class="tool-btn" type="button">
+                    <i class="fas fa-diagram-project"></i> Insérer Schéma
+                </button>
             </div>
 
             <div class="tool-section danger-zone">
-                <button id="btn-reset"
-                        class="btn btn-danger"
-                        type="button">
+                <button id="btn-reset" class="btn btn-danger" type="button">
                     <i class="fas fa-trash-can"></i> RÉINITIALISER TOUT
                 </button>
             </div>
@@ -133,31 +127,27 @@
         <!-- CONTENEUR A4 -->
         <main class="paper-container" id="main-container">
             <div class="a4-page">
-                <div class="page-content"
-                     contenteditable="true"
-                     spellcheck="true">
+                <div class="page-content" contenteditable="true" spellcheck="true">
 
-                    <div class="header-epreuve" contenteditable="false">
+                    <div class="header-epreuve">
                         <div class="header-left">
-                            <p>ÉTABLISSEMENT : ........................</p>
-                            <p>ANNÉE SCOLAIRE : 2024-2025</p>
+                            <p contenteditable="true">ÉTABLISSEMENT : ........................</p>
+                            <p contenteditable="true">ANNÉE SCOLAIRE : 2024-2025</p>
                         </div>
                         <div class="header-right">
-                            <p>CLASSE : .................</p>
-                            <p>DURÉE : ...................</p>
+                            <p contenteditable="true">CLASSE : .................</p>
+                            <p contenteditable="true">DURÉE : ...................</p>
                         </div>
                     </div>
 
                     <div class="title-box">
-                        <h2 style="text-align: center;">
+                        <h2 contenteditable="true" style="text-align: center;">
                             ÉPREUVE DE : ...........................
                         </h2>
                     </div>
 
                     <div class="content-body">
-                        <p class="ex-title">
-                            <strong>Exercice 1 (........ points)</strong>
-                        </p>
+                        <p class="ex-title"><strong>Exercice 1 (........ points)</strong></p>
                         <p>Commencez à rédiger votre épreuve ici...</p>
                     </div>
 
@@ -214,9 +204,7 @@
                     <option value="6">Grand Titre</option>
                 </select>
 
-                <button id="fmt-clear"
-                        class="btn btn-clear-format"
-                        type="button">
+                <button id="fmt-clear" class="btn btn-clear-format" type="button">
                     <i class="fas fa-eraser"></i> Effacer Mise en forme
                 </button>
             </div>
