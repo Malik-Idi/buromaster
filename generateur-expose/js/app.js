@@ -1,75 +1,98 @@
 /**
  * @file app.js
- * @description Orchestrateur central avec gestion de flux haute performance.
- * @version 6.0 (Architect Edition - Final 20/20)
+ * @description Chef d'orchestre central de BuroMaster Pro.
+ * @version 7.0 (Gallery Sync Edition - Ultimate Architecture)
  */
 
 const BuroMasterApp = (() => {
     'use strict';
 
     let saveTimeout = null;
-    const SAVE_DELAY_MS = 2000; // Sauvegarde maximum toutes les 2 secondes
+    const SAVE_THROTTLE_MS = 2000;
 
-    /** 1. BOOTSTRAP : Lancement sécurisé du système */
+    /* =====================================================
+       1️⃣ BOOTSTRAP : Initialisation complète du système
+    ===================================================== */
     const bootstrap = () => {
         try {
-            console.info("BuroMaster Pro: Initialisation de l'environnement...");
+            console.info("BuroMaster Pro: Initialisation avancée...");
 
             const savedData = StorageEngine.load();
             hydrateUI(savedData);
 
-            // Initialisation des modules esclaves
             if (window.PaginationEngine) {
                 PaginationEngine.ensureFirstPage();
                 PaginationEngine.init();
             }
+
             if (window.Toolbox) Toolbox.init();
 
-            bindEvents();
-            console.info("BuroMaster Pro: Système prêt et sécurisé.");
+            if (window.StylesManager) {
+                StylesManager.init();
+            }
+
+            bindGlobalEvents();
+
+            console.info("BuroMaster Pro: Version 7.0 opérationnelle.");
         } catch (error) {
-            console.error("BuroMaster Pro [Fatal Boot Error]:", error);
-            alert("Erreur de chargement. Le système va tenter une réparation.");
+            console.error("Boot Error:", error);
         }
     };
 
-    /** 2. HYDRATATION : Reconstruction sécurisée du DOM */
+    /* =====================================================
+       2️⃣ HYDRATATION : Reconstruction complète du document
+    ===================================================== */
     const hydrateUI = (data) => {
-        // Blindage : Chaînage optionnel pour éviter les crashs si data est incomplet
-        const pages = data?.document?.pages || [];
+        const workspace = document.getElementById('editor-workspace');
         const themeInput = document.getElementById('doc-theme');
         const classInput = document.getElementById('doc-class');
 
         if (themeInput) themeInput.value = data?.metadata?.theme || '';
         if (classInput) classInput.value = data?.metadata?.studentClass || '';
 
-        if (pages.length > 0) {
-            const workspace = document.getElementById('editor-workspace');
-            workspace.innerHTML = ''; // Nettoyage atomique
+        const pages = data?.document?.pages || [];
 
+        if (workspace) workspace.innerHTML = '';
+
+        if (pages.length > 0 && workspace) {
             pages.forEach((htmlContent, i) => {
-                const page = document.createElement('article');
-                page.className = 'a4-page';
-                page.dataset.pageNumber = i + 1;
-
-                const contentArea = document.createElement('div');
-                contentArea.className = 'bm-page-content';
-                contentArea.contentEditable = "true";
-                contentArea.spellcheck = true;
-                // Sécurité : Injection contrôlée dans la zone de saisie uniquement
-                contentArea.innerHTML = htmlContent;
-
-                page.appendChild(contentArea);
+                const page = createPage(i + 1, htmlContent);
                 workspace.appendChild(page);
             });
         }
+
+        // 🔥 Restaurer styles si existants
+        if (window.StylesManager && data?.document?.config) {
+            StylesManager.applySavedStyles(data.document.config);
+        }
     };
 
-    /** 3. COLLECTE : Capture de l'état actuel (State Capture) */
-    const collectCurrentState = () => {
+    /* =====================================================
+       3️⃣ FABRIQUE DE PAGE (Factorisée)
+    ===================================================== */
+    const createPage = (pageNumber, htmlContent = '') => {
+        const page = document.createElement('article');
+        page.className = 'a4-page';
+        page.dataset.pageNumber = pageNumber;
+
+        const contentArea = document.createElement('div');
+        contentArea.className = 'bm-page-content';
+        contentArea.contentEditable = "true";
+        contentArea.spellcheck = true;
+        contentArea.innerHTML = htmlContent;
+
+        page.appendChild(contentArea);
+        return page;
+    };
+
+    /* =====================================================
+       4️⃣ COLLECTE : Capture complète de l'état
+    ===================================================== */
+    const collectDocumentState = () => {
         const pagesNodes = document.querySelectorAll('.bm-page-content');
+
         return {
-            version: '1.0',
+            version: '2.0',
             metadata: {
                 theme: document.getElementById('doc-theme')?.value || '',
                 studentClass: document.getElementById('doc-class')?.value || '',
@@ -77,48 +100,85 @@ const BuroMasterApp = (() => {
             },
             document: {
                 pages: Array.from(pagesNodes).map(node => node.innerHTML),
-                config: { headerStyle: document.getElementById('header-style')?.value || 'none' }
+                config: {
+                    headerStyle: StylesManager?.getCurrentHeaderStyle() || 'none',
+                    footerStyle: StylesManager?.getCurrentFooterStyle() || 'none'
+                }
             }
         };
     };
 
-    /** 4. LIAISON : Gestion du bus d'événements (Event Bus) */
-    const bindEvents = () => {
-        // DEBOUNCING DE SAUVEGARDE (Performance 20/20)
-        // On attend que l'élève s'arrête de taper avant d'écrire sur le disque
+    /* =====================================================
+       5️⃣ GALERIE : Ouverture Modale
+    ===================================================== */
+    const openGalleryModal = () => {
+        if (!window.StylesManager) return;
+        StylesManager.openGallery();
+    };
+
+    /* =====================================================
+       6️⃣ BUS D'ÉVÉNEMENTS GLOBAL
+    ===================================================== */
+    const bindGlobalEvents = () => {
+
+        /* 🔁 Sauvegarde intelligente */
         window.addEventListener('bm:flux-update', () => {
-            clearTimeout(saveTimeout);
-            saveTimeout = setTimeout(() => {
-                StorageEngine.save(collectCurrentState());
-            }, SAVE_DELAY_MS);
+            throttleSave();
         });
 
-        // Mise à jour de l'indicateur visuel (Découplage Storage -> UI)
+        window.addEventListener('bm:style-changed', () => {
+            throttleSave();
+        });
+
+        /* 💾 Status Storage */
         window.addEventListener('bm:storage-update', (e) => {
-            const statusIndicator = document.getElementById('save-status');
-            if (!statusIndicator) return;
+            const statusEl = document.getElementById('save-status');
+            if (!statusEl) return;
 
             const isSuccess = e.detail.status === 'success';
-            statusIndicator.innerHTML = isSuccess ? 
-                '<i class="fas fa-check-circle"></i> Enregistré' : 
-                '<i class="fas fa-exclamation-circle"></i> Erreur';
-            statusIndicator.className = `status-pill ${isSuccess ? 'saved' : 'error'}`;
+
+            statusEl.innerHTML = isSuccess
+                ? '<i class="fas fa-cloud-check"></i> Enregistré'
+                : '<i class="fas fa-exclamation-circle"></i> Erreur';
+
+            statusEl.className = `status-pill ${isSuccess ? 'saved' : 'error'}`;
         });
 
-        // Actions explicites
-        document.querySelector('[data-action="reset-doc"]')?.addEventListener('click', () => {
-            if (confirm("Voulez-vous vraiment effacer tout votre travail ?")) {
-                StorageEngine.clear();
-            }
-        });
+        /* 🔄 Reset */
+        document.querySelector('[data-action="reset-doc"]')
+            ?.addEventListener('click', () => {
+                if (confirm("Voulez-vous vraiment réinitialiser tout l'exposé ?")) {
+                    StorageEngine.clear();
+                }
+            });
 
-        document.querySelector('[data-action="export-pdf"]')?.addEventListener('click', () => {
-            window.print();
+        /* 📄 Export PDF */
+        document.querySelector('[data-action="export-pdf"]')
+            ?.addEventListener('click', () => {
+                window.print();
+            });
+
+        /* 🎨 Ouvrir Galerie */
+        document.querySelector('[data-action="open-gallery"]')
+            ?.addEventListener('click', openGalleryModal);
+
+        /* 🛑 Backup avant fermeture */
+        window.addEventListener('beforeunload', () => {
+            StorageEngine.save(collectDocumentState());
         });
+    };
+
+    /* =====================================================
+       7️⃣ Sauvegarde avec Throttle
+    ===================================================== */
+    const throttleSave = () => {
+        clearTimeout(saveTimeout);
+        saveTimeout = setTimeout(() => {
+            StorageEngine.save(collectDocumentState());
+        }, SAVE_THROTTLE_MS);
     };
 
     return { init: bootstrap };
 })();
 
-// Lancement définitif
 document.addEventListener('DOMContentLoaded', BuroMasterApp.init);
