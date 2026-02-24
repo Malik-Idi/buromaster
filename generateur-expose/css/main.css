@@ -1,0 +1,41 @@
+:root {
+    --primary: #2563eb;
+    --bg-app: #f8fafc;
+    --sidebar: #1e293b;
+    --text-main: #334155;
+    --glass: rgba(255, 255, 255, 0.9);
+}
+
+body {
+    margin: 0;
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    display: flex;
+    height: 100vh;
+    background: var(--bg-app);
+    color: var(--text-main);
+}
+
+.sidebar {
+    width: 280px;
+    background: var(--sidebar);
+    color: white;
+    padding: 2rem 0;
+}
+
+.nav-links { list-style: none; padding: 0; }
+.nav-links li {
+    padding: 1rem 2rem;
+    cursor: pointer;
+    transition: 0.3s;
+    opacity: 0.7;
+}
+.nav-links li.active { background: var(--primary); opacity: 1; }
+
+.content-area { flex: 1; padding: 2rem; overflow-y: auto; }
+.glass-panel {
+    background: var(--glass);
+    border-radius: 12px;
+    padding: 2rem;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    min-height: 400px;
+}
