@@ -1,62 +1,77 @@
 /**
  * @file paper.css
- * @description Moteur de rendu A4 avec isolation des flux.
- * @version 6.0 (Architect Edition - Zero Conflict)
+ * @description Rendu A4 physique & UX SaaS Premium
+ * @version 9.0 (Ultra Premium SaaS Edition)
  */
 
 :root {
-    /* Standards Physiques */
+    /* Dimensions ISO A4 */
     --a4-w: 210mm;
     --a4-h: 297mm;
-    
-    /* Marges Fixes (Zones de Sécurité) */
-    --safe-margin-top: 30mm;    /* Espace pour l'en-tête + marge */
-    --safe-margin-bottom: 25mm; /* Espace pour le pied de page */
-    --safe-margin-side: 25mm;
-    
-    --paper-bg: #ffffff;
-    --paper-shadow: 0 0 20px rgba(0,0,0,0.1);
+
+    --margin-top: 30mm;
+    --margin-bottom: 25mm;
+    --margin-side: 25mm;
+
+    --paper-white: #ffffff;
+    --paper-shadow: 0 0 25px rgba(0,0,0,0.12), 0 8px 10px rgba(0,0,0,0.08);
+    --paper-hover-shadow: 0 12px 28px rgba(0,0,0,0.15);
+
+    /* Dark Mode */
+    --dark-paper-bg: #1e293b;
+    --dark-paper-text: #f1f5f9;
 }
 
-/* 1. LE CADRE A4 (L'ENVELOPPE PHYSIQUE) */
+/* 1. PAGE A4 */
 .a4-page {
-    background: var(--paper-bg);
+    background: var(--paper-white);
     width: var(--a4-w);
-    height: var(--a4-h); /* Hauteur FIXE pour ne jamais déformer le logiciel */
+    height: var(--a4-h);
     margin: 0 auto;
     position: relative;
     box-shadow: var(--paper-shadow);
     box-sizing: border-box;
-    overflow: hidden; 
-    display: block; /* Important pour le calcul de offsetHeight */
+    overflow: hidden;
+    display: block;
+    transition: transform 0.35s ease, box-shadow 0.35s ease;
+}
+.a4-page:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--paper-hover-shadow);
 }
 
-/* 2. LA ZONE DE SAISIE (LE FLUX RÉEL) */
-/* Blindage : Cette zone ne DOIT PAS avoir de padding pour que le JS 
-   mesure uniquement la hauteur du TEXTE. */
+/* 2. ZONE DE SAISIE */
 .bm-page-content {
     position: absolute;
-    top: var(--safe-margin-top);
-    left: var(--safe-margin-side);
-    right: var(--safe-margin-side);
-    bottom: var(--safe-margin-bottom);
-    
+    top: var(--margin-top);
+    left: var(--margin-side);
+    right: var(--margin-side);
+    bottom: var(--margin-bottom);
+
     outline: none;
-    font-family: 'Times New Roman', serif;
+    font-family: 'Times New Roman', Times, serif;
     font-size: 12pt;
     line-height: 1.5;
     text-align: justify;
-    
-    /* Permet au JS de mesurer la hauteur sans interférence */
-    padding: 0 !important; 
+    color: #1a1a1a;
+    padding: 0 !important;
+    word-wrap: break-word;
+
+    /* Transition pour édition dynamique */
+    transition: background 0.2s ease, color 0.2s ease;
+}
+.bm-page-content:focus {
+    background: rgba(245,245,245,0.3);
+    outline: none;
 }
 
-/* 3. EN-TÊTE ET PIED DE PAGE (ZONES RÉSERVÉES) */
+/* 3. EN-TÊTE / PIED DE PAGE */
 .bm-page-header, .bm-page-footer {
     position: absolute;
-    left: var(--safe-margin-side);
-    right: var(--safe-margin-side);
+    left: var(--margin-side);
+    right: var(--margin-side);
     height: 15mm;
+    font-family: 'Inter', sans-serif;
     font-size: 9pt;
     color: #94a3b8;
     display: flex;
@@ -64,25 +79,63 @@
     pointer-events: none;
     user-select: none;
 }
-
 .bm-page-header { 
     top: 10mm; 
     border-bottom: 0.5pt solid #f1f5f9; 
 }
-
 .bm-page-footer { 
     bottom: 10mm; 
     border-top: 0.5pt solid #f1f5f9; 
     justify-content: space-between; 
 }
 
-/* 4. TYPOGRAPHIE ET OBJETS (BLINDÉS) */
-.bm-page-content h1 { font-size: 24pt; margin-top: 0; margin-bottom: 1cm; text-align: center; }
-.bm-page-content p { margin-bottom: 0.5cm; }
+/* 4. TYPOGRAPHIE */
+.bm-page-content h1 { 
+    font-size: 24pt; 
+    margin-top: 0; 
+    margin-bottom: 0.8cm; 
+    text-align: center; 
+    transition: color 0.2s ease;
+}
+.bm-page-content h2 { 
+    font-size: 18pt; 
+    margin-top: 1cm; 
+    margin-bottom: 0.4cm; 
+    border-bottom: 1pt solid #eee; 
+    transition: color 0.2s ease;
+}
+.bm-page-content p { 
+    margin-bottom: 0.4cm; 
+}
 
+/* 5. TABLEAUX & IMAGES */
 .bm-content-table {
     width: 100% !important;
     border-collapse: collapse;
     table-layout: fixed;
+    margin: 0.5cm 0;
+    transition: box-shadow 0.25s ease;
 }
-.bm-content-table td { border: 1pt solid #cbd5e1; padding: 5pt; }
+.bm-content-table td {
+    border: 1pt solid #cbd5e1;
+    padding: 6pt;
+    font-size: 10pt;
+}
+.bm-inserted-img {
+    max-width: 100%;
+    height: auto;
+    display: block;
+    margin: 0.8cm auto;
+    border-radius: 2px;
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+.bm-inserted-img:hover {
+    transform: scale(1.02);
+    box-shadow: var(--paper-hover-shadow);
+}
+
+/* 6. DARK MODE PRÉVISION */
+body.dark-mode .a4-page { background: var(--dark-paper-bg); }
+body.dark-mode .bm-page-content, body.dark-mode .bm-page-header, body.dark-mode .bm-page-footer {
+    color: var(--dark-paper-text);
+}
