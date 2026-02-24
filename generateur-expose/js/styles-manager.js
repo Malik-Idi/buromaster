@@ -1,80 +1,160 @@
 /**
  * @file styles-manager.js
- * @description Moteur de composants dynamiques pour en-têtes et pieds de page.
- * @version 2.0 (Architect Edition - Performance Optimized)
+ * @description Gestion avancée des styles (Header / Footer)
+ * @version 1.0 (Ultra Premium SaaS Edition)
  */
 
 const StylesManager = (() => {
     'use strict';
 
-    // Banque de modèles (Structure pure, sans CSS inline)
-    const STYLES_BANK = {
-        none: { name: "Aucun style", class: "style-none", header: "", footer: "" },
-        standard: {
-            name: "Standard Académique",
-            class: "style-standard",
-            header: `<span class="bm-h-left">{{theme}}</span><span class="bm-h-right">{{class}}</span>`,
-            footer: `<span class="bm-f-left">BuroMaster Pro</span><span class="bm-f-right">Page {{current}} / {{total}}</span>`
-        },
-        modern: {
-            name: "Moderne Épuré",
-            class: "style-modern",
-            header: `<span class="bm-h-accent">●</span> {{theme}}`,
-            footer: `{{current}} — {{total}}`
-        }
+    let currentHeader = 'none';
+    let currentFooter = 'none';
+    let galleryModal = null;
+
+    /* ==========================================
+       INITIALISATION
+    ========================================== */
+    const init = () => {
+        createGalleryModal();
     };
 
-    /** Mise à jour sécurisée du contenu sans toucher à la structure */
-    const updateZone = (container, html, data) => {
-        if (!html) {
-            container.innerHTML = "";
-            container.style.display = "none";
-            return;
-        }
-        container.style.display = "flex";
-        container.innerHTML = html.replace(/{{theme}}/g, data.theme || 'Sans titre')
-                                  .replace(/{{class}}/g, data.studentClass || 'Classe')
-                                  .replace(/{{current}}/g, data.currentPage)
-                                  .replace(/{{total}}/g, data.totalPages);
+    /* ==========================================
+       CRÉATION MODALE SaaS
+    ========================================== */
+    const createGalleryModal = () => {
+
+        galleryModal = document.createElement('div');
+        galleryModal.className = 'bm-style-modal hidden';
+
+        galleryModal.innerHTML = `
+            <div class="bm-style-backdrop"></div>
+            <div class="bm-style-container">
+                <header class="bm-style-header">
+                    <h2>Choisir un style professionnel</h2>
+                    <button class="bm-close-style">&times;</button>
+                </header>
+                <div class="bm-style-grid" id="bm-style-grid"></div>
+            </div>
+        `;
+
+        document.body.appendChild(galleryModal);
+
+        bindModalEvents();
+        generateGallery();
     };
 
-    return {
-        /** Applique ou rafraîchit le style sur l'ensemble du document */
-        applyStyle(styleId = 'none') {
-            const style = STYLES_BANK[styleId] || STYLES_BANK.none;
-            const pages = document.querySelectorAll('.a4-page');
-            const theme = document.getElementById('doc-theme')?.value || '';
-            const studentClass = document.getElementById('doc-class')?.value || '';
+    /* ==========================================
+       GÉNÉRATION MINIATURES
+    ========================================== */
+    const generateGallery = () => {
 
-            pages.forEach((page, index) => {
-                // Récupération ou création unique des zones (Performance 20/20)
-                let hZone = page.querySelector('.bm-page-header');
-                let fZone = page.querySelector('.bm-page-footer');
+        const grid = document.getElementById('bm-style-grid');
+        if (!grid) return;
 
-                if (!hZone) {
-                    hZone = document.createElement('div');
-                    hZone.className = 'bm-page-header';
-                    page.prepend(hZone);
-                }
-                if (!fZone) {
-                    fZone = document.createElement('div');
-                    fZone.className = 'bm-page-footer';
-                    page.appendChild(fZone);
-                }
+        const templates = window.StyleTemplates.getAll();
 
-                // Application de la classe de style (Découplage CSS)
-                page.className = `a4-page ${style.class}`;
+        templates.forEach(template => {
+            const card = document.createElement('div');
+            card.className = 'bm-style-card';
+            card.dataset.header = template.header;
+            card.dataset.footer = template.footer;
 
-                // Mise à jour du contenu
-                const data = { theme, studentClass, currentPage: index + 1, totalPages: pages.length };
-                updateZone(hZone, style.header, data);
-                updateZone(fZone, style.footer, data);
+            card.innerHTML = `
+                <div class="bm-style-preview">
+                    ${template.preview}
+                </div>
+                <span>${template.name}</span>
+            `;
+
+            card.addEventListener('click', () => {
+                applyStyle(template.header, template.footer, true);
             });
 
-            // Signal de sauvegarde pour BuroMasterApp
-            window.dispatchEvent(new CustomEvent('bm:flux-update'));
+            grid.appendChild(card);
+        });
+    };
+
+    /* ==========================================
+       APPLICATION STYLE (LIVE PREVIEW)
+    ========================================== */
+    const applyStyle = (header, footer, emitEvent = false) => {
+
+        currentHeader = header;
+        currentFooter = footer;
+
+        document.querySelectorAll('.a4-page').forEach(page => {
+
+            removeExistingStyle(page);
+
+            if (header !== 'none') {
+                const headerEl = document.createElement('div');
+                headerEl.className = `bm-header ${header}`;
+                page.prepend(headerEl);
+            }
+
+            if (footer !== 'none') {
+                const footerEl = document.createElement('div');
+                footerEl.className = `bm-footer ${footer}`;
+                page.appendChild(footerEl);
+            }
+        });
+
+        if (emitEvent) {
+            window.dispatchEvent(new CustomEvent('bm:style-changed'));
         }
     };
-})();
 
-Object.freeze(StylesManager);
+    /* ==========================================
+       NETTOYAGE
+    ========================================== */
+    const removeExistingStyle = (page) => {
+        page.querySelectorAll('.bm-header, .bm-footer')
+            .forEach(el => el.remove());
+    };
+
+    /* ==========================================
+       OUVERTURE / FERMETURE
+    ========================================== */
+    const openGallery = () => {
+        galleryModal.classList.remove('hidden');
+        requestAnimationFrame(() => {
+            galleryModal.classList.add('active');
+        });
+    };
+
+    const closeGallery = () => {
+        galleryModal.classList.remove('active');
+        setTimeout(() => galleryModal.classList.add('hidden'), 300);
+    };
+
+    const bindModalEvents = () => {
+        galleryModal.querySelector('.bm-close-style')
+            .addEventListener('click', closeGallery);
+
+        galleryModal.querySelector('.bm-style-backdrop')
+            .addEventListener('click', closeGallery);
+    };
+
+    /* ==========================================
+       RESTAURATION
+    ========================================== */
+    const applySavedStyles = (config) => {
+        if (!config) return;
+        applyStyle(config.headerStyle, config.footerStyle, false);
+    };
+
+    /* ==========================================
+       GETTERS (app.js)
+    ========================================== */
+    const getCurrentHeaderStyle = () => currentHeader;
+    const getCurrentFooterStyle = () => currentFooter;
+
+    return {
+        init,
+        openGallery,
+        applySavedStyles,
+        getCurrentHeaderStyle,
+        getCurrentFooterStyle
+    };
+
+})();
