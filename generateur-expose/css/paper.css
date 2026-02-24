@@ -1,0 +1,75 @@
+/* --- DÉFINITION DE LA FEUILLE A4 --- */
+.a4-page {
+    background: white;
+    width: 21cm;          /* Largeur standard A4 */
+    min-height: 29.7cm;   /* Hauteur standard A4 */
+    padding: 2.5cm;       /* Marges académiques (Haut, Bas, Gauche, Droite) */
+    margin: 0 auto;       /* Centrage horizontal */
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.15); /* Ombre portée pour l'aspect "papier" */
+    position: relative;
+    box-sizing: border-box; /* Crucial : inclut le padding dans les 21cm */
+    
+    /* Typographie par défaut du document */
+    color: #1a1a1a;
+    line-height: 1.5;
+    font-size: 12pt;      /* Unité d'impression standard */
+    cursor: text;
+    outline: none;        /* Supprime la bordure de focus bleue du navigateur */
+}
+
+/* --- ÉTAT LORS DE L'ÉDITION --- */
+.a4-page:focus {
+    box-shadow: 0 0 20px rgba(37, 99, 235, 0.25); /* Lueur bleue discrète au focus */
+}
+
+/* --- SIMULATION DES SAUTS DE PAGE VISUELS --- */
+.a4-page::after {
+    content: "Fin de page";
+    position: absolute;
+    bottom: -20px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 10px;
+    color: #94a3b8;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    pointer-events: none;
+}
+
+/* --- ÉLÉMENTS DE STRUCTURE INTERNE --- */
+.a4-page h1 {
+    font-size: 24pt;
+    margin-bottom: 1cm;
+    text-align: center;
+}
+
+.a4-page h2 {
+    font-size: 18pt;
+    margin-top: 1cm;
+    margin-bottom: 0.5cm;
+    border-bottom: 1pt solid #eee;
+}
+
+.a4-page p {
+    margin-bottom: 0.5cm;
+    text-align: justify;
+}
+
+/* --- GESTION DES IMAGES ET TABLEAUX DANS LE PAPIER --- */
+.a4-page img {
+    max-width: 100%;
+    height: auto;
+    display: block;
+    margin: 1cm auto;
+}
+
+.a4-page table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 1cm 0;
+}
+
+.a4-page table td {
+    border: 1pt solid #cbd5e1;
+    padding: 8pt;
+}
