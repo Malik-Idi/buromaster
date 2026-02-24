@@ -1,75 +1,88 @@
-/* --- DÉFINITION DE LA FEUILLE A4 --- */
-.a4-page {
-    background: white;
-    width: 21cm;          /* Largeur standard A4 */
-    min-height: 29.7cm;   /* Hauteur standard A4 */
-    padding: 2.5cm;       /* Marges académiques (Haut, Bas, Gauche, Droite) */
-    margin: 0 auto;       /* Centrage horizontal */
-    box-shadow: 0 0 15px rgba(0, 0, 0, 0.15); /* Ombre portée pour l'aspect "papier" */
-    position: relative;
-    box-sizing: border-box; /* Crucial : inclut le padding dans les 21cm */
+/**
+ * @file paper.css
+ * @description Moteur de rendu A4 avec isolation des flux.
+ * @version 6.0 (Architect Edition - Zero Conflict)
+ */
+
+:root {
+    /* Standards Physiques */
+    --a4-w: 210mm;
+    --a4-h: 297mm;
     
-    /* Typographie par défaut du document */
-    color: #1a1a1a;
-    line-height: 1.5;
-    font-size: 12pt;      /* Unité d'impression standard */
-    cursor: text;
-    outline: none;        /* Supprime la bordure de focus bleue du navigateur */
+    /* Marges Fixes (Zones de Sécurité) */
+    --safe-margin-top: 30mm;    /* Espace pour l'en-tête + marge */
+    --safe-margin-bottom: 25mm; /* Espace pour le pied de page */
+    --safe-margin-side: 25mm;
+    
+    --paper-bg: #ffffff;
+    --paper-shadow: 0 0 20px rgba(0,0,0,0.1);
 }
 
-/* --- ÉTAT LORS DE L'ÉDITION --- */
-.a4-page:focus {
-    box-shadow: 0 0 20px rgba(37, 99, 235, 0.25); /* Lueur bleue discrète au focus */
+/* 1. LE CADRE A4 (L'ENVELOPPE PHYSIQUE) */
+.a4-page {
+    background: var(--paper-bg);
+    width: var(--a4-w);
+    height: var(--a4-h); /* Hauteur FIXE pour ne jamais déformer le logiciel */
+    margin: 0 auto;
+    position: relative;
+    box-shadow: var(--paper-shadow);
+    box-sizing: border-box;
+    overflow: hidden; 
+    display: block; /* Important pour le calcul de offsetHeight */
 }
 
-/* --- SIMULATION DES SAUTS DE PAGE VISUELS --- */
-.a4-page::after {
-    content: "Fin de page";
+/* 2. LA ZONE DE SAISIE (LE FLUX RÉEL) */
+/* Blindage : Cette zone ne DOIT PAS avoir de padding pour que le JS 
+   mesure uniquement la hauteur du TEXTE. */
+.bm-page-content {
     position: absolute;
-    bottom: -20px;
-    left: 50%;
-    transform: translateX(-50%);
-    font-size: 10px;
-    color: #94a3b8;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    pointer-events: none;
-}
-
-/* --- ÉLÉMENTS DE STRUCTURE INTERNE --- */
-.a4-page h1 {
-    font-size: 24pt;
-    margin-bottom: 1cm;
-    text-align: center;
-}
-
-.a4-page h2 {
-    font-size: 18pt;
-    margin-top: 1cm;
-    margin-bottom: 0.5cm;
-    border-bottom: 1pt solid #eee;
-}
-
-.a4-page p {
-    margin-bottom: 0.5cm;
+    top: var(--safe-margin-top);
+    left: var(--safe-margin-side);
+    right: var(--safe-margin-side);
+    bottom: var(--safe-margin-bottom);
+    
+    outline: none;
+    font-family: 'Times New Roman', serif;
+    font-size: 12pt;
+    line-height: 1.5;
     text-align: justify;
+    
+    /* Permet au JS de mesurer la hauteur sans interférence */
+    padding: 0 !important; 
 }
 
-/* --- GESTION DES IMAGES ET TABLEAUX DANS LE PAPIER --- */
-.a4-page img {
-    max-width: 100%;
-    height: auto;
-    display: block;
-    margin: 1cm auto;
+/* 3. EN-TÊTE ET PIED DE PAGE (ZONES RÉSERVÉES) */
+.bm-page-header, .bm-page-footer {
+    position: absolute;
+    left: var(--safe-margin-side);
+    right: var(--safe-margin-side);
+    height: 15mm;
+    font-size: 9pt;
+    color: #94a3b8;
+    display: flex;
+    align-items: center;
+    pointer-events: none;
+    user-select: none;
 }
 
-.a4-page table {
-    width: 100%;
+.bm-page-header { 
+    top: 10mm; 
+    border-bottom: 0.5pt solid #f1f5f9; 
+}
+
+.bm-page-footer { 
+    bottom: 10mm; 
+    border-top: 0.5pt solid #f1f5f9; 
+    justify-content: space-between; 
+}
+
+/* 4. TYPOGRAPHIE ET OBJETS (BLINDÉS) */
+.bm-page-content h1 { font-size: 24pt; margin-top: 0; margin-bottom: 1cm; text-align: center; }
+.bm-page-content p { margin-bottom: 0.5cm; }
+
+.bm-content-table {
+    width: 100% !important;
     border-collapse: collapse;
-    margin: 1cm 0;
+    table-layout: fixed;
 }
-
-.a4-page table td {
-    border: 1pt solid #cbd5e1;
-    padding: 8pt;
-}
+.bm-content-table td { border: 1pt solid #cbd5e1; padding: 5pt; }
