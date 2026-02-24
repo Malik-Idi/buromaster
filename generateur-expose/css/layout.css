@@ -1,118 +1,206 @@
 /**
- * @file paper.css
- * @description Moteur de rendu physique A4 pour BuroMaster Pro.
- * @version 2.0 (Expert Edition - Pixel Perfect)
+ * @file layout.css
+ * @description Architecture structurelle & polissage SaaS Ultra Premium
+ * @version 8.0 (Ultra Premium Edition)
  */
 
 :root {
-    /* Standards Internationaux ISO 216 */
-    --a4-width: 210mm;
-    --a4-height: 297mm;
-    --a4-padding: 25mm; /* Marges académiques standard */
-    
-    /* Variables de design papier */
-    --paper-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
-    --paper-font: 'Times New Roman', Times, serif; /* Par défaut pour les exposés */
+    /* Palette Douce & SaaS */
+    --primary-dark: #0f172a;
+    --accent-blue: #2563eb;
+    --accent-hover: #1d4ed8;
+    --bg-app: #f1f5f9;
+    --sidebar-bg: #ffffff;
+    --border-color: #e2e8f0;
+    --text-main: #334155;
+    --text-light: #64748b;
+
+    /* Dark Mode (préparation) */
+    --dark-bg-app: #1e293b;
+    --dark-sidebar-bg: #0f172a;
+    --dark-text-main: #f1f5f9;
+
+    /* Géométrie */
+    --header-h: 64px;
+    --sidebar-w: 280px;
+
+    /* Shadows */
+    --shadow-soft: 0 4px 12px rgba(0,0,0,0.08);
+    --shadow-deep: 0 8px 24px rgba(0,0,0,0.12);
+
+    /* Transitions */
+    --transition-fast: 0.2s ease;
+    --transition-medium: 0.35s ease;
 }
 
-/* 1. LE CONTENEUR DE LA PAGE (CADRE PHYSIQUE) */
-.a4-page {
-    background: #ffffff;
-    width: var(--a4-width);
-    min-height: var(--a4-height);
-    padding: var(--a4-padding);
-    margin: 0 auto;
-    position: relative;
-    box-shadow: var(--paper-shadow);
+/* RESET GLOBAL */
+*, *::before, *::after {
     box-sizing: border-box;
-    cursor: text;
-    overflow: hidden; /* Blindage : le texte ne doit jamais "déborder" visuellement du cadre */
-    
-    /* Typographie de base pour le rendu papier */
-    font-family: var(--paper-font);
-    font-size: 12pt;
-    line-height: 1.5;
-    color: #111827;
-    
-    /* Optimisation de la frappe */
-    outline: none;
-    transition: box-shadow 0.3s ease;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
 }
 
-/* 2. ÉTAT DE FOCUS (ACCESSIBILITÉ & UX) */
-.a4-page:focus-visible {
-    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.4), var(--paper-shadow);
+html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+    color: var(--text-main);
+    background: var(--bg-app);
 }
 
-/* 3. STRUCTURE INTERNE DU DOCUMENT (ÉLÉMENTS SÉMANTIQUES) */
-.a4-page h1 {
-    font-size: 24pt;
-    margin-bottom: 1.5rem;
-    text-align: center;
+/* HEADER */
+.bm-header {
+    height: var(--header-h);
+    background: var(--primary-dark);
+    color: #ffffff;
+    display: grid;
+    grid-template-columns: var(--sidebar-w) 1fr var(--sidebar-w);
+    align-items: center;
+    padding: 0 1.5rem;
+    position: relative;
+    z-index: 2000;
+    box-shadow: var(--shadow-deep);
+    transition: background var(--transition-fast);
+}
+
+.bm-logo-area {
     font-weight: 700;
-}
-
-.a4-page h2 {
-    font-size: 18pt;
-    margin-top: 2rem;
-    margin-bottom: 1rem;
-    border-bottom: 1pt solid #e5e7eb;
-    padding-bottom: 0.3rem;
-}
-
-.a4-page p {
-    margin-bottom: 1rem;
-    text-align: justify;
-    hyphens: auto; /* Césure pro pour le français */
-}
-
-/* 4. BLINDAGE DES OBJETS INSÉRÉS (TABLEAUX & IMAGES) */
-.a4-page table {
-    width: 100% !important;
-    border-collapse: collapse;
-    margin: 1.5rem 0;
-    table-layout: fixed; /* Empêche l'éclatement de la page si le texte est long */
-}
-
-.a4-page table td {
-    border: 1pt solid #9ca3af;
-    padding: 8pt;
-    word-wrap: break-word;
-}
-
-.a4-page img {
-    max-width: 100%;
-    height: auto;
-    display: block;
-    margin: 1.5rem auto;
-    border-radius: 2px;
-}
-
-/* 5. PRÉPARATION DES ZONES D'ENTÊTE ET PIED (NON-ÉDITABLES) */
-.a4-header-zone, .a4-footer-zone {
-    position: absolute;
-    left: var(--a4-padding);
-    right: var(--a4-padding);
-    height: 15mm;
-    font-size: 9pt;
-    color: #6b7280;
+    font-size: 1.2rem;
     display: flex;
     align-items: center;
-    pointer-events: none; /* L'élève ne peut pas cliquer dessus par erreur */
-    user-select: none;
+    gap: 12px;
+}
+.bm-logo-area strong { color: var(--accent-blue); }
+
+.bm-meta-bar {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
 }
 
-.a4-header-zone { top: 10mm; border-bottom: 0.5pt solid #eee; }
-.a4-footer-zone { bottom: 10mm; border-top: 0.5pt solid #eee; justify-content: space-between; }
+.bm-input-group {
+    display: flex;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 6px;
+    padding: 5px 12px;
+    transition: all var(--transition-fast);
+}
+.bm-input-group:focus-within {
+    background: rgba(255, 255, 255, 0.15);
+    border-color: var(--accent-blue);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);
+}
+.bm-input-group input {
+    background: transparent;
+    border: none;
+    color: white;
+    padding: 6px;
+    outline: none;
+    width: 220px;
+    font-size: 0.95rem;
+}
 
-/* 6. INDICATEUR VISUEL DE PAGE (UX) */
-.a4-page::before {
-    content: attr(data-page-number);
-    position: absolute;
-    right: -40px;
-    top: 0;
-    font-family: 'Inter', sans-serif;
-    font-size: 14px;
-    font-weight: 700;
-    color: #94a3b8;
+/* WORKSPACE */
+.bm-workspace {
+    display: grid;
+    grid-template-columns: var(--sidebar-w) 1fr var(--sidebar-w);
+    height: calc(100vh - var(--header-h));
+    background: var(--bg-app);
+}
+
+/* SIDE BARS */
+.bm-aside-tools, .bm-aside-style {
+    background: var(--sidebar-bg);
+    border-right: 1px solid var(--border-color);
+    padding: 1.5rem;
+    overflow-y: auto;
+    transition: background var(--transition-medium);
+    box-shadow: inset 0 0 8px rgba(0,0,0,0.02);
+}
+.bm-aside-style { border-left: 1px solid var(--border-color); border-right: none; }
+
+/* CANVAS CENTRAL */
+.bm-canvas {
+    overflow-y: auto;
+    padding: 40px 0;
+    display: flex;
+    justify-content: center;
+    scroll-behavior: smooth;
+}
+.bm-a4-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+    align-items: center;
+    width: 100%;
+}
+
+/* A4 PAGE STYLING */
+.a4-page {
+    width: 794px; /* ~A4 210mm */
+    background: white;
+    border-radius: 8px;
+    box-shadow: var(--shadow-soft);
+    padding: 30px;
+    transition: transform var(--transition-medium), box-shadow var(--transition-medium);
+}
+.a4-page:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-deep);
+}
+
+/* BUTTONS */
+.bm-tool-box h4 {
+    font-size: 0.75rem;
+    color: var(--text-light);
+    margin-bottom: 12px;
+    letter-spacing: 1px;
+}
+.bm-nav-stack { display: flex; flex-direction: column; gap: 8px; }
+
+.bm-btn {
+    width: 100%;
+    padding: 10px 14px;
+    border: none;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    transition: all var(--transition-fast);
+}
+
+.btn-save { background: var(--accent-blue); color: white; }
+.btn-save:hover { background: var(--accent-hover); }
+
+.btn-reset { background: #fee2e2; color: #dc2626; }
+.btn-reset:hover { background: #fecaca; }
+
+.status-pill {
+    font-size: 0.8rem;
+    padding: 6px 12px;
+    border-radius: 20px;
+    background: rgba(255,255,255,0.1);
+    transition: all var(--transition-fast);
+}
+.status-pill.saved { background: #d1fae5; color: #065f46; }
+.status-pill.error { background: #fee2e2; color: #b91c1c; }
+
+/* SCROLLBARS STYLISÉES */
+.bm-aside-tools::-webkit-scrollbar,
+.bm-aside-style::-webkit-scrollbar,
+.bm-canvas::-webkit-scrollbar {
+    width: 8px;
+}
+.bm-aside-tools::-webkit-scrollbar-thumb,
+.bm-aside-style::-webkit-scrollbar-thumb,
+.bm-canvas::-webkit-scrollbar-thumb {
+    background-color: rgba(0,0,0,0.15);
+    border-radius: 4px;
 }
