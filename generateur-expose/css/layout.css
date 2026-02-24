@@ -1,111 +1,118 @@
-/* --- CONFIGURATION GLOBALE (RESET & BOXING) --- */
-* {
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
-}
+/**
+ * @file paper.css
+ * @description Moteur de rendu physique A4 pour BuroMaster Pro.
+ * @version 2.0 (Expert Edition - Pixel Perfect)
+ */
 
 :root {
-    --header-h: 60px;
-    --side-w: 280px;
-    --bg-app: #e2e8f0; /* Gris bleuâtre pro pour faire ressortir le blanc du papier */
-    --primary: #1e293b;
-    --accent: #2563eb;
-    --border: #cbd5e1;
+    /* Standards Internationaux ISO 216 */
+    --a4-width: 210mm;
+    --a4-height: 297mm;
+    --a4-padding: 25mm; /* Marges académiques standard */
+    
+    /* Variables de design papier */
+    --paper-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+    --paper-font: 'Times New Roman', Times, serif; /* Par défaut pour les exposés */
 }
 
-body {
-    font-family: 'Segoe UI', system-ui, sans-serif;
-    height: 100vh;
-    overflow: hidden; /* Empêche le scroll global du site */
-    display: flex;
-    flex-direction: column;
-}
-
-/* --- 1. LE HEADER (BURO-TOPBAR) --- */
-.buro-topbar {
-    height: var(--header-h);
-    background: var(--primary);
-    color: white;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0 20px;
-    z-index: 100;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-}
-
-.doc-metadata {
-    display: flex;
-    gap: 15px;
-    flex: 1;
-    max-width: 600px;
-    margin: 0 40px;
-}
-
-.doc-metadata input {
-    background: rgba(255, 255, 255, 0.1);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    color: white;
-    padding: 8px 15px;
-    border-radius: 4px;
-    width: 100%;
-}
-
-.doc-metadata input:focus {
+/* 1. LE CONTENEUR DE LA PAGE (CADRE PHYSIQUE) */
+.a4-page {
+    background: #ffffff;
+    width: var(--a4-width);
+    min-height: var(--a4-height);
+    padding: var(--a4-padding);
+    margin: 0 auto;
+    position: relative;
+    box-shadow: var(--paper-shadow);
+    box-sizing: border-box;
+    cursor: text;
+    overflow: hidden; /* Blindage : le texte ne doit jamais "déborder" visuellement du cadre */
+    
+    /* Typographie de base pour le rendu papier */
+    font-family: var(--paper-font);
+    font-size: 12pt;
+    line-height: 1.5;
+    color: #111827;
+    
+    /* Optimisation de la frappe */
     outline: none;
-    background: rgba(255, 255, 255, 0.2);
+    transition: box-shadow 0.3s ease;
 }
 
-/* --- 2. LE CONTENEUR PRINCIPAL (3 COLONNES) --- */
-.buro-container {
-    display: grid;
-    grid-template-columns: var(--side-w) 1fr var(--side-w);
-    height: calc(100vh - var(--header-h));
-    background: var(--bg-app);
+/* 2. ÉTAT DE FOCUS (ACCESSIBILITÉ & UX) */
+.a4-page:focus-visible {
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.4), var(--paper-shadow);
 }
 
-/* --- 3. LES COLONNES LATÉRALES (ASIDES) --- */
-.col-left, .col-right {
-    background: #f8fafc;
-    border-right: 1px solid var(--border);
-    padding: 20px;
-    overflow-y: auto; /* Scroll indépendant pour les outils */
+/* 3. STRUCTURE INTERNE DU DOCUMENT (ÉLÉMENTS SÉMANTIQUES) */
+.a4-page h1 {
+    font-size: 24pt;
+    margin-bottom: 1.5rem;
+    text-align: center;
+    font-weight: 700;
 }
 
-.col-right {
-    border-right: none;
-    border-left: 1px solid var(--border);
+.a4-page h2 {
+    font-size: 18pt;
+    margin-top: 2rem;
+    margin-bottom: 1rem;
+    border-bottom: 1pt solid #e5e7eb;
+    padding-bottom: 0.3rem;
 }
 
-/* --- 4. LA COLONNE CENTRALE (ZONE A4) --- */
-.col-center {
-    overflow-y: auto; /* Seule cette zone défile pour simuler la lecture d'un document */
-    padding: 40px 0;
+.a4-page p {
+    margin-bottom: 1rem;
+    text-align: justify;
+    hyphens: auto; /* Césure pro pour le français */
+}
+
+/* 4. BLINDAGE DES OBJETS INSÉRÉS (TABLEAUX & IMAGES) */
+.a4-page table {
+    width: 100% !important;
+    border-collapse: collapse;
+    margin: 1.5rem 0;
+    table-layout: fixed; /* Empêche l'éclatement de la page si le texte est long */
+}
+
+.a4-page table td {
+    border: 1pt solid #9ca3af;
+    padding: 8pt;
+    word-wrap: break-word;
+}
+
+.a4-page img {
+    max-width: 100%;
+    height: auto;
+    display: block;
+    margin: 1.5rem auto;
+    border-radius: 2px;
+}
+
+/* 5. PRÉPARATION DES ZONES D'ENTÊTE ET PIED (NON-ÉDITABLES) */
+.a4-header-zone, .a4-footer-zone {
+    position: absolute;
+    left: var(--a4-padding);
+    right: var(--a4-padding);
+    height: 15mm;
+    font-size: 9pt;
+    color: #6b7280;
     display: flex;
-    justify-content: center;
-    scroll-behavior: smooth;
-}
-
-/* Structure interne pour empiler les pages */
-.paper-stack {
-    display: flex;
-    flex-direction: column;
-    gap: 30px; /* Espace entre les feuilles A4 */
     align-items: center;
+    pointer-events: none; /* L'élève ne peut pas cliquer dessus par erreur */
+    user-select: none;
 }
 
-/* Titres et sections dans les barres latérales */
-h3, h4 {
-    color: var(--primary);
-    margin-bottom: 15px;
-    text-transform: uppercase;
-    font-size: 0.85rem;
-    letter-spacing: 0.5px;
-}
+.a4-header-zone { top: 10mm; border-bottom: 0.5pt solid #eee; }
+.a4-footer-zone { bottom: 10mm; border-top: 0.5pt solid #eee; justify-content: space-between; }
 
-hr {
-    border: 0;
-    border-top: 1px solid var(--border);
-    margin: 20px 0;
+/* 6. INDICATEUR VISUEL DE PAGE (UX) */
+.a4-page::before {
+    content: attr(data-page-number);
+    position: absolute;
+    right: -40px;
+    top: 0;
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    color: #94a3b8;
 }
