@@ -1,0 +1,111 @@
+/* --- CONFIGURATION GLOBALE (RESET & BOXING) --- */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+:root {
+    --header-h: 60px;
+    --side-w: 280px;
+    --bg-app: #e2e8f0; /* Gris bleuâtre pro pour faire ressortir le blanc du papier */
+    --primary: #1e293b;
+    --accent: #2563eb;
+    --border: #cbd5e1;
+}
+
+body {
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    height: 100vh;
+    overflow: hidden; /* Empêche le scroll global du site */
+    display: flex;
+    flex-direction: column;
+}
+
+/* --- 1. LE HEADER (BURO-TOPBAR) --- */
+.buro-topbar {
+    height: var(--header-h);
+    background: var(--primary);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 20px;
+    z-index: 100;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.doc-metadata {
+    display: flex;
+    gap: 15px;
+    flex: 1;
+    max-width: 600px;
+    margin: 0 40px;
+}
+
+.doc-metadata input {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: white;
+    padding: 8px 15px;
+    border-radius: 4px;
+    width: 100%;
+}
+
+.doc-metadata input:focus {
+    outline: none;
+    background: rgba(255, 255, 255, 0.2);
+}
+
+/* --- 2. LE CONTENEUR PRINCIPAL (3 COLONNES) --- */
+.buro-container {
+    display: grid;
+    grid-template-columns: var(--side-w) 1fr var(--side-w);
+    height: calc(100vh - var(--header-h));
+    background: var(--bg-app);
+}
+
+/* --- 3. LES COLONNES LATÉRALES (ASIDES) --- */
+.col-left, .col-right {
+    background: #f8fafc;
+    border-right: 1px solid var(--border);
+    padding: 20px;
+    overflow-y: auto; /* Scroll indépendant pour les outils */
+}
+
+.col-right {
+    border-right: none;
+    border-left: 1px solid var(--border);
+}
+
+/* --- 4. LA COLONNE CENTRALE (ZONE A4) --- */
+.col-center {
+    overflow-y: auto; /* Seule cette zone défile pour simuler la lecture d'un document */
+    padding: 40px 0;
+    display: flex;
+    justify-content: center;
+    scroll-behavior: smooth;
+}
+
+/* Structure interne pour empiler les pages */
+.paper-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 30px; /* Espace entre les feuilles A4 */
+    align-items: center;
+}
+
+/* Titres et sections dans les barres latérales */
+h3, h4 {
+    color: var(--primary);
+    margin-bottom: 15px;
+    text-transform: uppercase;
+    font-size: 0.85rem;
+    letter-spacing: 0.5px;
+}
+
+hr {
+    border: 0;
+    border-top: 1px solid var(--border);
+    margin: 20px 0;
+}
