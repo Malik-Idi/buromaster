@@ -1,83 +1,72 @@
 /**
- * MODULE : Export
- * Rôle : Assemblage final et mise en page A4 pour impression.
- * Liaison : Fusionne Plan, Contenu et Visuels dans un flux HTML imprimable.
+ * MODULE : Pagination Engine
+ * Rôle : Gestion dynamique du débordement de texte et création de pages A4.
+ * Liaison : Surveille l'élément #editor-workspace.
  */
-const Export = {
+const Pagination = {
+    // Hauteur maximale d'une page A4 en pixels (approx 29.7cm à 96dpi)
+    // On retire un peu de marge pour la sécurité du rendu
+    MAX_PAGE_HEIGHT: 1080, 
 
-    /** Génère l'aperçu avant impression */
-    render() {
-        const container = document.getElementById('main-view');
-        const data = StorageEngine.load();
+    init() {
+        const workspace = document.getElementById('editor-workspace');
+        
+        // Observer les changements de texte dans le workspace
+        const observer = new MutationObserver(() => {
+            this.checkOverflow();
+        });
 
-        // 1. Génération de la Page de Garde
-        const coverPage = `
-            <div class="print-page cover-page">
-                <h1>${data.metadata.title || 'Exposé sans titre'}</h1>
-                <p class="author">Présenté par : ${data.metadata.author || 'Élève'}</p>
-                <p class="date">Date : ${new Date().toLocaleDateString('fr-FR')}</p>
-            </div>
-        `;
+        observer.observe(workspace, {
+            childList: true,
+            characterData: true,
+            subtree: true
+        });
 
-        // 2. Génération du Sommaire
-        const tocPage = `
-            <div class="print-page toc-page">
-                <h2>Sommaire</h2>
-                <ul>
-                    ${data.plan.map((sec, i) => `<li><span>${i+1}. ${sec.title}</span></li>`).join('')}
-                </ul>
-            </div>
-        `;
-
-        // 3. Génération du Corps de l'exposé (Texte + Visuels)
-        const contentPages = data.plan.map(sec => {
-            const text = data.content[sec.id] || '<p class="empty">Aucun contenu rédigé pour cette partie.</p>';
-            
-            // Liaison : Chercher si un visuel est rattaché à ce titre (simplifié par titre ici)
-            const visual = (data.visuals || []).find(v => v.title.includes(sec.title)) || null;
-            const visualHTML = visual ? this.formatVisual(visual) : '';
-
-            return `
-                <div class="print-page body-page">
-                    <h2>${sec.title}</h2>
-                    <div class="text-content">${text.replace(/\n/g, '<br>')}</div>
-                    ${visualHTML}
-                </div>
-            `;
-        }).join('');
-
-        container.innerHTML = `
-            <div class="module-header no-print">
-                <h2>Étape 4 : Aperçu et Impression</h2>
-                <p>Vérifiez votre travail avant de l'imprimer pour le rendre.</p>
-                <button onclick="window.print()" class="btn-print">Imprimer l'exposé (PDF/Papier)</button>
-            </div>
-            <div id="print-preview">
-                ${coverPage}
-                ${tocPage}
-                ${contentPages}
-            </div>
-        `;
+        console.log("Pagination: Moteur de surveillance actif.");
     },
 
-    /** Transforme les données brutes des visuels en HTML propre */
-    formatVisual(visual) {
-        if (visual.type === 'table') {
-            const lines = visual.content.split('\n');
-            const rows = lines.map(line => {
-                const cells = line.split(',');
-                return `<tr>${cells.map(c => `<td>${c.trim()}</td>`).join('')}</tr>`;
-            }).join('');
-            
-            return `
-                <div class="visual-container">
-                    <table class="print-table">
-                        <caption>${visual.title}</caption>
-                        ${rows}
-                    </table>
-                </div>
-            `;
+    /** Vérifie si la dernière page déborde */
+    checkOverflow() {
+        const pages = document.querySelectorAll('.a4-page');
+        const lastPage = pages[pages.length - 1];
+
+        // Si la hauteur du contenu réel dépasse la limite
+        if (lastPage.scrollHeight > this.MAX_PAGE_HEIGHT) {
+            this.createNewPage(pages.length + 1);
         }
-        return '';
+    },
+
+    /** Crée une nouvelle feuille A4 vierge */
+    createNewPage(pageNumber) {
+        const workspace = document.getElementById('editor-workspace');
+        
+        const newPage = document.createElement('div');
+        newPage.className = 'a4-page';
+        newPage.id = `page-${pageNumber}`;
+        newPage.contentEditable = "true";
+        
+        // Ajout à la pile de feuilles
+        workspace.appendChild(newPage);
+        
+        // Focus automatique sur la nouvelle page pour continuer à écrire
+        newPage.focus();
+        
+        console.log(`Pagination: Page ${pageNumber} créée.`);
+        
+        // Liaison avec le stockage pour mémoriser la structure
+        if (typeof StorageEngine !== 'undefined') {
+            App.updateUIStatus();
+        }
+    },
+
+    /** Force un saut de page (utile pour le Planificateur) */
+    forcePageBreak() {
+        const pages = document.querySelectorAll('.a4-page');
+        this.createNewPage(pages.length + 1);
     }
 };
+
+// Initialisation au chargement
+document.addEventListener('DOMContentLoaded', () => {
+    Pagination.init();
+});
