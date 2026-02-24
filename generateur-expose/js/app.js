@@ -1,59 +1,116 @@
 /**
- * MODULE : Main App Controller
- * Rôle : Pilotage de l'interface, gestion du cycle de vie et liaison inter-modules.
+ * MODULE : Application Orchestrator
+ * Rôle : Pilotage global, Liaison IA et Exportation.
+ * Liaison : Connecte le Header, la Sidebar et l'Éditeur A4.
  */
-document.addEventListener('DOMContentLoaded', () => {
-    App.init();
-});
-
 const App = {
-    state: {},
 
     init() {
-        console.log("App: Initialisation du moteur...");
-        
-        // 1. Charger les données via StorageEngine
-        this.state = StorageEngine.load();
+        console.log("BuroMaster: Initialisation du système...");
 
-        // 2. Initialiser la navigation (Liaison UI)
-        this.bindNavigation();
+        // 1. Charger les données existantes (Liaison Storage)
+        this.loadDocument();
 
-        // 3. Afficher le statut de sauvegarde
-        this.updateUIStatus();
-        
-        console.log("App: Système prêt.");
+        // 2. Configurer les actions de la colonne GAUCHE
+        this.bindGlobalActions();
+
+        // 3. Lancer la sauvegarde automatique (toutes les 30 secondes)
+        setInterval(() => this.saveDocument(), 30000);
+
+        console.log("BuroMaster: Prêt pour l'édition.");
     },
 
-    /** Gestion du menu latéral */
-    bindNavigation() {
-        const navItems = document.querySelectorAll('.nav-links li');
-        const titleElement = document.getElementById('current-step-title');
+    /** Lie les boutons de contrôle système */
+    bindGlobalActions() {
+        // Bouton Enregistrer
+        document.getElementById('btn-save-local')?.addEventListener('click', () => {
+            this.saveDocument();
+            alert("Document enregistré localement !");
+        });
 
-        navItems.forEach(item => {
-            item.addEventListener('click', () => {
-                // Nettoyage UI
-                navItems.forEach(i => i.classList.remove('active'));
-                item.classList.add('active');
+        // Bouton Réinitialiser (Sécurité blindée)
+        document.getElementById('btn-reset')?.addEventListener('click', () => {
+            if(confirm("Attention : Cela effacera tout votre travail. Continuer ?")) {
+                localStorage.clear();
+                window.location.reload();
+            }
+        });
 
-                const target = item.getAttribute('data-target');
-                titleElement.innerText = item.innerText;
+        // Bouton Imprimer / PDF
+        document.getElementById('btn-print-pdf')?.addEventListener('click', () => {
+            window.print();
+        });
 
-                // Liaison : Appel du module spécifique selon la vue
-                this.router(target);
-            });
+        // Liaison IA : Génération de Plan
+        document.getElementById('btn-ai-plan')?.addEventListener('click', () => {
+            this.askAI("Génère un plan détaillé pour un exposé sur : " + document.getElementById('doc-theme').value);
         });
     },
 
-    /** Routeur simple pour charger les modules */
-    router(target) {
-        console.log(`Navigation vers : ${target}`);
-        // Ici, nous appellerons Planificateur.render() ou Editeur.render()
-        // selon le module que nous coderons ensuite.
+    /** Sauvegarde l'intégralité du contenu A4 et des métadonnées */
+    saveDocument() {
+        const theme = document.getElementById('doc-theme').value;
+        const studentClass = document.getElementById('doc-class').value;
+        
+        // Récupérer le contenu de toutes les pages A4
+        const pagesContent = [];
+        document.querySelectorAll('.a4-page').forEach(page => {
+            pagesContent.push(page.innerHTML);
+        });
+
+        const data = {
+            metadata: { theme, studentClass },
+            content: pagesContent,
+            timestamp: new Date().toISOString()
+        };
+
+        // Appel au module Storage
+        if (typeof StorageEngine !== 'undefined') {
+            StorageEngine.save(data);
+            this.updateUIStatus();
+        }
+    },
+
+    /** Recharge le travail précédent au démarrage */
+    loadDocument() {
+        if (typeof StorageEngine === 'undefined') return;
+        
+        const data = StorageEngine.load();
+        if (data && data.content) {
+            document.getElementById('doc-theme').value = data.metadata.theme || "";
+            document.getElementById('doc-class').value = data.metadata.studentClass || "";
+
+            const workspace = document.getElementById('editor-workspace');
+            workspace.innerHTML = ""; // Vider l'initial
+
+            data.content.forEach((pageHTML, index) => {
+                const page = document.createElement('div');
+                page.className = 'a4-page';
+                page.id = `page-${index + 1}`;
+                page.contentEditable = "true";
+                page.innerHTML = pageHTML;
+                workspace.appendChild(page);
+            });
+        }
+    },
+
+    /** Simulation de l'appel IA (à lier à ton API plus tard) */
+    askAI(prompt) {
+        console.log("IA sollicitée avec : " + prompt);
+        const activePage = document.querySelector('.a4-page:focus') || document.getElementById('page-1');
+        
+        activePage.innerHTML += `<p style="color:blue;">[IA : En cours de génération pour "${prompt}"...]</p>`;
+        // Ici, tu inséreras ton fetch vers l'API OpenAI ou autre.
     },
 
     updateUIStatus() {
         const status = document.getElementById('save-status');
-        const now = new Date();
-        status.innerText = `Dernière sauvegarde : ${now.getHours()}h${now.getMinutes()}`;
+        if (status) {
+            const now = new Date();
+            status.innerHTML = `<i class="fas fa-check-circle"></i> Enregistré à ${now.getHours()}h${now.getMinutes()}`;
+        }
     }
 };
+
+// Lancement final
+document.addEventListener('DOMContentLoaded', () => App.init());
