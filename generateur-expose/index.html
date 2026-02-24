@@ -3,33 +3,50 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <!-- Sécurité CSP : Blindage contre les injections (Niveau Expert) -->
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self' https://cdnjs.cloudflare.com https://fonts.googleapis.com https://fonts.gstatic.com; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://fonts.googleapis.com; font-src 'self' https://cdnjs.cloudflare.com https://fonts.gstatic.com;">
-    
+
+    <!-- 🔐 CSP Niveau Production -->
+    <meta http-equiv="Content-Security-Policy" content="
+        default-src 'self';
+        script-src 'self' https://cdnjs.cloudflare.com;
+        style-src 'self' https://cdnjs.cloudflare.com https://fonts.googleapis.com;
+        font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com;
+        img-src 'self' data: blob:;
+        object-src 'none';
+        base-uri 'self';
+        frame-ancestors 'none';
+        form-action 'self';
+    ">
+
     <title>BuroMaster Pro | Éditeur Académique</title>
-    
-    <!-- Liens CDN Complets et Sécurisés -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com">
-    <link href="https://fonts.googleapis.com" rel="stylesheet">
-    
-    <!-- CSS Modulaire -->
+
+    <!-- 🔗 Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+
+    <!-- 🔗 FontAwesome (Icônes) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+    <!-- 🎨 CSS Modulaire -->
     <link rel="stylesheet" href="css/layout.css">
     <link rel="stylesheet" href="css/paper.css">
     <link rel="stylesheet" href="css/print.css">
 </head>
-<body class="bm-app">
 
-    <header class="bm-header">
+<body class="bm-app">
+<div id="app-root">
+
+    <!-- HEADER -->
+    <header class="bm-header" role="banner">
         <div class="bm-logo-area">
-            <i class="fas fa-file-signature"></i>
+            <i class="fas fa-file-signature" aria-hidden="true"></i>
             <span>BuroMaster <strong>PRO</strong></span>
         </div>
-        
+
         <div class="bm-meta-bar">
             <div class="bm-input-group">
                 <label for="doc-theme"><i class="fas fa-heading"></i></label>
                 <input type="text" id="doc-theme" placeholder="Sujet de l'exposé..." autocomplete="off">
             </div>
+
             <div class="bm-input-group">
                 <label for="doc-class"><i class="fas fa-graduation-cap"></i></label>
                 <input type="text" id="doc-class" placeholder="Classe (ex: 3ème A)" autocomplete="off">
@@ -43,38 +60,62 @@
         </div>
     </header>
 
-    <main class="bm-workspace">
-        <!-- COLONNE GAUCHE : PILOTAGE -->
+    <!-- MAIN -->
+    <main class="bm-workspace" role="main">
+
+        <!-- ASIDE GAUCHE -->
         <aside class="bm-aside-tools">
             <div class="bm-tool-box">
+
                 <h4>SYSTÈME</h4>
                 <nav class="bm-nav-stack">
-                    <button class="bm-btn btn-save" data-action="save-doc"><i class="fas fa-save"></i> Enregistrer</button>
-                    <button class="bm-btn btn-reset" data-action="reset-doc"><i class="fas fa-trash-alt"></i> Réinitialiser</button>
-                    <button class="bm-btn btn-export" data-action="export-pdf"><i class="fas fa-file-pdf"></i> Exporter PDF</button>
+                    <button class="bm-btn" data-action="save-doc">
+                        <i class="fas fa-save"></i> Enregistrer
+                    </button>
+
+                    <button class="bm-btn" data-action="reset-doc">
+                        <i class="fas fa-trash-alt"></i> Réinitialiser
+                    </button>
+
+                    <button class="bm-btn" data-action="export-pdf">
+                        <i class="fas fa-file-pdf"></i> Exporter PDF
+                    </button>
+                </nav>
+
+                <div class="bm-separator"></div>
+
+                <h4>MISE EN PAGE</h4>
+                <nav class="bm-nav-stack">
+                    <button class="bm-btn" data-action="open-style-gallery">
+                        <i class="fas fa-palette"></i> Choisir un style
+                    </button>
                 </nav>
 
                 <div class="bm-separator"></div>
 
                 <h4>INTELLIGENCE ARTIFICIELLE</h4>
                 <nav class="bm-nav-stack">
-                    <button class="bm-btn btn-ai" data-ai="plan"><i class="fas fa-lightbulb"></i> Suggérer un plan</button>
-                    <button class="bm-btn btn-ai" data-ai="draft"><i class="fas fa-magic"></i> Aide rédaction</button>
+                    <button class="bm-btn" data-ai="plan">
+                        <i class="fas fa-lightbulb"></i> Suggérer un plan
+                    </button>
+
+                    <button class="bm-btn" data-ai="draft">
+                        <i class="fas fa-magic"></i> Aide rédaction
+                    </button>
                 </nav>
+
             </div>
         </aside>
 
-        <!-- COLONNE CENTRALE : L'ÉDITEUR A4 -->
+        <!-- ÉDITEUR -->
         <section class="bm-canvas">
-            <div id="editor-workspace" class="bm-a4-stack">
-                <!-- LE JS (pagination.js) INJECTERA LA PREMIÈRE PAGE ICI -->
-                <!-- C'EST PLUS PROPRE ET PLUS SCALABLE -->
-            </div>
+            <div id="editor-workspace" class="bm-a4-stack"></div>
         </section>
 
-        <!-- COLONNE DROITE : FORMATAGE -->
+        <!-- ASIDE DROITE -->
         <aside class="bm-aside-style">
             <div class="bm-tool-box">
+
                 <h4>STYLE DE TEXTE</h4>
                 <div class="bm-grid-tools">
                     <button class="tool-icon" data-cmd="bold"><i class="fas fa-bold"></i></button>
@@ -93,6 +134,7 @@
                         <option value="poppins" selected>Poppins</option>
                     </select>
                 </div>
+
                 <div class="bm-field">
                     <input type="number" id="font-size" value="12" min="10" max="18"> <span>pt</span>
                 </div>
@@ -101,19 +143,48 @@
 
                 <h4>INSERTIONS</h4>
                 <nav class="bm-nav-stack">
-                    <button class="bm-btn btn-outline" data-insert="table"><i class="fas fa-table"></i> Tableau</button>
-                    <button class="bm-btn btn-outline" data-insert="image"><i class="fas fa-image"></i> Image</button>
+                    <button class="bm-btn" data-insert="table">
+                        <i class="fas fa-table"></i> Tableau
+                    </button>
+
+                    <button class="bm-btn" data-insert="image">
+                        <i class="fas fa-image"></i> Image
+                    </button>
                 </nav>
+
             </div>
         </aside>
+
     </main>
 
-    <!-- SCRIPTS : On charge les bibliothèques d'exportation avant nos scripts -->
-    <script src="https://cdnjs.cloudflare.com"></script>
-    
-    <script src="js/storage.js"></script>
-    <script src="js/pagination.js"></script>
-    <script src="js/toolbox.js"></script>
-    <script src="js/app.js"></script>
+    <!-- 🖼️ MODALE GALERIE DES STYLES -->
+    <div id="style-gallery-modal" class="bm-modal" aria-hidden="true">
+        <div class="bm-modal-overlay" data-close-modal></div>
+
+        <div class="bm-modal-content" role="dialog" aria-modal="true">
+            <header class="bm-modal-header">
+                <h3>Choisir un style d'entête et pied de page</h3>
+                <button class="bm-close-btn" data-close-modal>
+                    <i class="fas fa-times"></i>
+                </button>
+            </header>
+
+            <div class="bm-modal-body">
+                <div class="bm-style-gallery-grid" id="style-gallery-container">
+                    <!-- styles-manager.js injectera les miniatures ici -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- 📜 SCRIPTS (defer pour performance et sécurité DOMReady) -->
+<script src="js/storage.js" defer></script>
+<script src="js/pagination.js" defer></script>
+<script src="js/toolbox.js" defer></script>
+<script src="js/styles-manager.js" defer></script>
+<script src="js/app.js" defer></script>
+
 </body>
 </html>
