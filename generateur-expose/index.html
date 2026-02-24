@@ -3,139 +3,39 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BuroMaster Premium | Assistant d'Exposé</title>
-    
-    <!-- Polices & Icônes (Chargement sécurisé) -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com" rel="stylesheet">
-    
-    <link rel="stylesheet" href="style.css">
+    <title>EduWrite Pro | Assistant d'Exposé Professionnel</title>
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/components.css">
 </head>
 <body>
-
-<header class="app-header">
-    <div class="header-left">
-        <a href="../index.html" class="back-home-btn" title="Retour à l'accueil">
-            <i class="fas fa-house-chimney"></i>
-        </a>
-        <div class="brand-logo">
-            <i class="fas fa-graduation-cap"></i>
-            <span>BuroMaster</span>
-        </div>
-    </div>
-    <!-- NAVIGATION CORRIGÉE : Ajout des attributs data-step cruciaux pour script-ui.js -->
-    <nav class="steps-navigation">
-        <span class="step-link" data-step="plan" id="link-plan" role="button">Plan</span>
-        <span class="step-link" data-step="intro" id="link-intro" role="button">Introduction</span>
-        <span class="step-link" data-step="dev" id="link-dev" role="button">Développement</span>
-        <span class="step-link" data-step="conclu" id="link-conclu" role="button">Conclusion</span>
+    <nav class="sidebar">
+        <div class="logo">EduWrite <span>Pro</span></div>
+        <ul class="nav-links">
+            <li class="active" data-target="step-plan">1. Structure du plan</li>
+            <li data-target="step-edit">2. Rédaction</li>
+            <li data-target="step-visuals">3. Schémas & Tableaux</li>
+            <li data-target="step-export">4. Mise en page & Impression</li>
+        </ul>
     </nav>
-</header>
 
-<section class="top-configuration">
-    <div class="config-container">
-        <div class="input-field">
-            <label><i class="fas fa-users"></i> Classe</label>
-            <input type="text" id="studentClass" placeholder="Ex: 3ème A">
-        </div>
-        <div class="input-field theme-grow">
-            <label><i class="fas fa-pen-fancy"></i> Thème de l'exposé</label>
-            <input type="text" id="theme" placeholder="Entrez le sujet de votre travail...">
-        </div>
-        <div class="quick-actions">
-            <button id="advancedOptionsBtn" class="action-icon-btn" title="Paramètres" onclick="document.getElementById('advancedPanel').style.display = document.getElementById('advancedPanel').style.display === 'none' ? 'flex' : 'none'"><i class="fas fa-cog"></i></button>
-            <button id="resetAllBtn" class="action-icon-btn danger" title="Réinitialiser"><i class="fas fa-trash-can"></i></button>
-        </div>
-    </div>
+    <main class="content-area">
+        <header>
+            <h1 id="current-step-title">Structure du plan</h1>
+            <div id="save-status">Dernière sauvegarde : --:--</div>
+        </header>
 
-    <!-- Panneau des options avancées -->
-    <div id="advancedPanel" class="settings-drawer" style="display: none;">
-        <div class="setting-item">
-            <label>Police</label>
-            <select id="fontSelect">
-                <option value="'Times New Roman', serif">Times New Roman</option>
-                <option value="'Arial', sans-serif">Arial</option>
-                <option value="'Poppins', sans-serif">Poppins</option>
-            </select>
-        </div>
-        <div class="setting-item">
-            <label>Taille</label>
-            <input type="number" id="fontSizeInput" value="12" min="10" max="18"> px
-        </div>
-        <div class="setting-item">
-            <label>Détails IA</label>
-            <select id="aiDetailLevel">
-                <option value="concis">Concis</option>
-                <option value="standard" selected>Standard</option>
-                <option value="detaille">Détaillé</option>
-            </select>
-        </div>
-    </div>
-</section>
+        <!-- Les sections seront injectées ou affichées ici -->
+        <section id="main-view" class="glass-panel">
+            <!-- Le contenu dynamique arrive ici via app.js -->
+        </section>
+    </main>
 
-<main class="workspace-layout">
-    <!-- Panneau de contrôle gauche -->
-    <aside class="sidebar-controls">
-        <div class="control-card">
-            <h2 id="step-title">Édition du Plan</h2>
-            
-            <div class="history-btns">
-                <button id="undoBtn" title="Annuler"><i class="fas fa-undo"></i></button>
-                <button id="redoBtn" title="Rétablir"><i class="fas fa-redo"></i></button>
-            </div>
-
-            <button type="button" id="generateBtn" class="ai-generate-btn">
-                <i class="fas fa-wand-magic-sparkles"></i> Demander à l'IA
-            </button>
-
-            <!-- L'éditeur principal (pour Plan, Intro, Conclusion) -->
-            <textarea id="editor" placeholder="Saisissez votre contenu ici..."></textarea>
-            
-            <!-- Conteneur pour les blocs de développement -->
-            <div id="dev-blocks-container" style="display: none;"></div>
-
-            <div class="final-actions">
-                <button type="button" id="validateBtn" class="btn-validate">Valider l'étape</button>
-                <button type="button" id="nextStepBtn" class="btn-next" style="display: none;">Étape suivante</button>
-                <button type="button" id="downloadPdf" class="btn-pdf">
-                    <i class="fas fa-file-pdf"></i> Exporter PDF
-                </button>
-            </div>
-        </div>
-    </aside>
-
-    <!-- Zone Centrale : Prévisualisation A4 -->
-    <section class="paper-viewer">
-        <div class="viewer-header">
-            <label class="toggle-format">
-                <input type="checkbox" id="autoFormatCheckbox" checked> 
-                <span>Mise en forme auto</span>
-            </label>
-            <div class="zoom-controls">
-                <button id="zoomOutBtn"><i class="fas fa-minus"></i></button>
-                <span id="zoomLevel">60%</span>
-                <button id="zoomInBtn"><i class="fas fa-plus"></i></button>
-            </div>
-        </div>
-        
-        <div class="canvas-area">
-            <!-- La zone où les pages A4 seront générées par le script-engine -->
-            <div id="preview-pages" class="a4-stack"></div>
-        </div>
-    </section>
-</main>
-
-<!-- LIBRAIRIES EXTERNES -->
-<!-- FontAwesome pour tes icônes (Design Pro) -->
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-<!-- Moteurs d'exportation (Indispensables pour Engine) -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html-docx-js/0.4.1/html-docx.min.js"></script>
-
-<!-- SCRIPTS LOCAUX (L'ordre est vital : le Cerveau avant l'Interface) -->
-<script src="script-engine.js"></script>
-<script src="script-ui.js"></script>
-
+    <!-- Chargement des modules JS -->
+    <script src="js/storage.js"></script>
+    <script src="js/planificateur.js"></script>
+    <script src="js/editeur.js"></script>
+    <script src="js/visuels.js"></script>
+    <script src="js/export.js"></script>
+    <script src="js/app.js"></script>
 </body>
 </html>
