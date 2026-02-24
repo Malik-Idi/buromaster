@@ -1,72 +1,108 @@
 /**
- * MODULE : Pagination Engine
- * Rôle : Gestion dynamique du débordement de texte et création de pages A4.
- * Liaison : Surveille l'élément #editor-workspace.
+ * @file pagination.js
+ * @description Moteur de flux textuel avec transfert de nœuds (Node Shifting).
+ * @version 4.0 (Architect Edition - Ultimate)
  */
-const Pagination = {
-    // Hauteur maximale d'une page A4 en pixels (approx 29.7cm à 96dpi)
-    // On retire un peu de marge pour la sécurité du rendu
-    MAX_PAGE_HEIGHT: 1080, 
 
-    init() {
+const PaginationEngine = (() => {
+    'use strict';
+
+    const MAX_HEIGHT = 1040; // Hauteur utile en pixels (29.7cm - marges)
+    let paginationTimeout = null;
+
+    /** Crée une structure de page A4 standardisée */
+    const createPage = (index) => {
+        const page = document.createElement('article');
+        page.className = 'a4-page';
+        page.dataset.pageNumber = index;
+        
+        const content = document.createElement('div');
+        content.className = 'bm-page-content';
+        content.contentEditable = "true";
+        content.spellcheck = true;
+        
+        page.appendChild(content);
+        return page;
+    };
+
+    /** Gère le transfert de contenu vers la page suivante */
+    const handleOverflow = (currentPage) => {
+        const contentArea = currentPage.querySelector('.bm-page-content');
         const workspace = document.getElementById('editor-workspace');
         
-        // Observer les changements de texte dans le workspace
-        const observer = new MutationObserver(() => {
-            this.checkOverflow();
-        });
+        // Si la page actuelle dépasse la limite
+        if (contentArea.offsetHeight > MAX_HEIGHT) {
+            let nextPage = currentPage.nextElementSibling;
+            
+            if (!nextPage) {
+                const nextIndex = parseInt(currentPage.dataset.pageNumber) + 1;
+                nextPage = createPage(nextIndex);
+                workspace.appendChild(nextPage);
+            }
 
-        observer.observe(workspace, {
-            childList: true,
-            characterData: true,
-            subtree: true
-        });
-
-        console.log("Pagination: Moteur de surveillance actif.");
-    },
-
-    /** Vérifie si la dernière page déborde */
-    checkOverflow() {
-        const pages = document.querySelectorAll('.a4-page');
-        const lastPage = pages[pages.length - 1];
-
-        // Si la hauteur du contenu réel dépasse la limite
-        if (lastPage.scrollHeight > this.MAX_PAGE_HEIGHT) {
-            this.createNewPage(pages.length + 1);
+            const nextContent = nextPage.querySelector('.bm-page-content');
+            
+            // On déplace le dernier élément enfant vers le début de la page suivante
+            if (contentArea.lastElementChild) {
+                const nodeToMove = contentArea.lastElementChild;
+                nextContent.prepend(nodeToMove);
+                
+                // Récursion : on vérifie si la page suivante déborde aussi
+                handleOverflow(nextPage);
+            }
         }
-    },
+    };
 
-    /** Crée une nouvelle feuille A4 vierge */
-    createNewPage(pageNumber) {
-        const workspace = document.getElementById('editor-workspace');
-        
-        const newPage = document.createElement('div');
-        newPage.className = 'a4-page';
-        newPage.id = `page-${pageNumber}`;
-        newPage.contentEditable = "true";
-        
-        // Ajout à la pile de feuilles
-        workspace.appendChild(newPage);
-        
-        // Focus automatique sur la nouvelle page pour continuer à écrire
-        newPage.focus();
-        
-        console.log(`Pagination: Page ${pageNumber} créée.`);
-        
-        // Liaison avec le stockage pour mémoriser la structure
-        if (typeof StorageEngine !== 'undefined') {
-            App.updateUIStatus();
+    /** Gère la suppression des pages vides (Back-merging) */
+    const handleUnderflow = (currentPage) => {
+        const contentArea = currentPage.querySelector('.bm-page-content');
+        const prevPage = currentPage.previousElementSibling;
+
+        // Si la page est vide et qu'il y en a une avant, on la supprime
+        if (contentArea.childNodes.length === 0 && prevPage) {
+            const prevContent = prevPage.querySelector('.bm-page-content');
+            currentPage.remove();
+            
+            // On replace le curseur à la fin de la page précédente
+            const range = document.createRange();
+            const selection = window.getSelection();
+            range.selectNodeContents(prevContent);
+            range.collapse(false);
+            selection.removeAllRanges();
+            selection.addRange(range);
+            prevContent.focus();
         }
-    },
+    };
 
-    /** Force un saut de page (utile pour le Planificateur) */
-    forcePageBreak() {
-        const pages = document.querySelectorAll('.a4-page');
-        this.createNewPage(pages.length + 1);
-    }
-};
+    return {
+        init() {
+            const workspace = document.getElementById('editor-workspace');
+            if (!workspace) return;
 
-// Initialisation au chargement
-document.addEventListener('DOMContentLoaded', () => {
-    Pagination.init();
-});
+            const observer = new MutationObserver(() => {
+                clearTimeout(paginationTimeout);
+                paginationTimeout = setTimeout(() => {
+                    const pages = workspace.querySelectorAll('.a4-page');
+                    pages.forEach(page => {
+                        handleOverflow(page);
+                        handleUnderflow(page);
+                    });
+                    
+                    // Notifier le stockage du changement de structure
+                    window.dispatchEvent(new CustomEvent('bm:flux-update'));
+                }, 250);
+            });
+
+            observer.observe(workspace, { childList: true, subtree: true, characterData: true });
+        },
+
+        ensureFirstPage() {
+            const workspace = document.getElementById('editor-workspace');
+            if (workspace && workspace.children.length === 0) {
+                workspace.appendChild(createPage(1));
+            }
+        }
+    };
+})();
+
+Object.freeze(PaginationEngine);
