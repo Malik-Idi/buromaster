@@ -1,11 +1,11 @@
 /**
  * @file print.css
- * @description Optimisation chirurgicale pour l'export PDF et l'impression A4.
- * @version 6.0 (Architect Edition - Final 20/20)
+ * @description Exportation A4 haute fidélité & SaaS Premium
+ * @version 8.5 (Ultra Premium Print Edition)
  */
 
 @media print {
-    /* 1. NEUTRALISATION TOTALE DE L'INTERFACE LOGICIELLE */
+    /* 1. MASQUAGE DE L’UI */
     .bm-header, 
     .bm-aside-tools, 
     .bm-aside-style, 
@@ -18,14 +18,13 @@
         display: none !important;
     }
 
-    /* 2. RÉINITIALISATION DU CANVAS (FLUX CONTINU) */
+    /* 2. RESET CANVAS */
     html, body {
         background: #ffffff !important;
         margin: 0 !important;
         padding: 0 !important;
         height: auto !important;
         overflow: visible !important;
-        /* Forçage des couleurs et graphiques (Chrome/Safari + Firefox) */
         -webkit-print-color-adjust: exact !important;
         print-color-adjust: exact !important;
     }
@@ -39,10 +38,10 @@
         overflow: visible !important;
     }
 
-    /* 3. CONFIGURATION PHYSIQUE DE LA PAGE A4 */
+    /* 3. CONFIGURATION DE LA PAGE */
     @page {
         size: A4;
-        margin: 0; /* On utilise les zones de sécurité de paper.css */
+        margin: 0; /* marges gérées par paper.css */
     }
 
     .a4-page {
@@ -55,34 +54,43 @@
         border: none !important;
         box-shadow: none !important;
         background: #ffffff !important;
-        /* Force le saut de page physique */
         page-break-after: always !important;
         break-after: page !important;
+        box-sizing: border-box !important;
     }
 
-    /* 4. NETTOYAGE TYPOGRAPHIQUE (LA TOUCHE EXPERT) */
-    /* Empêche le navigateur d'afficher l'URL à côté des liens */
-    a[href]:after {
-        content: none !important;
+    /* 4. TYPOGRAPHIE & LIGNE */
+    a[href]:after { content: none !important; }
+    p, h2, h3 { orphans: 3; widows: 3; }
+    h2, h3 { page-break-after: avoid !important; break-after: avoid !important; }
+    [contenteditable="true"] { outline: none !important; border: none !important; }
+    .bm-page-content { color: #000000 !important; position: absolute !important; }
+
+    /* 5. HEADER / FOOTER dynamique */
+    .bm-page-header, .bm-page-footer {
+        display: flex !important;
+        position: absolute !important;
+        left: var(--margin-side) !important;
+        right: var(--margin-side) !important;
+        height: 15mm !important;
+        font-family: 'Inter', sans-serif !important;
+        font-size: 9pt !important;
+        color: #94a3b8 !important;
+        align-items: center !important;
+        justify-content: space-between !important;
     }
 
-    /* Empêche les orphelins (lignes seules en bas de page) */
-    p, h2, h3 {
-        orphans: 3;
-        widows: 3;
-    }
+    .bm-page-footer { border-top: 0.5pt solid #f1f5f9 !important; }
+    .bm-page-header { border-bottom: 0.5pt solid #f1f5f9 !important; }
 
-    h2, h3 {
-        page-break-after: avoid; /* Un titre ne doit jamais être seul en bas de page */
+    /* 6. TABLEAUX ET IMAGES */
+    .bm-content-table { 
+        width: 100% !important; 
+        border-collapse: collapse !important; 
+        table-layout: fixed !important; 
+        margin: 0.5cm 0 !important; 
+        page-break-inside: avoid !important; 
     }
-
-    /* Suppression des indicateurs visuels d'édition */
-    [contenteditable="true"] {
-        outline: none !important;
-    }
-
-    /* Forçage du noir pur pour l'économie et la clarté */
-    .bm-page-content {
-        color: #000000 !important;
-    }
+    .bm-content-table td { border: 1pt solid #cbd5e1 !important; padding: 6pt !important; font-size: 10pt !important; }
+    .bm-inserted-img { max-width: 100% !important; page-break-inside: avoid !important; height: auto !important; display: block !important; margin: 0.8cm auto !important; }
 }
