@@ -3,39 +3,109 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EduWrite Pro | Assistant d'Exposé Professionnel</title>
-    <link rel="stylesheet" href="css/main.css">
-    <link rel="stylesheet" href="css/components.css">
+    <title>BuroMaster | Éditeur d'Exposé Professionnel</title>
+    
+    <!-- Bibliothèques de base -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com">
+    
+    <!-- Stylesheets (L'ordre est vital pour la cascade) -->
+    <link rel="stylesheet" href="css/layout.css">   <!-- Les 3 colonnes -->
+    <link rel="stylesheet" href="css/paper.css">    <!-- Le rendu A4 -->
+    <link rel="stylesheet" href="css/print.css">    <!-- Mode Impression -->
 </head>
 <body>
-    <nav class="sidebar">
-        <div class="logo">EduWrite <span>Pro</span></div>
-        <ul class="nav-links">
-            <li class="active" data-target="step-plan">1. Structure du plan</li>
-            <li data-target="step-edit">2. Rédaction</li>
-            <li data-target="step-visuals">3. Schémas & Tableaux</li>
-            <li data-target="step-export">4. Mise en page & Impression</li>
-        </ul>
-    </nav>
 
-    <main class="content-area">
-        <header>
-            <h1 id="current-step-title">Structure du plan</h1>
-            <div id="save-status">Dernière sauvegarde : --:--</div>
-        </header>
+    <!-- 1. HEADER HORIZONTAL (Infos Document) -->
+    <header class="buro-topbar">
+        <div class="brand">
+            <i class="fas fa-file-invoice"></i> <span>BuroMaster</span>
+        </div>
+        <div class="doc-metadata">
+            <input type="text" id="doc-theme" placeholder="Thème de l'exposé...">
+            <input type="text" id="doc-class" placeholder="Classe (ex: 3ème A)">
+        </div>
+        <div class="system-status">
+            <span id="save-indicator"><i class="fas fa-check-circle"></i> Enregistré</span>
+        </div>
+    </header>
 
-        <!-- Les sections seront injectées ou affichées ici -->
-        <section id="main-view" class="glass-panel">
-            <!-- Le contenu dynamique arrive ici via app.js -->
+    <main class="buro-container">
+        
+        <!-- 2. COLONNE GAUCHE (Contrôle & Étapes) -->
+        <aside class="col-left">
+            <section class="workflow-panel">
+                <h3>Étapes & Système</h3>
+                <div class="action-group">
+                    <button id="btn-save-local" title="Sauvegarder"><i class="fas fa-save"></i> Enregistrer</button>
+                    <button id="btn-reset" class="danger"><i class="fas fa-undo"></i> Réinitialiser</button>
+                    <button id="btn-print-pdf"><i class="fas fa-file-pdf"></i> Télécharger PDF</button>
+                </div>
+                <hr>
+                <div class="ai-assistant">
+                    <h4><i class="fas fa-robot"></i> Assistant IA</h4>
+                    <button id="btn-ai-plan" class="btn-ai">Générer un Plan</button>
+                    <button id="btn-ai-help" class="btn-ai">Aide à la rédaction</button>
+                </div>
+                <hr>
+                <div class="page-settings">
+                    <h4>Style de page</h4>
+                    <select id="header-style">
+                        <option value="none">Sans en-tête</option>
+                        <option value="standard">Standard académique</option>
+                    </select>
+                </div>
+            </section>
+        </aside>
+
+        <!-- 3. COLONNE CENTRALE (Édition Directe A4) -->
+        <section class="col-center">
+            <div id="editor-workspace" class="paper-stack">
+                <!-- Les pages A4 seront générées dynamiquement par pagination.js -->
+                <div class="a4-page" contenteditable="true" id="page-1">
+                    <!-- Contenu initial (vide) -->
+                </div>
+            </div>
         </section>
+
+        <!-- 4. COLONNE DROITE (Toolbox & Mise en forme) -->
+        <aside class="col-right">
+            <section class="tools-panel">
+                <h3>Outils d'Édition</h3>
+                
+                <div class="tool-group">
+                    <label>Texte</label>
+                    <div class="btn-grid">
+                        <button onclick="document.execCommand('bold')" title="Gras"><i class="fas fa-bold"></i></button>
+                        <button onclick="document.execCommand('italic')" title="Italique"><i class="fas fa-italic"></i></button>
+                        <button onclick="document.execCommand('underline')" title="Souligné"><i class="fas fa-underline"></i></button>
+                    </div>
+                </div>
+
+                <div class="tool-group">
+                    <label>Police & Taille</label>
+                    <select id="font-family">
+                        <option value="Times New Roman">Times New Roman</option>
+                        <option value="Arial">Arial</option>
+                        <option value="Poppins">Poppins</option>
+                    </select>
+                    <input type="number" id="font-size" value="12" min="10" max="18">
+                </div>
+
+                <div class="tool-group">
+                    <label>Insertion</label>
+                    <button id="btn-add-table"><i class="fas fa-table"></i> Insérer Tableau</button>
+                    <button id="btn-add-image"><i class="fas fa-image"></i> Ajouter Image</button>
+                    <button id="btn-add-chart"><i class="fas fa-chart-bar"></i> Graphique</button>
+                </div>
+            </section>
+        </aside>
+
     </main>
 
-    <!-- Chargement des modules JS -->
+    <!-- Chargement des scripts (L'ordre est vital) -->
     <script src="js/storage.js"></script>
-    <script src="js/planificateur.js"></script>
-    <script src="js/editeur.js"></script>
-    <script src="js/visuels.js"></script>
-    <script src="js/export.js"></script>
-    <script src="js/app.js"></script>
+    <script src="js/pagination.js"></script>
+    <script src="js/toolbox.js"></script>
+    <script src="js/app.js"></script> <!-- Le lanceur final -->
 </body>
 </html>
