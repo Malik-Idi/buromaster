@@ -1,45 +1,73 @@
 /**
- * MODULE : Storage Engine
- * Rôle : Gestion persistante des données sur localStorage avec blindage contre les erreurs.
+ * @file storage.js
+ * @description Moteur de persistance de données (Version Architecte 20/20).
+ * @author BuroMaster Pro Engine
  */
-const StorageEngine = {
-    DB_NAME: 'EDUWRITE_PRO_DATA',
 
-    // Structure de données initiale (le schéma de l'exposé)
-    schema: {
-        metadata: { title: '', date: '', author: '' },
-        plan: [],
-        content: {}, // Stocke le texte par ID de section
-        visuals: []
-    },
+const StorageEngine = (() => {
+    'use strict';
 
-    /** Sauvegarde les données avec validation */
-    save(data) {
-        try {
-            const payload = JSON.stringify(data);
-            localStorage.setItem(this.DB_NAME, payload);
-            console.log("Storage: Sauvegarde réussie.");
-            return true;
-        } catch (e) {
-            console.error("Storage Error: Capacité locale dépassée ou accès refusé.", e);
-            return false;
+    const STORAGE_KEY = 'BM_PRO_PERSISTENCE';
+    const SCHEMA_VERSION = '1.0';
+
+    const INITIAL_MODEL = Object.freeze({
+        version: SCHEMA_VERSION,
+        metadata: { theme: '', studentClass: '', lastModified: null },
+        document: {
+            pages: [], 
+            config: { fontFamily: 'poppins', fontSize: 12, headerStyle: 'none' }
         }
-    },
+    });
 
-    /** Récupère les données ou initialise le schéma */
-    load() {
-        const data = localStorage.getItem(this.DB_NAME);
-        if (!data) {
-            this.save(this.schema);
-            return this.schema;
+    /** Clone profondément le modèle pour éviter les fuites de référence */
+    const getFreshModel = () => JSON.parse(JSON.stringify(INITIAL_MODEL));
+
+    const validateIntegrity = (data) => {
+        return data && typeof data === 'object' && 
+               data.version === SCHEMA_VERSION && 
+               data.document && Array.isArray(data.document.pages);
+    };
+
+    /** Émet un événement global pour l'UI (Découplage total) */
+    const notifyUI = (status) => {
+        const event = new CustomEvent('bm:storage-update', { detail: { status } });
+        window.dispatchEvent(event);
+    };
+
+    return {
+        save(payload) {
+            try {
+                if (!validateIntegrity(payload)) throw new Error("Schema Invalide");
+                
+                payload.metadata.lastModified = new Date().toISOString();
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
+                
+                notifyUI('success');
+                return true;
+            } catch (error) {
+                console.error("StorageEngine Save Fail:", error);
+                notifyUI('error');
+                return false;
+            }
+        },
+
+        load() {
+            try {
+                const raw = localStorage.getItem(STORAGE_KEY);
+                if (!raw) return getFreshModel();
+
+                const data = JSON.parse(raw);
+                return validateIntegrity(data) ? data : getFreshModel();
+            } catch (e) {
+                return getFreshModel();
+            }
+        },
+
+        clear() {
+            localStorage.removeItem(STORAGE_KEY);
+            window.location.reload();
         }
-        return JSON.parse(data);
-    },
+    };
+})();
 
-    /** Mise à jour partielle (ex: juste le titre) */
-    update(key, value) {
-        const current = this.load();
-        current[key] = value;
-        return this.save(current);
-    }
-};
+Object.freeze(StorageEngine);
