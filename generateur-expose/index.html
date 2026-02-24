@@ -3,109 +3,117 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BuroMaster | Éditeur d'Exposé Professionnel</title>
+    <!-- Sécurité CSP : Blindage contre les injections (Niveau Expert) -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self' https://cdnjs.cloudflare.com https://fonts.googleapis.com https://fonts.gstatic.com; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://fonts.googleapis.com; font-src 'self' https://cdnjs.cloudflare.com https://fonts.gstatic.com;">
     
-    <!-- Bibliothèques de base -->
+    <title>BuroMaster Pro | Éditeur Académique</title>
+    
+    <!-- Liens CDN Complets et Sécurisés -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com">
+    <link href="https://fonts.googleapis.com" rel="stylesheet">
     
-    <!-- Stylesheets (L'ordre est vital pour la cascade) -->
-    <link rel="stylesheet" href="css/layout.css">   <!-- Les 3 colonnes -->
-    <link rel="stylesheet" href="css/paper.css">    <!-- Le rendu A4 -->
-    <link rel="stylesheet" href="css/print.css">    <!-- Mode Impression -->
+    <!-- CSS Modulaire -->
+    <link rel="stylesheet" href="css/layout.css">
+    <link rel="stylesheet" href="css/paper.css">
+    <link rel="stylesheet" href="css/print.css">
 </head>
-<body>
+<body class="bm-app">
 
-    <!-- 1. HEADER HORIZONTAL (Infos Document) -->
-    <header class="buro-topbar">
-        <div class="brand">
-            <i class="fas fa-file-invoice"></i> <span>BuroMaster</span>
+    <header class="bm-header">
+        <div class="bm-logo-area">
+            <i class="fas fa-file-signature"></i>
+            <span>BuroMaster <strong>PRO</strong></span>
         </div>
-        <div class="doc-metadata">
-            <input type="text" id="doc-theme" placeholder="Thème de l'exposé...">
-            <input type="text" id="doc-class" placeholder="Classe (ex: 3ème A)">
+        
+        <div class="bm-meta-bar">
+            <div class="bm-input-group">
+                <label for="doc-theme"><i class="fas fa-heading"></i></label>
+                <input type="text" id="doc-theme" placeholder="Sujet de l'exposé..." autocomplete="off">
+            </div>
+            <div class="bm-input-group">
+                <label for="doc-class"><i class="fas fa-graduation-cap"></i></label>
+                <input type="text" id="doc-class" placeholder="Classe (ex: 3ème A)" autocomplete="off">
+            </div>
         </div>
-        <div class="system-status">
-            <span id="save-indicator"><i class="fas fa-check-circle"></i> Enregistré</span>
+
+        <div class="bm-user-status">
+            <div id="save-status" class="status-pill">
+                <i class="fas fa-sync-alt"></i> Prêt
+            </div>
         </div>
     </header>
 
-    <main class="buro-container">
-        
-        <!-- 2. COLONNE GAUCHE (Contrôle & Étapes) -->
-        <aside class="col-left">
-            <section class="workflow-panel">
-                <h3>Étapes & Système</h3>
-                <div class="action-group">
-                    <button id="btn-save-local" title="Sauvegarder"><i class="fas fa-save"></i> Enregistrer</button>
-                    <button id="btn-reset" class="danger"><i class="fas fa-undo"></i> Réinitialiser</button>
-                    <button id="btn-print-pdf"><i class="fas fa-file-pdf"></i> Télécharger PDF</button>
-                </div>
-                <hr>
-                <div class="ai-assistant">
-                    <h4><i class="fas fa-robot"></i> Assistant IA</h4>
-                    <button id="btn-ai-plan" class="btn-ai">Générer un Plan</button>
-                    <button id="btn-ai-help" class="btn-ai">Aide à la rédaction</button>
-                </div>
-                <hr>
-                <div class="page-settings">
-                    <h4>Style de page</h4>
-                    <select id="header-style">
-                        <option value="none">Sans en-tête</option>
-                        <option value="standard">Standard académique</option>
-                    </select>
-                </div>
-            </section>
+    <main class="bm-workspace">
+        <!-- COLONNE GAUCHE : PILOTAGE -->
+        <aside class="bm-aside-tools">
+            <div class="bm-tool-box">
+                <h4>SYSTÈME</h4>
+                <nav class="bm-nav-stack">
+                    <button class="bm-btn btn-save" data-action="save-doc"><i class="fas fa-save"></i> Enregistrer</button>
+                    <button class="bm-btn btn-reset" data-action="reset-doc"><i class="fas fa-trash-alt"></i> Réinitialiser</button>
+                    <button class="bm-btn btn-export" data-action="export-pdf"><i class="fas fa-file-pdf"></i> Exporter PDF</button>
+                </nav>
+
+                <div class="bm-separator"></div>
+
+                <h4>INTELLIGENCE ARTIFICIELLE</h4>
+                <nav class="bm-nav-stack">
+                    <button class="bm-btn btn-ai" data-ai="plan"><i class="fas fa-lightbulb"></i> Suggérer un plan</button>
+                    <button class="bm-btn btn-ai" data-ai="draft"><i class="fas fa-magic"></i> Aide rédaction</button>
+                </nav>
+            </div>
         </aside>
 
-        <!-- 3. COLONNE CENTRALE (Édition Directe A4) -->
-        <section class="col-center">
-            <div id="editor-workspace" class="paper-stack">
-                <!-- Les pages A4 seront générées dynamiquement par pagination.js -->
-                <div class="a4-page" contenteditable="true" id="page-1">
-                    <!-- Contenu initial (vide) -->
-                </div>
+        <!-- COLONNE CENTRALE : L'ÉDITEUR A4 -->
+        <section class="bm-canvas">
+            <div id="editor-workspace" class="bm-a4-stack">
+                <!-- LE JS (pagination.js) INJECTERA LA PREMIÈRE PAGE ICI -->
+                <!-- C'EST PLUS PROPRE ET PLUS SCALABLE -->
             </div>
         </section>
 
-        <!-- 4. COLONNE DROITE (Toolbox & Mise en forme) -->
-        <aside class="col-right">
-            <section class="tools-panel">
-                <h3>Outils d'Édition</h3>
-                
-                <div class="tool-group">
-                    <label>Texte</label>
-                    <div class="btn-grid">
-                        <button onclick="document.execCommand('bold')" title="Gras"><i class="fas fa-bold"></i></button>
-                        <button onclick="document.execCommand('italic')" title="Italique"><i class="fas fa-italic"></i></button>
-                        <button onclick="document.execCommand('underline')" title="Souligné"><i class="fas fa-underline"></i></button>
-                    </div>
+        <!-- COLONNE DROITE : FORMATAGE -->
+        <aside class="bm-aside-style">
+            <div class="bm-tool-box">
+                <h4>STYLE DE TEXTE</h4>
+                <div class="bm-grid-tools">
+                    <button class="tool-icon" data-cmd="bold"><i class="fas fa-bold"></i></button>
+                    <button class="tool-icon" data-cmd="italic"><i class="fas fa-italic"></i></button>
+                    <button class="tool-icon" data-cmd="underline"><i class="fas fa-underline"></i></button>
+                    <button class="tool-icon" data-cmd="justifyFull"><i class="fas fa-align-justify"></i></button>
                 </div>
 
-                <div class="tool-group">
-                    <label>Police & Taille</label>
-                    <select id="font-family">
-                        <option value="Times New Roman">Times New Roman</option>
-                        <option value="Arial">Arial</option>
-                        <option value="Poppins">Poppins</option>
+                <div class="bm-separator"></div>
+
+                <h4>TYPOGRAPHIE</h4>
+                <div class="bm-field">
+                    <select id="font-family" data-style="family">
+                        <option value="times">Times New Roman</option>
+                        <option value="arial">Arial</option>
+                        <option value="poppins" selected>Poppins</option>
                     </select>
-                    <input type="number" id="font-size" value="12" min="10" max="18">
+                </div>
+                <div class="bm-field">
+                    <input type="number" id="font-size" value="12" min="10" max="18"> <span>pt</span>
                 </div>
 
-                <div class="tool-group">
-                    <label>Insertion</label>
-                    <button id="btn-add-table"><i class="fas fa-table"></i> Insérer Tableau</button>
-                    <button id="btn-add-image"><i class="fas fa-image"></i> Ajouter Image</button>
-                    <button id="btn-add-chart"><i class="fas fa-chart-bar"></i> Graphique</button>
-                </div>
-            </section>
+                <div class="bm-separator"></div>
+
+                <h4>INSERTIONS</h4>
+                <nav class="bm-nav-stack">
+                    <button class="bm-btn btn-outline" data-insert="table"><i class="fas fa-table"></i> Tableau</button>
+                    <button class="bm-btn btn-outline" data-insert="image"><i class="fas fa-image"></i> Image</button>
+                </nav>
+            </div>
         </aside>
-
     </main>
 
-    <!-- Chargement des scripts (L'ordre est vital) -->
+    <!-- SCRIPTS : On charge les bibliothèques d'exportation avant nos scripts -->
+    <script src="https://cdnjs.cloudflare.com"></script>
+    
     <script src="js/storage.js"></script>
     <script src="js/pagination.js"></script>
     <script src="js/toolbox.js"></script>
-    <script src="js/app.js"></script> <!-- Le lanceur final -->
+    <script src="js/app.js"></script>
 </body>
 </html>
