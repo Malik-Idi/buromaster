@@ -3,6 +3,9 @@
  * @description Style global Ultra Premium pour BuroMaster Pro (UI SaaS, Dark/Light ready, modales & animations)
  * @version 1.0 (Ultra Premium SaaS Edition)
  */
+:root {
+    --style-css-start: "loaded";
+}
 
 /* VARIABLES GLOBALES */
 :root {
@@ -234,6 +237,10 @@ body.dark-mode .bm-preview {
 -------------------------- */
 .fade-in {
     animation: fadeIn 0.3s ease forwards;
+}
+
+:root {
+    --style-css-end: "complete";
 }
 
 @keyframes fadeIn {
