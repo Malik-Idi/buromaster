@@ -1,3 +1,6 @@
+document.addEventListener("DOMContentLoaded", () => {
+    console.log("🟢 DOMContentLoaded fired");
+});
 /**
  * @file app.js
  * @description Chef d'orchestre central de BuroMaster Pro.
@@ -182,3 +185,29 @@ const BuroMasterApp = (() => {
 })();
 
 document.addEventListener('DOMContentLoaded', BuroMasterApp.init);
+
+window.addEventListener("load", () => {
+    const styles = getComputedStyle(document.documentElement);
+
+    console.log("---- CSS LOAD CHECK ----");
+
+    console.log("style.css start:", styles.getPropertyValue("--style-css-start"));
+    console.log("style.css end:", styles.getPropertyValue("--style-css-end"));
+
+    console.log("layout.css start:", styles.getPropertyValue("--layout-css-start"));
+    console.log("layout.css end:", styles.getPropertyValue("--layout-css-end"));
+
+    console.log("paper.css start:", styles.getPropertyValue("--paper-css-start"));
+    console.log("paper.css end:", styles.getPropertyValue("--paper-css-end"));
+
+    console.log("print.css start:", styles.getPropertyValue("--print-css-start"));
+    console.log("print.css end:", styles.getPropertyValue("--print-css-end"));
+});
+
+window.onerror = function (message, source, lineno, colno, error) {
+    console.error("🚨 GLOBAL ERROR:", message);
+};
+
+window.addEventListener("load", () => {
+    console.log("🟢 Window fully loaded");
+});
