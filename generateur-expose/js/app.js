@@ -184,6 +184,28 @@ const BuroMasterApp = (() => {
     return { init: bootstrap };
 })();
 
+    /* =====================================================
+       papier A4
+    ===================================================== */
+
+window.addEventListener("load", () => {
+    console.log("🟢 Window fully loaded");
+
+    const workspace = document.getElementById("editor-workspace");
+    if (workspace) {
+        console.log("✅ editor-workspace trouvé");
+    } else {
+        console.error("❌ editor-workspace NON trouvé");
+    }
+
+    const pages = document.querySelectorAll(".a4-page");
+    console.log("📄 Pages A4 détectées :", pages.length);
+});
+
+    /* =====================================================
+       CSS
+    ===================================================== */
+
 document.addEventListener('DOMContentLoaded', BuroMasterApp.init);
 
 window.addEventListener("load", () => {
@@ -203,6 +225,9 @@ window.addEventListener("load", () => {
     console.log("print.css start:", styles.getPropertyValue("--print-css-start"));
     console.log("print.css end:", styles.getPropertyValue("--print-css-end"));
 });
+    /* =====================================================
+       FIN
+    ===================================================== */
 
 window.onerror = function (message, source, lineno, colno, error) {
     console.error("🚨 GLOBAL ERROR:", message);
