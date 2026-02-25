@@ -1,3 +1,4 @@
+console.log("✅ pagination.js chargé");
 /**
  * @file pagination.js
  * @description Moteur de pagination A4 dynamique – Version Production SaaS
