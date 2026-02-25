@@ -1,3 +1,4 @@
+console.log("✅ styles-manager.js chargé");
 /**
  * @file styles-manager.js
  * @description Gestion avancée des styles (Header / Footer)
