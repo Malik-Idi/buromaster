@@ -1,3 +1,6 @@
+:root {
+    --paper-css-start: "loaded";
+}
 /**
  * @file paper.css
  * @description Rendu A4 physique & UX SaaS Premium
@@ -134,6 +137,9 @@
     box-shadow: var(--paper-hover-shadow);
 }
 
+:root {
+    --paper-css-end: "complete";
+}
 /* 6. DARK MODE PRÉVISION */
 body.dark-mode .a4-page { background: var(--dark-paper-bg); }
 body.dark-mode .bm-page-content, body.dark-mode .bm-page-header, body.dark-mode .bm-page-footer {
