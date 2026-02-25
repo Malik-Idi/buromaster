@@ -1,3 +1,6 @@
+:root {
+    --print-css-start: "loaded";
+}
 /**
  * @file print.css
  * @description Exportation A4 haute fidélité & SaaS Premium
@@ -93,4 +96,8 @@
     }
     .bm-content-table td { border: 1pt solid #cbd5e1 !important; padding: 6pt !important; font-size: 10pt !important; }
     .bm-inserted-img { max-width: 100% !important; page-break-inside: avoid !important; height: auto !important; display: block !important; margin: 0.8cm auto !important; }
+}
+
+:root {
+    --print-css-end: "complete";
 }
