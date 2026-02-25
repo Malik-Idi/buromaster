@@ -1,3 +1,4 @@
+console.log("✅ toolbox.js chargé");
 /**
  * @file toolbox.js
  * @description Module d'édition avancé - Ultra Premium SaaS Edition
