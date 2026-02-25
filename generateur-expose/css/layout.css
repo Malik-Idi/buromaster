@@ -1,3 +1,6 @@
+:root {
+    --layout-css-start: "loaded";
+}
 /**
  * @file layout.css
  * @description Architecture structurelle & polissage SaaS Ultra Premium
@@ -203,4 +206,8 @@ html, body {
 .bm-canvas::-webkit-scrollbar-thumb {
     background-color: rgba(0,0,0,0.15);
     border-radius: 4px;
+}
+
+:root {
+    --layout-css-end: "complete";
 }
