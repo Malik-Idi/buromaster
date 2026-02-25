@@ -1,3 +1,4 @@
+console.log("▶ storage.js START");
 /**
  * @file storage.js
  * @description Moteur de persistance Production SaaS – Version Hardened
@@ -194,3 +195,5 @@ const StorageEngine = (() => {
 })();
 
 Object.freeze(StorageEngine);
+
+console.log("✔ storage.js END");
